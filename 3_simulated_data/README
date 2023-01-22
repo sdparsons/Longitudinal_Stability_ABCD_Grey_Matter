@@ -1,0 +1,12 @@
+Supplimental materials README
+
+This folder contains supplimental files for the paper:
+Parsons, S., Brandmaier, A., Lindenberger, U., & Kievit, R. (2022) Test-retest Reliability of Grey Matter Measures in the ABCD study [working title]
+
+This README is structured according to the materials in order of presentation in the manuscript
+
+# simulated data
+
+* CT_sim.csv
+* SA_sim.csv
+* GM_sim.csv

@@ -1,0 +1,1489 @@
+---
+title: "ABCD applied 1"
+output: html_document
+---
+
+## Set up code
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = FALSE,
+	message = FALSE,
+	warning = FALSE
+)
+
+library("tidyverse")
+library("ggseg")
+library("patchwork")
+library("corrplot")
+library("lavaan")
+library("foreach")
+library("doParallel")
+library("ICED")
+
+```
+
+```{r user_defined}
+ 
+# use simulated data? if set to TRUE then the simulated data will be used
+use_sim = FALSE
+
+# checks data exists (assumes working directory is the same path as the R project)
+if(!file.exists("1_raw_data/abcd_lt01.txt")) warning("raw data not present, please use the simulated data with the option use_sim = TRUE")
+if(!file.exists("1_raw_data/abcd_smrip10201.txt")) warning("raw data not present, please use the simulated data with the option use_sim = TRUE")
+
+
+# set number of cores
+doParallel::registerDoParallel(cores=parallel::detectCores()-1)
+
+# users can also select the number of cores manually, e.g.
+# doParallel::registerDoParallel(cores=4)
+
+
+```
+
+```{r read_data}
+if(use_sim == FALSE){
+
+# read in sMRI data
+
+dat1_smri <- read.delim("1_raw_data/abcd_smrip10201.txt")[-1,]
+
+dat1_smri <- dat1_smri %>%
+  arrange(subjectkey) %>%
+  group_by(subjectkey) %>%
+  mutate(n = n()) %>%
+  filter(n == 2) %>%
+  ungroup() %>%
+  as.data.frame()
+
+# remove test subset of participants (aproximately 500)
+
+subset_ids <- read.csv("8_supplement/subset_participantIDs.csv")
+
+dat1_smri <- dat1_smri %>%
+  filter(!subjectkey %in% subset_ids$subjectkey)
+
+# ensure brain measures are numeric
+
+for(i in 11:ncol(dat1_smri)) {
+  dat1_smri[,i] <- as.numeric(dat1_smri[,i])
+}
+
+# read in site id information
+
+locdat <- read.delim("1_raw_data/abcd_lt01.txt")[-1,]  %>%
+  filter(subjectkey %in% dat1_smri$subjectkey) %>%
+  filter(eventname == "baseline_year_1_arm_1") %>%
+  select(subjectkey,
+         site_id_l)
+
+
+dat1_smri <- dat1_smri %>%
+  mutate(eventname = recode(eventname,
+                            "baseline_year_1_arm_1" = "T1",
+                            "2_year_follow_up_y_arm_1" = "T2"))
+}
+```
+
+```{r get_variables}
+if(use_sim == FALSE){
+
+# with huge thanks to Lea Michel
+
+Cortical_thickness<-dat1_smri[,c("subjectkey","interview_age","eventname","sex","smri_thick_cdk_banksstslh","smri_thick_cdk_cdacatelh","smri_thick_cdk_cdmdfrlh","smri_thick_cdk_cuneuslh","smri_thick_cdk_ehinallh","smri_thick_cdk_fusiformlh","smri_thick_cdk_ifpllh","smri_thick_cdk_iftmlh","smri_thick_cdk_ihcatelh","smri_thick_cdk_locclh","smri_thick_cdk_lobfrlh","smri_thick_cdk_linguallh","smri_thick_cdk_mobfrlh","smri_thick_cdk_mdtmlh","smri_thick_cdk_parahpallh","smri_thick_cdk_paracnlh","smri_thick_cdk_parsopclh","smri_thick_cdk_parsobislh","smri_thick_cdk_parstgrislh","smri_thick_cdk_pericclh","smri_thick_cdk_postcnlh","smri_thick_cdk_ptcatelh","smri_thick_cdk_precnlh","smri_thick_cdk_pclh","smri_thick_cdk_rracatelh","smri_thick_cdk_rrmdfrlh","smri_thick_cdk_sufrlh","smri_thick_cdk_supllh","smri_thick_cdk_sutmlh","smri_thick_cdk_smlh","smri_thick_cdk_frpolelh","smri_thick_cdk_tmpolelh","smri_thick_cdk_trvtmlh","smri_thick_cdk_insulalh","smri_thick_cdk_banksstsrh","smri_thick_cdk_cdacaterh","smri_thick_cdk_cdmdfrrh","smri_thick_cdk_cuneusrh","smri_thick_cdk_ehinalrh","smri_thick_cdk_fusiformrh","smri_thick_cdk_ifplrh","smri_thick_cdk_iftmrh","smri_thick_cdk_ihcaterh","smri_thick_cdk_loccrh","smri_thick_cdk_lobfrrh","smri_thick_cdk_lingualrh","smri_thick_cdk_mobfrrh","smri_thick_cdk_mdtmrh","smri_thick_cdk_parahpalrh","smri_thick_cdk_paracnrh","smri_thick_cdk_parsopcrh","smri_thick_cdk_parsobisrh","smri_thick_cdk_parstgrisrh","smri_thick_cdk_periccrh","smri_thick_cdk_postcnrh","smri_thick_cdk_ptcaterh","smri_thick_cdk_precnrh","smri_thick_cdk_pcrh","smri_thick_cdk_rracaterh","smri_thick_cdk_rrmdfrrh","smri_thick_cdk_sufrrh","smri_thick_cdk_suplrh","smri_thick_cdk_sutmrh","smri_thick_cdk_smrh","smri_thick_cdk_frpolerh","smri_thick_cdk_tmpolerh","smri_thick_cdk_trvtmrh","smri_thick_cdk_insularh")] 
+
+names(Cortical_thickness) <- c("subjectkey","interview_age","eventname","sex","lh_bankssts","lh_caudalanteriorcingulate","lh_caudalmiddlefrontal","lh_cuneus","lh_entorhinal","lh_fusiform","lh_inferiorparietal","lh_inferiortemporal","lh_isthmuscingulate","lh_lateraloccipital","lh_lateralorbitofrontal","lh_lingual","lh_medialorbitofrontal","lh_middletemporal","lh_parahippocampal","lh_paracentral","lh_parsopercularis","lh_parsorbitalis","lh_parstriangularis","lh_pericalcarine","lh_postcentral","lh_posteriorcingulate","lh_precentral","lh_precuneus","lh_rostralanteriorcingulate","lh_rostralmiddlefrontal","lh_superiorfrontal","lh_superiorparietal","lh_superiortemporal","lh_supramarginal","lh_frontalpole","lh_temporalpole","lh_transversetemporal","lh_insula","rh_bankssts","rh_caudalanteriorcingulate","rh_caudalmiddlefrontal","rh_cuneus","rh_entorhinal","rh_fusiform","rh_inferiorparietal","rh_inferiortemporal","rh_isthmuscingulate","rh_lateraloccipital","rh_lateralorbitofrontal","rh_lingual","rh_medialorbitofrontal","rh_middletemporal","rh_parahippocampal","rh_paracentral","rh_parsopercularis","rh_parsorbitalis","rh_parstriangularis","rh_pericalcarine","rh_postcentral","rh_posteriorcingulate","rh_precentral","rh_precuneus","rh_rostralanteriorcingulate","rh_rostralmiddlefrontal","rh_superiorfrontal","rh_superiorparietal","rh_superiortemporal","rh_supramarginal","rh_frontalpole","rh_temporalpole","rh_transversetemporal","rh_insula")
+
+
+Surface_area<-dat1_smri[,c("subjectkey","interview_age","eventname","sex","smri_area_cdk_banksstslh","smri_area_cdk_cdacatelh","smri_area_cdk_cdmdfrlh","smri_area_cdk_cuneuslh","smri_area_cdk_ehinallh","smri_area_cdk_fusiformlh","smri_area_cdk_ifpllh","smri_area_cdk_iftmlh","smri_area_cdk_ihcatelh","smri_area_cdk_locclh","smri_area_cdk_lobfrlh","smri_area_cdk_linguallh","smri_area_cdk_mobfrlh","smri_area_cdk_mdtmlh","smri_area_cdk_parahpallh","smri_area_cdk_paracnlh","smri_area_cdk_parsopclh","smri_area_cdk_parsobislh","smri_area_cdk_parstgrislh","smri_area_cdk_pericclh","smri_area_cdk_postcnlh","smri_area_cdk_ptcatelh","smri_area_cdk_precnlh","smri_area_cdk_pclh","smri_area_cdk_rracatelh","smri_area_cdk_rrmdfrlh","smri_area_cdk_sufrlh","smri_area_cdk_supllh","smri_area_cdk_sutmlh","smri_area_cdk_smlh","smri_area_cdk_frpolelh","smri_area_cdk_tmpolelh","smri_area_cdk_trvtmlh","smri_area_cdk_insulalh","smri_area_cdk_banksstsrh","smri_area_cdk_cdacaterh","smri_area_cdk_cdmdfrrh","smri_area_cdk_cuneusrh","smri_area_cdk_ehinalrh","smri_area_cdk_fusiformrh","smri_area_cdk_ifplrh","smri_area_cdk_iftmrh","smri_area_cdk_ihcaterh","smri_area_cdk_loccrh","smri_area_cdk_lobfrrh","smri_area_cdk_lingualrh","smri_area_cdk_mobfrrh","smri_area_cdk_mdtmrh","smri_area_cdk_parahpalrh","smri_area_cdk_paracnrh","smri_area_cdk_parsopcrh","smri_area_cdk_parsobisrh","smri_area_cdk_parstgrisrh","smri_area_cdk_periccrh","smri_area_cdk_postcnrh","smri_area_cdk_ptcaterh","smri_area_cdk_precnrh","smri_area_cdk_pcrh","smri_area_cdk_rracaterh","smri_area_cdk_rrmdfrrh","smri_area_cdk_sufrrh","smri_area_cdk_suplrh","smri_area_cdk_sutmrh","smri_area_cdk_smrh","smri_area_cdk_frpolerh","smri_area_cdk_tmpolerh","smri_area_cdk_trvtmrh","smri_area_cdk_insularh")]   #"smri_area_cdk_totallh","smri_area_cdk_totalrh","smri_area_cdk_total"
+
+names(Surface_area) <- c("subjectkey","interview_age","eventname","sex","lh_bankssts","lh_caudalanteriorcingulate","lh_caudalmiddlefrontal","lh_cuneus","lh_entorhinal","lh_fusiform","lh_inferiorparietal","lh_inferiortemporal","lh_isthmuscingulate","lh_lateraloccipital","lh_lateralorbitofrontal","lh_lingual","lh_medialorbitofrontal","lh_middletemporal","lh_parahippocampal","lh_paracentral","lh_parsopercularis","lh_parsorbitalis","lh_parstriangularis","lh_pericalcarine","lh_postcentral","lh_posteriorcingulate","lh_precentral","lh_precuneus","lh_rostralanteriorcingulate","lh_rostralmiddlefrontal","lh_superiorfrontal","lh_superiorparietal","lh_superiortemporal","lh_supramarginal","lh_frontalpole","lh_temporalpole","lh_transversetemporal","lh_insula","rh_bankssts","rh_caudalanteriorcingulate","rh_caudalmiddlefrontal","rh_cuneus","rh_entorhinal","rh_fusiform","rh_inferiorparietal","rh_inferiortemporal","rh_isthmuscingulate","rh_lateraloccipital","rh_lateralorbitofrontal","rh_lingual","rh_medialorbitofrontal","rh_middletemporal","rh_parahippocampal","rh_paracentral","rh_parsopercularis","rh_parsorbitalis","rh_parstriangularis","rh_pericalcarine","rh_postcentral","rh_posteriorcingulate","rh_precentral","rh_precuneus","rh_rostralanteriorcingulate","rh_rostralmiddlefrontal","rh_superiorfrontal","rh_superiorparietal","rh_superiortemporal","rh_supramarginal","rh_frontalpole","rh_temporalpole","rh_transversetemporal","rh_insula")       #"left_hemisphere","right_hemisphere","whole_brain"
+
+GM_volume<-dat1_smri[,c("subjectkey","interview_age","eventname","sex","smri_vol_cdk_banksstslh","smri_vol_cdk_cdacatelh","smri_vol_cdk_cdmdfrlh","smri_vol_cdk_cuneuslh","smri_vol_cdk_ehinallh","smri_vol_cdk_fusiformlh","smri_vol_cdk_ifpllh","smri_vol_cdk_iftmlh","smri_vol_cdk_ihcatelh","smri_vol_cdk_locclh","smri_vol_cdk_lobfrlh","smri_vol_cdk_linguallh","smri_vol_cdk_mobfrlh","smri_vol_cdk_mdtmlh","smri_vol_cdk_parahpallh","smri_vol_cdk_paracnlh","smri_vol_cdk_parsopclh","smri_vol_cdk_parsobislh","smri_vol_cdk_parstgrislh","smri_vol_cdk_pericclh","smri_vol_cdk_postcnlh","smri_vol_cdk_ptcatelh","smri_vol_cdk_precnlh","smri_vol_cdk_pclh","smri_vol_cdk_rracatelh","smri_vol_cdk_rrmdfrlh","smri_vol_cdk_sufrlh","smri_vol_cdk_supllh","smri_vol_cdk_sutmlh","smri_vol_cdk_smlh","smri_vol_cdk_frpolelh","smri_vol_cdk_tmpolelh","smri_vol_cdk_trvtmlh","smri_vol_cdk_insulalh","smri_vol_cdk_banksstsrh","smri_vol_cdk_cdacaterh","smri_vol_cdk_cdmdfrrh","smri_vol_cdk_cuneusrh","smri_vol_cdk_ehinalrh","smri_vol_cdk_fusiformrh","smri_vol_cdk_ifplrh","smri_vol_cdk_iftmrh","smri_vol_cdk_ihcaterh","smri_vol_cdk_loccrh","smri_vol_cdk_lobfrrh","smri_vol_cdk_lingualrh","smri_vol_cdk_mobfrrh","smri_vol_cdk_mdtmrh","smri_vol_cdk_parahpalrh","smri_vol_cdk_paracnrh","smri_vol_cdk_parsopcrh","smri_vol_cdk_parsobisrh","smri_vol_cdk_parstgrisrh","smri_vol_cdk_periccrh","smri_vol_cdk_postcnrh","smri_vol_cdk_ptcaterh","smri_vol_cdk_precnrh","smri_vol_cdk_pcrh","smri_vol_cdk_rracaterh","smri_vol_cdk_rrmdfrrh","smri_vol_cdk_sufrrh","smri_vol_cdk_suplrh","smri_vol_cdk_sutmrh","smri_vol_cdk_smrh","smri_vol_cdk_frpolerh","smri_vol_cdk_tmpolerh","smri_vol_cdk_trvtmrh","smri_vol_cdk_insularh")]    #"smri_vol_cdk_totallh","smri_vol_cdk_totalrh","smri_vol_cdk_total"
+
+names(GM_volume) <- c("subjectkey","interview_age","eventname","sex","lh_bankssts","lh_caudalanteriorcingulate","lh_caudalmiddlefrontal","lh_cuneus","lh_entorhinal","lh_fusiform","lh_inferiorparietal","lh_inferiortemporal","lh_isthmuscingulate","lh_lateraloccipital","lh_lateralorbitofrontal","lh_lingual","lh_medialorbitofrontal","lh_middletemporal","lh_parahippocampal","lh_paracentral","lh_parsopercularis","lh_parsorbitalis","lh_parstriangularis","lh_pericalcarine","lh_postcentral","lh_posteriorcingulate","lh_precentral","lh_precuneus","lh_rostralanteriorcingulate","lh_rostralmiddlefrontal","lh_superiorfrontal","lh_superiorparietal","lh_superiortemporal","lh_supramarginal","lh_frontalpole","lh_temporalpole","lh_transversetemporal","lh_insula","rh_bankssts","rh_caudalanteriorcingulate","rh_caudalmiddlefrontal","rh_cuneus","rh_entorhinal","rh_fusiform","rh_inferiorparietal","rh_inferiortemporal","rh_isthmuscingulate","rh_lateraloccipital","rh_lateralorbitofrontal","rh_lingual","rh_medialorbitofrontal","rh_middletemporal","rh_parahippocampal","rh_paracentral","rh_parsopercularis","rh_parsorbitalis","rh_parstriangularis","rh_pericalcarine","rh_postcentral","rh_posteriorcingulate","rh_precentral","rh_precuneus","rh_rostralanteriorcingulate","rh_rostralmiddlefrontal","rh_superiorfrontal","rh_superiorparietal","rh_superiortemporal","rh_supramarginal","rh_frontalpole","rh_temporalpole","rh_transversetemporal","rh_insula")       #"left_hemisphere","right_hemisphere","whole_brain"
+
+}
+```
+
+```{r include_site_id}
+if(use_sim == FALSE){
+
+Cortical_thickness <- left_join(Cortical_thickness, 
+                      locdat,
+                      by = "subjectkey")
+
+Surface_area <- left_join(Surface_area, 
+                      locdat,
+                      by = "subjectkey")
+
+GM_volume <- left_join(GM_volume, 
+                      locdat,
+                      by = "subjectkey")
+
+Cortical_thickness <- Cortical_thickness %>%
+  filter(site_id_l != "site22")
+Surface_area <- Surface_area %>%
+  filter(site_id_l != "site22")
+GM_volume <- GM_volume %>%
+  filter(site_id_l != "site22")
+
+
+
+# extract site sample sizes
+
+site_ns <- Cortical_thickness %>%
+  group_by(site_id_l) %>%
+  summarise(n = n())
+
+write.csv(site_ns, "2_analysis_output/site_ns.csv") # assumes current working directory is the R project
+
+}
+```
+
+```{r load_simulated_data}
+if(use_sim == TRUE){
+Cortical_thickness <- read.csv("3_simulated_data/CT_sim.csv")
+  
+Surface_area <- read.csv("3_simulated_data/SA_sim.csv")
+
+GM_volume <- read.csv("3_simulated_data/GM_sim.csv")
+  
+}  
+  
+```
+
+
+
+
+## ICC estimates
+
+```{r Cortical_Thickness_parallel}
+
+variables_CT <- colnames(Cortical_thickness)[5:ncol(Cortical_thickness)]
+variables_CT <- variables_CT[1:(length(variables_CT)-1)]
+
+Cortical_thickness2 <- Cortical_thickness %>%
+  pivot_wider(id_cols = subjectkey,
+              names_from = eventname,
+              values_from = all_of(variables_CT))
+
+
+time_out_CT <- system.time({
+out_CT <- foreach(i = variables_CT, 
+                  .packages=c("dplyr", "tidyr", "lavaan", "ICED"),
+                  .combine = 'rbind') %dopar% {
+  
+  tmp <- select(Cortical_thickness2, contains(i))
+  
+  capture.output({
+  tmp_syn <- iced_syntax(structure = data.frame(time = c(colnames(tmp))),
+                         fix_lower_bounds = TRUE)
+
+  tmp_res <- run_ICED(data = tmp,
+                      model = tmp_syn)
+  })
+  
+  data.frame(label = i,
+    timeest = tmp_res$timeest,
+    eest = tmp_res$eest,
+    ICC = tmp_res$ICC,
+    ICC2 = tmp_res$ICC2)
+  
+}
+})
+
+
+write.csv(out_CT, "2_analysis_output/out_CT.csv")
+
+```
+
+```{r Surface_Area_parallel}
+
+variables_SA <- colnames(Surface_area)[5:ncol(Surface_area)]
+variables_SA <- variables_SA[1:(length(variables_SA)-1)]
+
+Surface_area2 <- Surface_area %>%
+  pivot_wider(id_cols = subjectkey,
+              names_from = eventname,
+              values_from = all_of(variables_SA))
+
+time_out_SA <- system.time({
+out_SA <- foreach(i = variables_SA, 
+                  .packages=c("dplyr", "tidyr", "lavaan", "ICED"),
+                  .combine = 'rbind') %dopar% {
+  
+  tmp <- select(Surface_area2, contains(i))
+  tmp <- tmp / 1000
+
+  
+  capture.output({
+  tmp_syn <- iced_syntax(structure = data.frame(time = c(colnames(tmp))),
+                         fix_lower_bounds = TRUE)
+
+  tmp_res <- run_ICED(data = tmp,
+                      model = tmp_syn)
+  })
+  
+  data.frame(label = i,
+    timeest = tmp_res$timeest,
+    eest = tmp_res$eest,
+    ICC = tmp_res$ICC,
+    ICC2 = tmp_res$ICC2)
+  
+}
+})
+
+write.csv(out_SA, "2_analysis_output/out_SA.csv")
+
+```
+
+```{r Grey_Matter_Volume_parallel}
+
+variables_GM <- colnames(GM_volume)[5:ncol(GM_volume)]
+variables_GM <- variables_GM[1:(length(variables_GM)-1)]
+
+GM_volume2 <- GM_volume %>%
+  pivot_wider(id_cols = subjectkey,
+              names_from = eventname,
+              values_from = all_of(variables_GM))
+
+time_out_GM <- system.time({
+out_GM <- foreach(i = variables_GM, 
+                  .packages=c("dplyr", "tidyr", "lavaan", "ICED"),
+                  .combine = 'rbind') %dopar% {
+  
+  tmp <- select(GM_volume2, contains(i))
+  tmp <- tmp / 1000
+
+  
+  capture.output({
+  tmp_syn <- iced_syntax(structure = data.frame(time = c(colnames(tmp))),
+                         fix_lower_bounds = TRUE)
+
+  tmp_res <- run_ICED(data = tmp,
+                      model = tmp_syn)
+  })
+  
+  data.frame(label = i,
+    timeest = tmp_res$timeest,
+    eest = tmp_res$eest,
+    ICC = tmp_res$ICC,
+    ICC2 = tmp_res$ICC2)
+  
+}
+})
+
+write.csv(out_GM, "2_analysis_output/out_GM.csv")
+
+
+```
+
+## Descriptives
+
+```{r}
+# mean age, minimum and maximum ages (months) at t1 and t2
+dat1_smri %>%
+  select(subjectkey, eventname, interview_age, sex) %>%
+  filter(subjectkey %in% unique(Cortical_thickness2$subjectkey)) %>%
+  arrange(subjectkey, eventname) %>%
+  mutate(age = as.numeric(interview_age)) %>%
+  group_by(eventname) %>%
+  summarise(m_age = mean(age),
+            min = min(age),
+            max = max(age))
+
+# 119 and 143
+
+## mean and sd difference in time between scans
+dat1_smri %>%
+  select(subjectkey, eventname, interview_age, sex) %>%
+  filter(subjectkey %in% unique(Cortical_thickness2$subjectkey)) %>%
+  arrange(subjectkey, eventname) %>%
+  mutate(age = as.numeric(interview_age)) %>%
+  select(-interview_age) %>%
+  pivot_wider(names_from = eventname,
+              values_from = age) %>%
+  mutate(diff = T2 - T1) %>%
+  summarise(mean(diff),
+            sd(diff))
+
+# female/male split
+dat1_smri %>%
+  select(subjectkey, eventname, interview_age, sex) %>%
+  filter(subjectkey %in% unique(Cortical_thickness2$subjectkey)) %>%
+  filter(eventname == "T1") %>%
+  summarise(M1 = sum(sex == "M"),
+            F1 = sum(sex == "F"))
+
+Cortical_thickness %>%
+  filt
+  select(subjectkey, site_id_l)
+
+  
+  
+Cortical_thickness %>%
+  select(subjectkey, eventname, site_id_l, sex, interview_age) %>%
+  filter(eventname == "T1") %>%
+  group_by(site_id_l) %>%
+  summarise(n = n(),
+            n_male = sum(sex == "M"),
+            prop_male = sum(sex == "M") / n(),
+            m_age = mean(as.numeric(interview_age))) %>%
+  View()
+#  ggplot(aes(x = prop_male)) +
+#  geom_histogram()
+
+
+
+```
+
+```{r grey_cors, eval=FALSE}
+
+out_CT$measure <- "Cortical Thickness"
+out_SA$measure <- "Surface Area"
+out_GM$measure <- "Grey Matter Volume"
+
+out_grey_ICC <- rbind(out_CT, out_SA, out_GM) %>%
+  select(label, measure, ICC2) %>%
+  pivot_wider(names_from = measure,
+              values_from = ICC2) %>%
+  na.omit()
+
+out_grey_icc2_cor <- cor(out_grey_ICC[,-1])
+
+corrplot.mixed(out_grey_icc2_cor,
+               lower = "number", 
+               upper = "shade",
+               tl.pos = "lt",
+               tl.col = "black", 
+               tl.srt = 45)
+
+out_grey_total <- rbind(out_CT, out_SA, out_GM) %>%
+  select(label, measure, time_var, e_var) %>%
+  mutate(total = time_var + e_var) %>%
+  select(-time_var, -e_var) %>%
+  pivot_wider(names_from = measure,
+              values_from = total) %>%
+  na.omit()
+
+out_grey_total_cor <- cor(out_grey_total[,-1])
+
+corrplot.mixed(out_grey_total_cor,
+               lower = "number", 
+               upper = "shade",
+               tl.pos = "lt",
+               tl.col = "black", 
+               tl.srt = 45)
+
+out_grey_time <- rbind(out_CT, out_SA, out_GM) %>%
+  select(label, measure, time_var) %>%
+  pivot_wider(names_from = measure,
+              values_from = time_var) %>%
+  na.omit()
+
+out_grey_time_cor <- cor(out_grey_time[,-1])
+
+corrplot.mixed(out_grey_time_cor,
+               lower = "number", 
+               upper = "shade",
+               tl.pos = "lt",
+               tl.col = "black", 
+               tl.srt = 45)
+
+out_grey_e <- rbind(out_CT, out_SA, out_GM) %>%
+  select(label, measure, e_var) %>%
+  pivot_wider(names_from = measure,
+              values_from = e_var) %>%
+  na.omit()
+
+out_grey_e_cor <- cor(out_grey_e[,-1])
+
+corrplot.mixed(out_grey_e_cor,
+               lower = "number", 
+               upper = "shade",
+               tl.pos = "lt",
+               tl.col = "black", 
+               tl.srt = 45)
+
+
+
+```
+
+```{r CoefficientofVariance_all, eval=FALSE}
+# CT
+out_CV_CT <- data.frame(
+  ROI = variables_CT,
+  T1_CV = NA,
+  T2_CV = NA
+)
+
+count <- 1
+for(i in variables_CT) {
+  tmp_T1 <- select(Cortical_thickness2, contains(i)) %>%
+      select(contains("T1")) %>%
+      as.data.frame()
+  out_CV_CT[count,"T1_CV"] <- sd(tmp_T1[,1])/mean(tmp_T1[,1])
+  
+  tmp_T2 <- select(Cortical_thickness2, contains(i)) %>%
+      select(contains("T2")) %>%
+      as.data.frame()
+  out_CV_CT[count,"T2_CV"] <- sd(tmp_T2[,1])/mean(tmp_T2[,1])
+
+  count <- count + 1
+}
+
+#SA
+
+out_CV_SA <- data.frame(
+  ROI = variables_SA,
+  T1_CV = NA,
+  T2_CV = NA
+)
+
+count <- 1
+for(i in variables_SA) {
+  tmp_T1 <- select(Surface_area2, contains(i)) %>%
+      select(contains("T1")) %>%
+      as.data.frame()
+  out_CV_SA[count,"T1_CV"] <- sd(tmp_T1[,1])/mean(tmp_T1[,1])
+  
+  tmp_T2 <- select(Surface_area2, contains(i)) %>%
+      select(contains("T2")) %>%
+      as.data.frame()
+  out_CV_SA[count,"T2_CV"] <- sd(tmp_T2[,1])/mean(tmp_T2[,1])
+
+  count <- count + 1
+}
+
+# GM
+
+out_CV_GM <- data.frame(
+  ROI = variables_GM,
+  T1_CV = NA,
+  T2_CV = NA
+)
+
+count <- 1
+for(i in variables_GM) {
+  tmp_T1 <- select(GM_volume2, contains(i)) %>%
+      select(contains("T1")) %>%
+      as.data.frame()
+  out_CV_GM[count,"T1_CV"] <- sd(tmp_T1[,1])/mean(tmp_T1[,1])
+  
+  tmp_T2 <- select(GM_volume2, contains(i)) %>%
+      select(contains("T2")) %>%
+      as.data.frame()
+  out_CV_GM[count,"T2_CV"] <- sd(tmp_T2[,1])/mean(tmp_T2[,1])
+
+  count <- count + 1
+}
+
+out_CV_CT$measure <- "Cortical_Thickness"
+out_CV_SA$measure <- "Surface_Area"
+out_CV_GM$measure <- "Grey_Matter_Volume"
+
+out_CV_all <- rbind(out_CV_CT, out_CV_SA, out_CV_GM)
+
+write.csv(out_CV_all, "analysis_output/out_CV_all.csv")
+
+```
+
+## ICCs per site
+
+```{r ICED_site_compare_CT_between_vs_error_parallel}
+
+structure <- data.frame(time = c("T1",
+                                 "T2"))
+
+syn <- iced_syntax(structure,
+                   fix_lower_bounds = TRUE)
+cat(syn)
+
+# sites <- Cortical_thickness %>%
+#   group_by(site_id_l) %>%
+#   summarise(n = n()) %>%
+#   filter(n > 46)
+
+sites <- unique(Cortical_thickness$site_id_l)
+
+time_between_error_CT <- system.time({
+between_error_CT <- foreach(j = sites,
+               .combine = 'rbind') %:%
+
+foreach(i = variables_CT, 
+                  .packages=c("dplyr", "tidyr", "lavaan", "ICED"),
+                  .combine = 'rbind') %dopar% {
+  
+                    
+  tmp_data <- Cortical_thickness %>%
+    filter(site_id_l == j)
+
+  tmp <- select(tmp_data,
+                subjectkey,
+                eventname, contains(i)) %>%
+    pivot_wider(names_from = "eventname",
+                values_from = i,
+                id_cols = "subjectkey") %>%
+    select(-subjectkey)
+
+capture.output({
+  tmp_res <- run_ICED(data = tmp, 
+                      model = syn)
+})
+  
+data.frame(site = j,
+ROI = i,
+time_var = tmp_res$timeest,
+error_var = tmp_res$eest,
+ICC = tmp_res$ICC,
+ICC2 = tmp_res$ICC2)
+  
+  }
+})
+
+write.csv(between_error_CT, "2_analysis_output/between_error_CT.csv")
+
+
+# between_error_CT %>%
+#   ggplot(aes(x = error_var,
+#              y = time_var,
+#              colour = ROI)) +
+#   geom_abline(intercept = 0, slope = 1, alpha = .5) + # ICC = .5
+#     annotate("point", x = .1/1,  y = .1, colour = "white", size = 6) +
+#     annotate("text", x = .1/1,  y = .1, label = ".5", size = 3) +
+#   geom_abline(intercept = 0, slope = 1.5, alpha = .5) + # ICC = .6
+#     annotate("point", x = .1/1.5,  y = .1, colour = "white", size = 6) +
+#     annotate("text", x = .1/1.5,  y = .1, label = ".6", size = 3) +
+#   geom_abline(intercept = 0, slope = 2.33, alpha = .5) + # ICC = .7
+#     annotate("point", x = .1/2.33,  y = .1, colour = "white", size = 6) +
+#     annotate("text", x = .1/2.33,  y = .1, label = ".7", size = 3) +
+#   geom_abline(intercept = 0, slope = 4, alpha = .5) + # ICC = .8
+#     annotate("point", x = .1/4,  y = .1, colour = "white", size = 6) +
+#     annotate("text", x = .1/4,  y = .1, label = ".8", size = 3) +
+#   geom_abline(intercept = 0, slope = 9, alpha = .5) + # ICC = .9
+#     annotate("point", x = .1/9,  y = .1, colour = "white", size = 6) +
+#     annotate("text", x = .1/9,  y = .1, label = ".9", size = 3) +
+#   coord_cartesian(ylim=c(0,.1),
+#                   xlim=c(0,.1)) +
+#   geom_point() +
+#   theme_minimal() +
+#   theme(panel.grid = element_line(colour = "grey87"),
+#         axis.line = element_line(colour = "black", size = rel(1)),
+#         panel.grid.minor = element_line(size = rel(0.1)), 
+#         legend.position = "none") +
+#     facet_wrap(~ site, ncol = 3) +
+#  ylab("between subjects variance") +
+#  xlab("error variance")
+
+
+```
+
+```{r ICED_site_compare_SA_between_vs_error_parallel}
+
+structure <- data.frame(time = c("T1",
+                                 "T2"))
+
+syn <- iced_syntax(structure,
+                   fix_lower_bounds = TRUE)
+cat(syn)
+
+# sites <- Surface_area %>%
+#   group_by(site_id_l) %>%
+#   summarise(n = n()) %>%
+#   filter(n > 46)
+
+sites <- unique(Surface_area$site_id_l)
+
+time_between_error_SA <- system.time({
+between_error_SA <- foreach(j = sites,
+               .combine = 'rbind') %:%
+
+foreach(i = variables_SA, 
+                  .packages=c("dplyr", "tidyr", "lavaan", "ICED"),
+                  .combine = 'rbind') %dopar% {
+  
+                    
+  tmp_data <- Surface_area %>%
+    filter(site_id_l == j)
+
+  tmp <- select(tmp_data,
+                subjectkey,
+                eventname, contains(i)) %>%
+    pivot_wider(names_from = "eventname",
+                values_from = i,
+                id_cols = "subjectkey") %>%
+    select(-subjectkey)
+
+  tmp <- tmp / 1000 # scaling
+
+
+capture.output({
+  tmp_res <- run_ICED(data = tmp, 
+                      model = syn)
+})
+  
+data.frame(site = j,
+ROI = i,
+time_var = tmp_res$timeest,
+error_var = tmp_res$eest,
+ICC = tmp_res$ICC,
+ICC2 = tmp_res$ICC2)
+  
+  }
+})
+
+write.csv(between_error_SA, "2_analysis_output/between_error_SA.csv")
+
+# between_error_SA %>%
+#   ggplot(aes(x = error_var,
+#              y = time_var,
+#              colour = ROI)) +
+#   geom_abline(intercept = 0, slope = 1, alpha = .5) + # ICC = .5
+#     annotate("point", x = .1/1,  y = .1, colour = "white", size = 6) +
+#     annotate("text", x = .1/1,  y = .1, label = ".5", size = 3) +
+#   geom_abline(intercept = 0, slope = 1.5, alpha = .5) + # ICC = .6
+#     annotate("point", x = .1/1.5,  y = .1, colour = "white", size = 6) +
+#     annotate("text", x = .1/1.5,  y = .1, label = ".6", size = 3) +
+#   geom_abline(intercept = 0, slope = 2.33, alpha = .5) + # ICC = .7
+#     annotate("point", x = .1/2.33,  y = .1, colour = "white", size = 6) +
+#     annotate("text", x = .1/2.33,  y = .1, label = ".7", size = 3) +
+#   geom_abline(intercept = 0, slope = 4, alpha = .5) + # ICC = .8
+#     annotate("point", x = .1/4,  y = .1, colour = "white", size = 6) +
+#     annotate("text", x = .1/4,  y = .1, label = ".8", size = 3) +
+#   geom_abline(intercept = 0, slope = 9, alpha = .5) + # ICC = .9
+#     annotate("point", x = .1/9,  y = .1, colour = "white", size = 6) +
+#     annotate("text", x = .1/9,  y = .1, label = ".9", size = 3) +
+#   coord_cartesian(ylim=c(0,.1),
+#                   xlim=c(0,.1)) +
+#   geom_point() +
+#   theme_minimal() +
+#   theme(panel.grid = element_line(colour = "grey87"),
+#         axis.line = element_line(colour = "black", size = rel(1)),
+#         panel.grid.minor = element_line(size = rel(0.1)), 
+#         legend.position = "none") +
+#     facet_wrap(~ site, ncol = 3) +
+#  ylab("between subjects variance") +
+#  xlab("error variance")
+
+
+```
+
+```{r ICED_site_compare_GM_between_vs_error_parallel}
+
+structure <- data.frame(time = c("T1",
+                                 "T2"))
+
+syn <- iced_syntax(structure,
+                   fix_lower_bounds = TRUE)
+cat(syn)
+
+# sites <- GM_volume %>%
+#   group_by(site_id_l) %>%
+#   summarise(n = n()) %>%
+#   filter(n > 46)
+
+sites <- unique(GM_volume$site_id_l)
+
+time_between_error_GM <- system.time({
+between_error_GM <- foreach(j = sites,
+               .combine = 'rbind') %:%
+
+foreach(i = variables_GM, 
+                  .packages=c("dplyr", "tidyr", "lavaan", "ICED"),
+                  .combine = 'rbind') %dopar% {
+  
+                    
+  tmp_data <- GM_volume %>%
+    filter(site_id_l == j)
+
+  tmp <- select(tmp_data,
+                subjectkey,
+                eventname, contains(i)) %>%
+    pivot_wider(names_from = "eventname",
+                values_from = i,
+                id_cols = "subjectkey") %>%
+    select(-subjectkey)
+
+  tmp <- tmp / 1000 # scaling
+
+
+capture.output({
+  tmp_res <- run_ICED(data = tmp, 
+                      model = syn)
+})
+  
+data.frame(site = j,
+ROI = i,
+time_var = tmp_res$timeest,
+error_var = tmp_res$eest,
+ICC = tmp_res$ICC,
+ICC2 = tmp_res$ICC2)
+  
+  }
+})
+
+write.csv(between_error_GM, "2_analysis_output/between_error_GM.csv")
+
+# between_error_GM %>%
+#   ggplot(aes(x = error_var,
+#              y = time_var,
+#              colour = ROI)) +
+#   geom_abline(intercept = 0, slope = 1, alpha = .5) + # ICC = .5
+#     annotate("point", x = .1/1,  y = .1, colour = "white", size = 6) +
+#     annotate("text", x = .1/1,  y = .1, label = ".5", size = 3) +
+#   geom_abline(intercept = 0, slope = 1.5, alpha = .5) + # ICC = .6
+#     annotate("point", x = .1/1.5,  y = .1, colour = "white", size = 6) +
+#     annotate("text", x = .1/1.5,  y = .1, label = ".6", size = 3) +
+#   geom_abline(intercept = 0, slope = 2.33, alpha = .5) + # ICC = .7
+#     annotate("point", x = .1/2.33,  y = .1, colour = "white", size = 6) +
+#     annotate("text", x = .1/2.33,  y = .1, label = ".7", size = 3) +
+#   geom_abline(intercept = 0, slope = 4, alpha = .5) + # ICC = .8
+#     annotate("point", x = .1/4,  y = .1, colour = "white", size = 6) +
+#     annotate("text", x = .1/4,  y = .1, label = ".8", size = 3) +
+#   geom_abline(intercept = 0, slope = 9, alpha = .5) + # ICC = .9
+#     annotate("point", x = .1/9,  y = .1, colour = "white", size = 6) +
+#     annotate("text", x = .1/9,  y = .1, label = ".9", size = 3) +
+#   coord_cartesian(ylim=c(0,.1),
+#                   xlim=c(0,.1)) +
+#   geom_point() +
+#   theme_minimal() +
+#   theme(panel.grid = element_line(colour = "grey87"),
+#         axis.line = element_line(colour = "black", size = rel(1)),
+#         panel.grid.minor = element_line(size = rel(0.1)), 
+#         legend.position = "none") +
+#     facet_wrap(~ site, ncol = 3) +
+#  ylab("between subjects variance") +
+#  xlab("error variance")
+
+
+```
+
+## Multigroup ICED models
+
+```{r ICED_many_sites_multigroup_CT_parallel}
+
+# sites <- Cortical_thickness %>%
+#   group_by(site_id_l) %>%
+#   summarise(n = n()) %>%
+#   filter(n > 46)
+
+sites <- unique(Cortical_thickness$site_id_l)
+
+structure <- data.frame(time = c("T1",
+                                 "T2"))
+
+syn <- iced_syntax(structure,
+                   fix_lower_bounds = TRUE)
+cat(syn)
+
+syn_group <- iced_syntax(structure,
+                   fix_lower_bounds = TRUE,
+                   groups = sites)
+cat(syn_group)
+
+syn_group_fix_error <- iced_syntax(structure,
+                   fix_lower_bounds = TRUE,
+                   groups = sites,
+                   groups_inequality = c("time"))
+cat(syn_group_fix_error)
+
+syn_group_fix_time <- iced_syntax(structure,
+                   fix_lower_bounds = TRUE,
+                   groups = sites,
+                   groups_inequality = c("e"))
+cat(syn_group_fix_time)
+
+
+time_sites_LRTs_CT <- system.time({  # 560ish currently
+
+g_tmp_CT <- Cortical_thickness %>%
+  filter(site_id_l %in% sites)
+
+sites_LRTs_CT <- foreach(i = variables_CT, 
+        .packages=c("dplyr", "tidyr", "lavaan", "ICED")) %dopar% {
+
+# in the final version I can simplify this - filter not needed and could maybe work from Cortical_thickness2 also
+g_tmp1 <- g_tmp_CT %>%
+  select("subjectkey","eventname", i, "site_id_l") %>%
+  pivot_wider(names_from = eventname,
+              values_from = i)
+
+# run models
+m_constrained <- lavaan(data = g_tmp1,
+       model = syn,
+       group = "site_id_l")
+
+m_e_constrained <- lavaan(data = g_tmp1,
+       model = syn_group_fix_error,
+       group = "site_id_l")
+
+m_time_constrained <- lavaan(data = g_tmp1,
+       model = syn_group_fix_time,
+       group = "site_id_l")
+
+m_unconstrained <- lavaan(data = g_tmp1,
+       model = syn_group,
+       group = "site_id_l")
+
+
+# extract LRT results
+LRT_time <- lavTestLRT(m_constrained, 
+                  m_time_constrained,
+                  m_unconstrained)
+
+LRT_e <- lavTestLRT(m_constrained, 
+                  m_e_constrained,
+                  m_unconstrained)
+
+LRT <- lavTestLRT(m_constrained, 
+                  m_unconstrained)
+
+
+#summary(m0)
+#summary(m1)
+list(ROI = i,
+     LRT_time = lavTestLRT(m_constrained, 
+                  m_time_constrained,
+                  m_unconstrained),
+     LRT_e = lavTestLRT(m_constrained, 
+                  m_e_constrained,
+                  m_unconstrained),
+     LRT = lavTestLRT(m_constrained, 
+                  m_unconstrained),
+     CFIS = list(fitmeasures(m_constrained)["cfi"],
+             fitmeasures(m_e_constrained)["cfi"],
+             fitmeasures(m_time_constrained)["cfi"],
+             fitmeasures(m_unconstrained)["cfi"]))
+
+    }
+
+}) # aprox time = 4000s
+
+# need some code to convert this list of outputs into usable output
+
+save(sites_LRTs_CT, file = "2_analysis_output/sites_LRTs_CT.Rdata")
+
+# # chi squared LRT - commented out in favour of the following
+# 
+# sites_LRTs_CT_tidy <- NULL
+# 
+# for(i in 1:length(variables_CT)) {
+#   
+# LRT1 <- as.data.frame(sites_LRTs_CT[[i]]$LRT_time)
+# LRT1$comparison <- c("uncon", "uncon_v_timecon", "timecon_v_con")
+# LRT2 <- as.data.frame(sites_LRTs_CT[[i]]$LRT_e)
+# LRT2$comparison <- c("uncon", "uncon_v_errcon", "errcon_v_con")
+# LRT3 <- as.data.frame(sites_LRTs_CT[[i]]$LRT)
+# LRT3$comparison <- c("uncon", "uncon_v_con")
+# 
+# LRT123 <- rbind(LRT1, LRT2, LRT3) %>%
+#   mutate(ROI = i) %>%
+#   select(comparison, ROI, Chisq, "Chisq diff", "Pr(>Chisq)")
+# rownames(LRT123) <- 1:nrow(LRT123)
+# LRT123 <- LRT123[c(1,2,3,5,6,8),]
+# LRT123$ROI <- variables_CT[i]
+# 
+# sites_LRTs_CT_tidy <- rbind(sites_LRTs_CT_tidy, LRT123)
+#   
+# }
+# 
+# sites_LRTs_CT_tidy$LRT_p05 <- ifelse(sites_LRTs_CT_tidy$`Pr(>Chisq)` < .05, "sig", "nonsig")
+# 
+# sites_LRTs_CT_tidy %>%
+#   group_by(comparison) %>%
+#   summarise(n = sum(LRT_p05 == "sig"))
+# 
+# write.csv(sites_LRTs_CT_tidy, "analysis_output/sites_LRTs_CT_tidy.csv")
+
+
+### AIC/BIC
+
+# chi squared LRT
+
+sites_LRTs_CT_tidy_aicbic <- NULL
+
+for(i in 1:length(variables_CT)) {
+  
+LRT1 <- as.data.frame(sites_LRTs_CT[[i]]$LRT_time)
+LRT1 <- LRT1 %>%
+  mutate(AICdiff = AIC - lag(AIC, 1),
+         BICdiff = BIC - lag(BIC, 1))
+LRT1$comparison <- c("uncon", "uncon_v_timecon", "timecon_v_con")
+LRT2 <- as.data.frame(sites_LRTs_CT[[i]]$LRT_e)
+LRT2 <- LRT2 %>%
+  mutate(AICdiff = AIC - lag(AIC, 1),
+         BICdiff = BIC - lag(BIC, 1))
+LRT2$comparison <- c("uncon", "uncon_v_errcon", "errcon_v_con")
+LRT3 <- as.data.frame(sites_LRTs_CT[[i]]$LRT)
+LRT3 <- LRT3 %>%
+  mutate(AICdiff = AIC - lag(AIC, 1),
+         BICdiff = BIC - lag(BIC, 1))
+LRT3$comparison <- c("uncon", "uncon_v_con")
+
+LRT123 <- rbind(LRT1, LRT2, LRT3) %>%
+  mutate(ROI = i) %>%
+  select(comparison, ROI, AIC, AICdiff, BIC, BICdiff, Chisq, "Chisq diff", "Pr(>Chisq)")
+LRT123
+
+
+rownames(LRT123) <- 1:nrow(LRT123)
+LRT123 <- LRT123[c(1,2,3,5,6,8),]
+LRT123$ROI <- variables_CT[i]
+
+sites_LRTs_CT_tidy_aicbic <- rbind(sites_LRTs_CT_tidy_aicbic, LRT123)
+  
+}
+
+sites_LRTs_CT_tidy_aicbic$LRT_p05 <- ifelse(sites_LRTs_CT_tidy_aicbic$`Pr(>Chisq)` < .05, "sig", "nonsig")
+
+sites_LRTs_CT_tidy_aicbic %>%
+  group_by(comparison) %>%
+  summarise(n = sum(LRT_p05 == "sig"))
+
+write.csv(sites_LRTs_CT_tidy_aicbic, "2_analysis_output/sites_LRTs_CT_tidy_aicbic.csv")
+
+
+# CIFs
+
+multigroup_CFIs_CT <- data.frame(region = variables_CT,
+                   m_constrained = NA,
+                   m_e_constrained = NA,
+                   m_time_constrained = NA,
+                   m_unconstrained = NA)
+
+count <- 1
+
+for(i in 1:length(variables_CT)) {
+
+multigroup_CFIs_CT$region[count] <- sites_LRTs_CT[[i]]$ROI
+
+multigroup_CFIs_CT$m_constrained[count] <- sites_LRTs_CT[[i]]$CFIS[[1]]
+multigroup_CFIs_CT$m_e_constrained[count] <- sites_LRTs_CT[[i]]$CFIS[[2]]
+multigroup_CFIs_CT$m_time_constrained[count] <- sites_LRTs_CT[[i]]$CFIS[[3]]
+multigroup_CFIs_CT$m_unconstrained[count] <- sites_LRTs_CT[[i]]$CFIS[[4]]
+  
+count <- count + 1
+}  
+  
+write.csv(multigroup_CFIs_CT, "2_analysis_output/multigroup_CFIs_CT.csv")
+
+
+
+```
+
+```{r ICED_many_sites_multigroup_CT_parallel_fit, eval=FALSE}
+
+# sites <- Cortical_thickness %>%
+#   group_by(site_id_l) %>%
+#   summarise(n = n()) %>%
+#   filter(n > 46)
+
+sites <- unique(Cortical_thickness$site_id_l)
+
+structure <- data.frame(time = c("T1",
+                                 "T2"))
+
+syn <- iced_syntax(structure,
+                   fix_lower_bounds = TRUE)
+cat(syn)
+
+syn_group <- iced_syntax(structure,
+                   fix_lower_bounds = TRUE,
+                   groups = sites)
+cat(syn_group)
+
+syn_group_fix_error <- iced_syntax(structure,
+                   fix_lower_bounds = TRUE,
+                   groups = sites,
+                   groups_inequality = c("time"))
+cat(syn_group_fix_error)
+
+syn_group_fix_time <- iced_syntax(structure,
+                   fix_lower_bounds = TRUE,
+                   groups = sites,
+                   groups_inequality = c("e"))
+cat(syn_group_fix_time)
+
+
+time_sites_fits_CT <- system.time({  
+
+g_tmp_CT <- Cortical_thickness %>%
+  filter(site_id_l %in% sites)
+
+sites_fits_CT <- foreach(i = variables_CT, 
+        .packages=c("dplyr", "tidyr", "lavaan")) %dopar% {
+
+g_tmp1 <- g_tmp_CT %>%
+  select("subjectkey","eventname", i, "site_id_l") %>%
+  pivot_wider(names_from = eventname,
+              values_from = i)
+
+# run models
+m_constrained <- lavaan(data = g_tmp1,
+       model = syn,
+       group = "site_id_l")
+
+m_e_constrained <- lavaan(data = g_tmp1,
+       model = syn_group_fix_error,
+       group = "site_id_l")
+
+m_time_constrained <- lavaan(data = g_tmp1,
+       model = syn_group_fix_time,
+       group = "site_id_l")
+
+m_unconstrained <- lavaan(data = g_tmp1,
+       model = syn_group,
+       group = "site_id_l")
+
+
+# extract fit results
+m_constrained_fits <- fitMeasures(m_constrained)
+m_e_constrained_fits <- fitMeasures(m_e_constrained)
+m_time_constrained_fits <- fitMeasures(m_time_constrained)
+m_unconstrained_fits <- fitMeasures(m_unconstrained)
+
+
+
+#summary(m0)
+#summary(m1)
+list(ROI = i,
+     m_constrained_fits = m_constrained_fits,
+     m_e_constrained_fits = m_e_constrained_fits,
+     m_time_constrained_fits = m_time_constrained_fits,
+     m_unconstrained_fits = m_unconstrained_fits)
+
+    }
+
+}) # aprox time = 4000s
+
+# need some code to convert this list of outputs into usable output
+
+save(sites_fits_CT, file = "analysis_output/sites_fits_CT.Rdata")
+
+sites_LRTs_CT_tidy <- NULL
+
+
+con <- cbind(do.call("rbind", lapply(sites_fits_CT, "[[", "ROI")), 
+             "constrained",
+             do.call("rbind", lapply(sites_fits_CT, "[[", "m_constrained_fits")) 
+)
+
+e_con <- cbind(do.call("rbind", lapply(sites_fits_CT, "[[", "ROI")), 
+             "e_constrained",
+             do.call("rbind", lapply(sites_fits_CT, "[[", "m_e_constrained_fits")) 
+)
+
+time_con <- cbind(do.call("rbind", lapply(sites_fits_CT, "[[", "ROI")), 
+             "time_constrained",
+             do.call("rbind", lapply(sites_fits_CT, "[[", "m_time_constrained_fits")) 
+)
+
+uncon <- cbind(do.call("rbind", lapply(sites_fits_CT, "[[", "ROI")), 
+             "unconstrained",
+             do.call("rbind", lapply(sites_fits_CT, "[[", "m_unconstrained_fits")) 
+)
+
+fit_res_CT <- rbind(con, e_con, time_con, uncon)
+
+colnames(fit_res_CT)[1] <- "ROI"
+colnames(fit_res_CT)[2] <- "model"
+
+
+write.csv(fit_res_CT, "analysis_output/fit_res_CT.csv")
+
+
+
+
+
+
+```
+
+```{r ICED_many_sites_multigroup_SA_parallel}
+
+# sites <- Surface_area %>%
+#   group_by(site_id_l) %>%
+#   summarise(n = n()) %>%
+#   filter(n > 46)
+
+sites <- unique(Surface_area$site_id_l)
+
+structure <- data.frame(time = c("T1",
+                                 "T2"))
+
+syn <- iced_syntax(structure,
+                   fix_lower_bounds = TRUE)
+cat(syn)
+
+syn_group <- iced_syntax(structure,
+                   fix_lower_bounds = TRUE,
+                   groups = sites)
+cat(syn_group)
+
+syn_group_fix_error <- iced_syntax(structure,
+                   fix_lower_bounds = TRUE,
+                   groups = sites,
+                   groups_inequality = c("time"))
+cat(syn_group_fix_error)
+
+syn_group_fix_time <- iced_syntax(structure,
+                   fix_lower_bounds = TRUE,
+                   groups = sites,
+                   groups_inequality = c("e"))
+cat(syn_group_fix_time)
+
+time_sites_LRTs_SA <- system.time({ 
+
+g_tmp_SA <- Surface_area %>%
+  filter(site_id_l %in% sites)
+
+sites_LRTs_SA <- foreach(i = variables_SA, 
+        .packages=c("dplyr", "tidyr", "lavaan")) %dopar% {
+
+# in the final version I can simplify this - filter not needed and could maybe work from Cortical_thickness2 also
+g_tmp1 <- g_tmp_SA %>%
+  select("subjectkey","eventname", i, "site_id_l") %>%
+  pivot_wider(names_from = eventname,
+              values_from = i)
+
+g_tmp1$T1 <- g_tmp1$T1 / 1000
+g_tmp1$T2 <- g_tmp1$T2 / 1000
+
+# run models
+m_constrained <- lavaan(data = g_tmp1,
+       model = syn,
+       group = "site_id_l")
+
+m_e_constrained <- lavaan(data = g_tmp1,
+       model = syn_group_fix_error,
+       group = "site_id_l")
+
+m_time_constrained <- lavaan(data = g_tmp1,
+       model = syn_group_fix_time,
+       group = "site_id_l")
+
+m_unconstrained <- lavaan(data = g_tmp1,
+       model = syn_group,
+       group = "site_id_l")
+
+
+# extract LRT results
+LRT_time <- lavTestLRT(m_constrained, 
+                  m_time_constrained,
+                  m_unconstrained)
+
+LRT_e <- lavTestLRT(m_constrained, 
+                  m_e_constrained,
+                  m_unconstrained)
+
+LRT <- lavTestLRT(m_constrained, 
+                  m_unconstrained)
+
+#summary(m0)
+#summary(m1)
+list(ROI = i,
+     LRT_time = lavTestLRT(m_constrained, 
+                  m_time_constrained,
+                  m_unconstrained),
+     LRT_e = lavTestLRT(m_constrained, 
+                  m_e_constrained,
+                  m_unconstrained),
+     LRT = lavTestLRT(m_constrained, 
+                  m_unconstrained))
+
+    }
+
+}) 
+
+# need some code to convert this list of outputs into usable output
+
+save(sites_LRTs_SA, file = "2_analysis_output/sites_LRTs_SA.Rdata")
+
+
+
+
+
+sites_LRTs_SA_tidy <- NULL
+
+for(i in 1:length(variables_SA)) {
+  
+LRT1 <- as.data.frame(sites_LRTs_SA[[i]]$LRT_time)
+LRT1$comparison <- c("uncon", "uncon_v_timecon", "timecon_v_con")
+LRT2 <- as.data.frame(sites_LRTs_SA[[i]]$LRT_e)
+LRT2$comparison <- c("uncon", "uncon_v_errcon", "errcon_v_con")
+LRT3 <- as.data.frame(sites_LRTs_SA[[i]]$LRT)
+LRT3$comparison <- c("uncon", "uncon_v_con")
+
+LRT123 <- rbind(LRT1, LRT2, LRT3) %>%
+  mutate(ROI = i) %>%
+  select(comparison, ROI, Chisq, "Chisq diff", "Pr(>Chisq)")
+rownames(LRT123) <- 1:nrow(LRT123)
+LRT123 <- LRT123[c(1,2,3,5,6,8),]
+LRT123$ROI <- variables_SA[i]
+
+sites_LRTs_SA_tidy <- rbind(sites_LRTs_SA_tidy, LRT123)
+  
+}
+
+sites_LRTs_SA_tidy$LRT_p05 <- ifelse(sites_LRTs_SA_tidy$`Pr(>Chisq)` < .05, "sig", "nonsig")
+
+sites_LRTs_SA_tidy %>%
+  group_by(comparison) %>%
+  summarise(n = sum(LRT_p05 == "sig"))
+
+write.csv(sites_LRTs_SA_tidy, "2_analysis_output/sites_LRTs_SA_tidy.csv")
+
+
+
+```
+
+```{r ICED_many_sites_multigroup_GM_parallel}
+
+# sites <- GM_volume %>%
+#   group_by(site_id_l) %>%
+#   summarise(n = n()) %>%
+#   filter(n > 46)
+
+sites <- unique(GM_volume$site_id_l)
+
+structure <- data.frame(time = c("T1",
+                                 "T2"))
+
+syn <- iced_syntax(structure,
+                   fix_lower_bounds = TRUE)
+cat(syn)
+
+syn_group <- iced_syntax(structure,
+                   fix_lower_bounds = TRUE,
+                   groups = sites)
+cat(syn_group)
+
+syn_group_fix_error <- iced_syntax(structure,
+                   fix_lower_bounds = TRUE,
+                   groups = sites,
+                   groups_inequality = c("time"))
+cat(syn_group_fix_error)
+
+syn_group_fix_time <- iced_syntax(structure,
+                   fix_lower_bounds = TRUE,
+                   groups = sites,
+                   groups_inequality = c("e"))
+cat(syn_group_fix_time)
+
+group_out_GM_all <- data.frame(ROI = variables_GM,
+                        LRT_p = NA,
+                        m1_better = NA)
+
+time_sites_LRTs_GM <- system.time({ 
+
+g_tmp_GM <- GM_volume %>%
+  filter(site_id_l %in% sites)
+
+sites_LRTs_GM <- foreach(i = variables_GM, 
+        .packages=c("dplyr", "tidyr", "lavaan")) %dopar% {
+
+# in the final version I can simplify this - filter not needed and could maybe work from Cortical_thickness2 also
+g_tmp1 <- g_tmp_GM %>%
+  select("subjectkey","eventname", i, "site_id_l") %>%
+  pivot_wider(names_from = eventname,
+              values_from = i)
+
+g_tmp1$T1 <- g_tmp1$T1 / 1000
+g_tmp1$T2 <- g_tmp1$T2 / 1000
+
+# run models
+m_constrained <- lavaan(data = g_tmp1,
+       model = syn,
+       group = "site_id_l")
+
+m_e_constrained <- lavaan(data = g_tmp1,
+       model = syn_group_fix_error,
+       group = "site_id_l")
+
+m_time_constrained <- lavaan(data = g_tmp1,
+       model = syn_group_fix_time,
+       group = "site_id_l")
+
+m_unconstrained <- lavaan(data = g_tmp1,
+       model = syn_group,
+       group = "site_id_l")
+
+
+# extract LRT results
+LRT_time <- lavTestLRT(m_constrained, 
+                  m_time_constrained,
+                  m_unconstrained)
+
+LRT_e <- lavTestLRT(m_constrained, 
+                  m_e_constrained,
+                  m_unconstrained)
+
+LRT <- lavTestLRT(m_constrained, 
+                  m_unconstrained)
+
+#summary(m0)
+#summary(m1)
+list(ROI = i,
+     LRT_time = lavTestLRT(m_constrained, 
+                  m_time_constrained,
+                  m_unconstrained),
+     LRT_e = lavTestLRT(m_constrained, 
+                  m_e_constrained,
+                  m_unconstrained),
+     LRT = lavTestLRT(m_constrained, 
+                  m_unconstrained))
+
+    }
+
+}) # aprox time = 555s
+
+# need some code to convert this list of outputs into usable output
+
+save(sites_LRTs_GM, file = "2_analysis_output/sites_LRTs_GM.Rdata")
+
+sites_LRTs_GM_tidy <- NULL
+
+for(i in 1:length(variables_GM)) {
+  
+LRT1 <- as.data.frame(sites_LRTs_GM[[i]]$LRT_time)
+LRT1$comparison <- c("uncon", "uncon_v_timecon", "timecon_v_con")
+LRT2 <- as.data.frame(sites_LRTs_GM[[i]]$LRT_e)
+LRT2$comparison <- c("uncon", "uncon_v_errcon", "errcon_v_con")
+LRT3 <- as.data.frame(sites_LRTs_GM[[i]]$LRT)
+LRT3$comparison <- c("uncon", "uncon_v_con")
+
+LRT123 <- rbind(LRT1, LRT2, LRT3) %>%
+  mutate(ROI = i) %>%
+  select(comparison, ROI, Chisq, "Chisq diff", "Pr(>Chisq)")
+rownames(LRT123) <- 1:nrow(LRT123)
+LRT123 <- LRT123[c(1,2,3,5,6,8),]
+LRT123$ROI <- variables_GM[i]
+
+sites_LRTs_GM_tidy <- rbind(sites_LRTs_GM_tidy, LRT123)
+  
+}
+
+sites_LRTs_GM_tidy$LRT_p05 <- ifelse(sites_LRTs_GM_tidy$`Pr(>Chisq)` < .05, "sig", "nonsig")
+
+sites_LRTs_GM_tidy %>%
+  group_by(comparison) %>%
+  summarise(n = sum(LRT_p05 == "sig"))
+
+write.csv(sites_LRTs_GM_tidy, "2_analysis_output/sites_LRTs_GM_tidy.csv")
+
+
+
+```
+
+
+```{r save_runtimes}
+all_runtimes <- rbind(
+time_out_CT,
+time_out_SA,
+time_out_GM,
+time_between_error_CT,
+time_between_error_SA,
+time_between_error_GM
+)
+  
+write.csv(all_runtimes, "2_analysis_output/all_runtimes.csv")
+
+```
+
+
+```{r variances_difference, eval = FALSE}
+# relevant to compare variances across areas
+
+CT_var <- Cortical_thickness %>%
+  select(-interview_age, -sex, -site_id_l) %>%
+  pivot_longer(cols = variables_CT) %>%
+  pivot_wider(names_from = eventname, values_from = value) %>%
+  mutate(diff = T2 - T1) %>%
+  mutate(zscore = diff - mean(diff)/sd(diff)) %>%
+  group_by(name) %>%
+  summarise(var = var(zscore)) %>%
+  ungroup() %>%
+  mutate(label = name)
+
+comb_CT_var <- dk %>% 
+  as_tibble() %>% 
+  left_join(CT_var)
+
+
+
+###
+
+SA_var <- Surface_area %>%
+  select(-interview_age, -sex, -site_id_l) %>%
+  pivot_longer(cols = variables_CT) %>%
+  pivot_wider(names_from = eventname, values_from = value) %>%
+  mutate(diff = T2 - T1) %>%
+  mutate(zscore = diff - mean(diff)/sd(diff)) %>%
+  group_by(name) %>%
+  summarise(var = var(zscore)) %>%
+  ungroup() %>%
+  mutate(label = name)
+
+comb_SA_var <- dk %>% 
+  as_tibble() %>% 
+  left_join(SA_var)
+
+
+
+
+###
+
+GM_var <- GM_volume %>%
+  select(-interview_age, -sex, -site_id_l) %>%
+  pivot_longer(cols = variables_CT) %>%
+  pivot_wider(names_from = eventname, values_from = value) %>%
+  mutate(diff = T2 - T1) %>%
+  mutate(zscore = diff - mean(diff)/sd(diff)) %>%
+  group_by(name) %>%
+  summarise(var = var(zscore)) %>%
+  ungroup() %>%
+  mutate(label = name)
+
+comb_GM_var <- dk %>% 
+  as_tibble() %>% 
+  left_join(GM_var)
+
+var_min <- min(c(CT_var$var,
+      SA_var$var,
+      GM_var$var))
+
+var_max <- max(c(CT_var$var,
+      SA_var$var,
+      GM_var$var))
+
+CT_var_plot <- ggseg(comb_CT_var, atlas = dk, 
+      colour = "black",
+      size = .1, 
+      #position = "stacked",
+      mapping = aes(fill = var)) +
+  scale_fill_continuous(limits = c(var_min, var_max)) +
+  ggtitle("Cortical Thickness difference variance")
+
+SA_var_plot <- ggseg(comb_SA_var, atlas = dk, 
+      colour = "black",
+      size = .1, 
+      #position = "stacked",
+      mapping = aes(fill = var)) +
+  scale_fill_continuous(limits = c(var_min, var_max)) +
+  ggtitle("Surface Area difference variance")
+
+GM_var_plot <- ggseg(comb_GM_var, atlas = dk, 
+      colour = "black",
+      size = .1, 
+      #position = "stacked",
+      mapping = aes(fill = var)) +
+  scale_fill_continuous(limits = c(var_min, var_max)) +
+  ggtitle("GM Volume difference variance")
+
+
+CT_var_plot / SA_var_plot / GM_var_plot + plot_layout(guides = "collect")
+
+
+```
+
