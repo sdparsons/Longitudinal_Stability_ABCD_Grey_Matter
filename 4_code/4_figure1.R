@@ -3,13 +3,12 @@ library("tidyverse")
 library("patchwork")
 library("Cairo")
 
-
+# generate syntax given set between-subjects and error variances
 struc <- data.frame(time = c("T1", "T2"))
 
 syn <- iced_syntax(struc)
 
-# need to make the right ones of each of these to make a 2x2 panel
-
+# equal between-subjects (true) variance and error variance
 hight_highe <- sim_ICED(structure = struc,
                         means = c(1, 10),
                         variances = list(time = 5,
@@ -23,6 +22,7 @@ hight_highe <- sim_ICED(structure = struc,
   theme(axis.text.y = element_blank()) +
     ggtitle("Equal Between-subjects variance, \nand Error variance, ICC = .5")
 
+# high between-subjects (true) variance and low error variance - high reliability
 hight_lowe <- sim_ICED(structure = struc,
                         means = c(1, 10),
                         variances = list(time = 9,
@@ -37,6 +37,9 @@ hight_lowe <- sim_ICED(structure = struc,
         axis.text.y = element_blank()) +
   ggtitle("High Between-subjects variance, \nLow Error variance, ICC = .9")
 
+
+# low between-subjects (true) variance and high error variance - low reliability
+
 lowt_highe <- sim_ICED(structure = struc,
                         means = c(1, 10),
                         variances = list(time = 1,
@@ -49,6 +52,8 @@ lowt_highe <- sim_ICED(structure = struc,
   geom_point() +
   theme(axis.text.y = element_blank()) +
   ggtitle("Low Between-subjects variance, \nHigh Error variance, ICC = .1")
+
+# equal but low variances
 
 lowt_lowe <- sim_ICED(structure = struc,
                         means = c(1, 10),
@@ -63,6 +68,8 @@ lowt_lowe <- sim_ICED(structure = struc,
   theme(axis.text.y = element_blank()) +
   ggtitle("Low Between-subjects variance, \nLow Error variance, ICC = .5")
 
+
+# perfect reliability
 hight_zeroe <- sim_ICED(structure = struc,
                         means = c(1, 10),
                         variances = list(time = 10,
@@ -77,6 +84,7 @@ hight_zeroe <- sim_ICED(structure = struc,
         axis.text.y = element_blank()) +
   ggtitle("High Between-subjects variance, \nNo Error variance, ICC = 1, (Perfect reliability)")
 
+# save figure
 ##
 Cairo(file = "6_figures/Figure1_spaghetti.png",
       type = "png",
