@@ -1,5 +1,5 @@
 ---
-title: "SIM"
+title: "2_simulation"
 output: html_document
 ---
 
@@ -16,29 +16,32 @@ library("tidyverse")
 library("ICED")
 
 
-
+# load data (between subjects and error variance, per site)
 between_error_CT <- read.csv("2_analysis_output/between_error_CT.csv")
 between_error_SA <- read.csv("2_analysis_output/between_error_SA.csv")
 between_error_GM <- read.csv("2_analysis_output/between_error_GM.csv")
 
+# n participants per site
 site_ns <- read.csv("2_analysis_output/site_ns.csv")
 
 ```
 
 
-```{r CT}
+```{r Cortical_Thickness}
 # Cortical thickness
 
 sites <- sort(unique(between_error_CT$site))
 site_count <- 1
 out2_CT <- NULL
+
+# for each site, for each ROI, read in the relevant site + ROI estimates of between subjects and error variance and simulate data based on this, for the n participants in that site
 for(ABCDsite in sites) {
   
 tmp_dat <- subset(between_error_CT, site == ABCDsite)
 
-n <- site_ns[site_count, "n"]
+n <- as.integer(site_ns[site_count, "n"])
 
-out_CT <- data.frame(ppid = 1:n)
+out_CT <- data.frame(subjectkey = 1:n)
 
 for(i in unique(between_error_CT$ROI)) {
 
@@ -59,28 +62,39 @@ out2_CT <- rbind(out2_CT, cbind(ABCDsite, out_CT))
 site_count <- site_count + 1
 }
 
-out2_CT$ppid <- 1:nrow(out2_CT)
+out2_CT$subjectkey <- 1:nrow(out2_CT)
  
-out2_CT <- out2_CT %>%
-  add_column(.before = "ABCDsite",
-             measure = "Cortical Thickness")
 
-write.csv(out2_CT, "3_simulated_data/CT_sim.csv",
+
+out2_CT2 <- out2_CT %>%
+  pivot_longer(names_sep = "T", names_to = c("ROI", "eventname"), values_to = "size", cols = 3:ncol(.)) %>%
+  pivot_wider(id_cols = c(ABCDsite, subjectkey, eventname), names_from = ROI, values_from = size) %>%
+  rename(site_id_l = ABCDsite) %>%
+  relocate(site_id_l, .after = last_col()) %>%
+  mutate(eventname = paste("T", eventname, sep = "")) %>%
+  mutate(interview_age = NA, sex = NA) %>%
+  relocate(interview_age, .after = "subjectkey") %>%
+  relocate(sex, .after = "eventname")
+  
+
+write.csv(out2_CT2, "3_simulated_data/CT_sim.csv",
           row.names = FALSE)
 
 ```
 
-```{r SA}
+```{r Surface_Area}
 sites <- sort(unique(between_error_SA$site))
 site_count <- 1
 out2_SA <- NULL
+
+# for each site, for each ROI, read in the relevant site + ROI estimates of between subjects and error variance and simulate data based on this, for the n participants in that site
 for(ABCDsite in sites) {
   
 tmp_dat <- subset(between_error_SA, site == ABCDsite)
 
 n <- site_ns[site_count, "n"]
 
-out_SA <- data.frame(ppid = 1:n)
+out_SA <- data.frame(subjectkey = 1:n)
 
 for(i in unique(between_error_SA$ROI)) {
 
@@ -101,28 +115,36 @@ out2_SA <- rbind(out2_SA, cbind(ABCDsite, out_SA))
 site_count <- site_count + 1
 }
 
-out2_SA$ppid <- 1:nrow(out2_SA)
+out2_SA$subjectkey <- 1:nrow(out2_SA)
  
-out2_SA <- out2_SA %>%
-  add_column(.before = "ABCDsite",
-             measure = "Surface Area")
+out2_SA2 <- out2_SA %>%
+  pivot_longer(names_sep = "T", names_to = c("ROI", "eventname"), values_to = "size", cols = 3:ncol(.)) %>%
+  pivot_wider(id_cols = c(ABCDsite, subjectkey, eventname), names_from = ROI, values_from = size) %>%
+  rename(site_id_l = ABCDsite) %>%
+  relocate(site_id_l, .after = last_col()) %>%
+  mutate(eventname = paste("T", eventname, sep = "")) %>%
+  mutate(interview_age = NA, sex = NA) %>%
+  relocate(interview_age, .after = "subjectkey") %>%
+  relocate(sex, .after = "eventname")
 
-write.csv(out2_SA, "3_simulated_data/SA_sim.csv",
+write.csv(out2_SA2, "3_simulated_data/SA_sim.csv",
           row.names = FALSE)
 
 ```
 
-```{r GM}
+```{r Grey Matter Volume}
 sites <- sort(unique(between_error_GM$site))
 site_count <- 1
 out2_GM <- NULL
+
+# for each site, for each ROI, read in the relevant site + ROI estimates of between subjects and error variance and simulate data based on this, for the n participants in that site
 for(ABCDsite in sites) {
   
 tmp_dat <- subset(between_error_GM, site == ABCDsite)
 
 n <- site_ns[site_count, "n"]
 
-out_GM <- data.frame(ppid = 1:n)
+out_GM <- data.frame(subjectkey = 1:n)
 
 for(i in unique(between_error_GM$ROI)) {
 
@@ -143,13 +165,19 @@ out2_GM <- rbind(out2_GM, cbind(ABCDsite, out_GM))
 site_count <- site_count + 1
 }
 
-out2_GM$ppid <- 1:nrow(out2_GM)
+out2_GM$subjectkey <- 1:nrow(out2_GM)
  
-out2_GM <- out2_GM %>%
-  add_column(.before = "ABCDsite",
-             measure = "Grey Matter Volume")
+out2_GM2 <- out2_GM %>%
+  pivot_longer(names_sep = "T", names_to = c("ROI", "eventname"), values_to = "size", cols = 3:ncol(.)) %>%
+  pivot_wider(id_cols = c(ABCDsite, subjectkey, eventname), names_from = ROI, values_from = size) %>%
+  rename(site_id_l = ABCDsite) %>%
+  relocate(site_id_l, .after = last_col()) %>%
+  mutate(eventname = paste("T", eventname, sep = "")) %>%
+  mutate(interview_age = NA, sex = NA) %>%
+  relocate(interview_age, .after = "subjectkey") %>%
+  relocate(sex, .after = "eventname")
 
-write.csv(out2_GM, "3_simulated_data/GM_sim.csv",
+write.csv(out2_GM2, "3_simulated_data/GM_sim.csv",
           row.names = FALSE)
 
 ```

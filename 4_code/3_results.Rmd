@@ -22,6 +22,11 @@ library("pwr")
 
 ```{r read_data}
 
+# use simulated data? if set to TRUE then the simulated data will be used and results saved under different file names
+use_sim = TRUE
+
+if(use_sim == FALSE) {
+
 # ICC and ICC2 results
 out_CT <- read.csv("2_analysis_output/out_CT.csv")
 out_SA <- read.csv("2_analysis_output/out_SA.csv")
@@ -33,27 +38,62 @@ between_error_SA <- read.csv("2_analysis_output/between_error_SA.csv")
 between_error_GM <- read.csv("2_analysis_output/between_error_GM.csv")
 
 # LRT results from multisite
-sites_LRTs_CT_tidy <- read.csv("2_analysis_output/sites_LRTs_CT_tidy.csv")
-sites_LRTs_SA_tidy <- read.csv("2_analysis_output/sites_LRTs_SA_tidy.csv")
-sites_LRTs_GM_tidy <- read.csv("2_analysis_output/sites_LRTs_GM_tidy.csv")
+sites_LRTs_CT_tidy <- read.csv("2_analysis_output/sites_LRTs_CT_tidy_aicbic.csv")
+sites_LRTs_SA_tidy <- read.csv("2_analysis_output/sites_LRTs_SA_tidy_aicbic.csv")
+sites_LRTs_GM_tidy <- read.csv("2_analysis_output/sites_LRTs_GM_tidy_aicbic.csv")
 
-# impoved CT LRT results
+# improved LRT results and CFIS
 sites_LRTs_CT_tidy_aicbic <- read.csv("2_analysis_output/sites_LRTs_CT_tidy_aicbic.csv")
 multigroup_CFIs_CT <- read.csv("2_analysis_output/multigroup_CFIs_CT.csv")
+sites_LRTs_SA_tidy_aicbic <- read.csv("2_analysis_output/sites_LRTs_SA_tidy_aicbic.csv")
+multigroup_CFIs_SA <- read.csv("2_analysis_output/multigroup_CFIs_SA.csv")
+sites_LRTs_GM_tidy_aicbic <- read.csv("2_analysis_output/sites_LRTs_GM_tidy_aicbic.csv")
+multigroup_CFIs_GM <- read.csv("2_analysis_output/multigroup_CFIs_GM.csv")
 
-# multisite results
-load("2_analysis_output/sites_LRTs_CT.Rdata")
 
+}
+
+if(use_sim == TRUE) {
+
+# ICC and ICC2 results
+out_CT <- read.csv("2_analysis_output/out_CT_sim.csv")
+out_SA <- read.csv("2_analysis_output/out_SA_sim.csv")
+out_GM <- read.csv("2_analysis_output/out_GM_sim.csv")
+
+#between and within variance estimates (per site) results
+between_error_CT <- read.csv("2_analysis_output/between_error_CT_sim.csv")
+between_error_SA <- read.csv("2_analysis_output/between_error_SA_sim.csv")
+between_error_GM <- read.csv("2_analysis_output/between_error_GM_sim.csv")
+
+# LRT results from multisite
+sites_LRTs_CT_tidy <- read.csv("2_analysis_output/sites_LRTs_CT_tidy_aicbic_sim.csv")
+sites_LRTs_SA_tidy <- read.csv("2_analysis_output/sites_LRTs_SA_tidy_aicbic_sim.csv")
+sites_LRTs_GM_tidy <- read.csv("2_analysis_output/sites_LRTs_GM_tidy_aicbic_sim.csv")
+
+# improved LRT results and CFIS
+sites_LRTs_CT_tidy_aicbic <- read.csv("2_analysis_output/sites_LRTs_CT_tidy_aicbic_sim.csv")
+multigroup_CFIs_CT <- read.csv("2_analysis_output/multigroup_CFIs_CT_sim.csv")
+sites_LRTs_SA_tidy_aicbic <- read.csv("2_analysis_output/sites_LRTs_SA_tidy_aicbic_sim.csv")
+multigroup_CFIs_SA <- read.csv("2_analysis_output/multigroup_CFIs_SA_sim.csv")
+sites_LRTs_GM_tidy_aicbic <- read.csv("2_analysis_output/sites_LRTs_GM_tidy_aicbic_sim.csv")
+multigroup_CFIs_GM <- read.csv("2_analysis_output/multigroup_CFIs_GM_sim.csv")
+
+
+}
 
 
 ```
 
 
-
+# 1. Stability estimates
 
 # ICC results
 
 ```{r grey_summary}
+
+# simple summary statistics
+
+# ICC
 
 mean(out_CT$ICC, na.rm = TRUE)
 median(out_CT$ICC, na.rm = TRUE)
@@ -71,7 +111,7 @@ mean(out_GM$ICC, na.rm = TRUE)
 median(out_GM$ICC, na.rm = TRUE)
 range(out_GM$ICC, na.rm = TRUE)
 
-# icc2
+# ICC2
 
 mean(out_CT$ICC2, na.rm = TRUE)
 median(out_CT$ICC2, na.rm = TRUE)
@@ -93,10 +133,12 @@ range(out_GM$ICC2, na.rm = TRUE)
 
 ```{r Cortical_Thickness_ICCfigs}
 
+# combine dk atlas from ggseg with Cortical Thickness estimates
 comb_CT <- dk %>% 
   as_tibble() %>% 
   left_join(out_CT)
 
+# plot ICC estimates
 CT_ICC1 <- ggseg(comb_CT, atlas = dk, 
       colour = "black",
       size = .1, 
@@ -107,6 +149,7 @@ CT_ICC1 <- ggseg(comb_CT, atlas = dk,
   theme(axis.title.x = element_blank(),
         axis.text.x = element_blank())
 
+# plot ICC2 estimates
 CT_ICC2 <- ggseg(comb_CT, atlas = dk, 
       colour = "black",
       size = .1, 
@@ -122,10 +165,12 @@ CT_ICC2 <- ggseg(comb_CT, atlas = dk,
 
 ```{r Surface_Area_ICCfigs}
 
+# combine dk atlas from ggseg with Cortical Thickness estimates
 comb_SA <- dk %>% 
   as_tibble() %>% 
   left_join(out_SA)
 
+# plot ICC estimates
 SA_ICC1 <- ggseg(comb_SA, atlas = dk, 
       colour = "black",
       size = .1, 
@@ -136,6 +181,7 @@ SA_ICC1 <- ggseg(comb_SA, atlas = dk,
   theme(axis.title.x = element_blank(),
         axis.text.x = element_blank())
 
+# plot ICC2 estimates
 SA_ICC2 <- ggseg(comb_SA, atlas = dk, 
       colour = "black",
       size = .1, 
@@ -152,10 +198,12 @@ SA_ICC2 <- ggseg(comb_SA, atlas = dk,
 
 ```{r Grey_Matter_Volume__ICCfigs}
 
+# combine dk atlas from ggseg with Cortical Thickness estimates
 comb_GM <- dk %>% 
   as_tibble() %>% 
   left_join(out_GM)
 
+# plot ICC estimates
 GM_ICC1 <- ggseg(comb_GM, atlas = dk, 
       colour = "black",
       size = .1, 
@@ -164,6 +212,7 @@ GM_ICC1 <- ggseg(comb_GM, atlas = dk,
     scale_fill_continuous(limits = c(.5, 1), type = "viridis") +
   ggtitle("Grey Matter Volume")
 
+# plot ICC2 estimates
 GM_ICC2 <- ggseg(comb_GM, atlas = dk, 
       colour = "black",
       size = .1, 
@@ -177,6 +226,9 @@ GM_ICC2 <- ggseg(comb_GM, atlas = dk,
 ## ICC
 
 ```{r grey_figures_ICC}
+
+# plot and save all ICC figures
+if(use_sim == FALSE) {
 Cairo(file = "6_figures/Figure2.png",
       type = "png",
       units="in", 
@@ -185,15 +237,40 @@ Cairo(file = "6_figures/Figure2.png",
       pointsize=12, 
       dpi=600)
 
-CT_ICC1 / SA_ICC1 / GM_ICC1 + plot_layout(guides = 'collect') & theme(legend.position = "bottom",
+Figure2 <- CT_ICC1 / SA_ICC1 / GM_ICC1 + plot_layout(guides = 'collect') & theme(legend.position = "bottom",
                   legend.key.width=unit(1,"cm"), legend.key.height = unit(.5,"cm"))
 
+print(Figure2)
+
 dev.off()
+}
+
+if(use_sim == TRUE) {
+Cairo(file = "8_supplement/Figure2_sim.png",
+      type = "png",
+      units="in", 
+      width=6, 
+      height=5, 
+      pointsize=12, 
+      dpi=600)
+
+Figure2_sim <- CT_ICC1 / SA_ICC1 / GM_ICC1 + plot_layout(guides = 'collect') & theme(legend.position = "bottom",
+                  legend.key.width=unit(1,"cm"), legend.key.height = unit(.5,"cm"))
+
+print(Figure2_sim)
+
+dev.off()
+}
+
+
 ```
 
 ## ICC2
 
 ```{r grey_figures_ICC2}
+
+# plot and save all ICC2 figures
+if(use_sim == FALSE){
 Cairo(file = "6_figures/Figure3.png",
       type = "png",
       units="in", 
@@ -202,159 +279,43 @@ Cairo(file = "6_figures/Figure3.png",
       pointsize=12, 
       dpi=600)
 
-CT_ICC2 / SA_ICC2 / GM_ICC2 + plot_layout(guides = 'collect') & theme(legend.position = "bottom",
+Figure_3 <- CT_ICC2 / SA_ICC2 / GM_ICC2 + plot_layout(guides = 'collect') & theme(legend.position = "bottom",
                   legend.key.width=unit(1,"cm"), legend.key.height = unit(.5,"cm"))
 
+print(Figure_3)
+
 dev.off()
+}
+
+
+if(use_sim == TRUE){
+Cairo(file = "8_supplement/Figure3_sim.png",
+      type = "png",
+      units="in", 
+      width=6, 
+      height=5, 
+      pointsize=12, 
+      dpi=600)
+
+Figure_3_sim <- CT_ICC2 / SA_ICC2 / GM_ICC2 + plot_layout(guides = 'collect') & theme(legend.position = "bottom",
+                  legend.key.width=unit(1,"cm"), legend.key.height = unit(.5,"cm"))
+
+print(Figure_3_sim)
+
+dev.off()
+}
+
 ```  
 
 
-# between and error CT
+# 2. Examining sources of longitudinal (in)stability
 
-perhaps as a supplement?
+# Proportions of between-subejct and error variances, depending on site or ROI split
 
-```{r all_between_error_CT, eval = FALSE}
-out_CT %>%
-  summarise(mint = min(timeest),
-            maxt = max(timeest),
-            mine = min(eest),
-            maxe = max(eest),
-            vart = var(timeest),
-            vare = var(eest))
-# .6 max limit
-
-out_CT %>%
-  summarise(vart = var(timeest),
-            vare = var(eest)) %>%
-  mutate(prop = vart / vare)
-
-CT_all_between_error_fig <- out_CT %>%
-  ggplot(aes(x = eest,
-             y = timeest,
-             colour = label)) +
-  geom_abline(intercept = 0, slope = 1, alpha = .5) + # ICC = .5
-    annotate("point", x = 1/1*.06,  y = .06, colour = "white", size = 6) +
-    annotate("text", x = 1/1*.06,  y = .06, label = ".5", size = 3) +
-  geom_abline(intercept = 0, slope = 1.5, alpha = .5) + # ICC = .6
-    annotate("point", x = 1/1.5*.06,  y = .06, colour = "white", size = 6) +
-    annotate("text", x = 1/1.5*.06,  y = .06, label = ".6", size = 3) +
-  geom_abline(intercept = 0, slope = 2.33, alpha = .5) + # ICC = .7
-    annotate("point", x = 1/2.33*.06,  y = .06, colour = "white", size = 6) +
-    annotate("text", x = 1/2.33*.06,  y = .06, label = ".7", size = 3) +
-  geom_abline(intercept = 0, slope = 4, alpha = .5) + # ICC = .8
-    annotate("point", x = 1/4*.06,  y = .06, colour = "white", size = 6) +
-    annotate("text", x = 1/4*.06,  y = .06, label = ".8", size = 3) +
-  geom_abline(intercept = 0, slope = 9, alpha = .5) + # ICC = .9
-    annotate("point", x = 1/9*.06,  y = .06, colour = "white", size = 6) +
-    annotate("text", x = 1/9*.06,  y = .06, label = ".9", size = 3) +
-  coord_cartesian(ylim=c(0,.06),
-                  xlim=c(0,.06)) +
-  geom_point() +
-  theme_minimal() +
-  theme(panel.grid = element_line(colour = "grey87"),
-        axis.line = element_line(colour = "black", size = rel(1)),
-        panel.grid.minor = element_line(size = rel(0.1)), 
-        legend.position = "none") +
- ylab("between subjects variance") +
- xlab("error variance") +
-  theme(axis.title.x = element_blank(),
-        axis.title.y = element_blank()) +
-  ggtitle("Cortical Thickness") +
-      theme(plot.title = element_text(size = 10))
-
-  
-###
-  
-out_SA %>%
-  summarise(mint = min(timeest),
-            maxt = max(timeest),
-            mine = min(eest),
-            maxe = max(eest))
-# 1.1 max limit
-
-SA_all_between_error_fig <- out_SA %>%
-  ggplot(aes(x = eest,
-             y = timeest,
-             colour = label)) +
-  geom_abline(intercept = 0, slope = 1, alpha = .5) + # ICC = .5
-    annotate("point", x = 1/1*1.1,  y = 1.1, colour = "white", size = 6) +
-    annotate("text", x = 1/1*1.1,  y = 1.1, label = ".5", size = 3) +
-  geom_abline(intercept = 0, slope = 1.5, alpha = .5) + # ICC = .6
-    annotate("point", x = 1/1.5*1.1,  y = 1.1, colour = "white", size = 6) +
-    annotate("text", x = 1/1.5*1.1,  y = 1.1, label = ".6", size = 3) +
-  geom_abline(intercept = 0, slope = 2.33, alpha = .5) + # ICC = .7
-    annotate("point", x = 1/2.33*1.1,  y = 1.1, colour = "white", size = 6) +
-    annotate("text", x = 1/2.33*1.1,  y = 1.1, label = ".7", size = 3) +
-  geom_abline(intercept = 0, slope = 4, alpha = .5) + # ICC = .8
-    annotate("point", x = 1/4*1.1,  y = 1.1, colour = "white", size = 6) +
-    annotate("text", x = 1/4*1.1,  y = 1.1, label = ".8", size = 3) +
-  geom_abline(intercept = 0, slope = 9, alpha = .5) + # ICC = .9
-    annotate("point", x = 1/9*1.1,  y = 1.1, colour = "white", size = 6) +
-    annotate("text", x = 1/9*1.1,  y = 1.1, label = ".9", size = 3) +
-  coord_cartesian(ylim=c(0,1.1),
-                  xlim=c(0,1.1)) +
-  geom_point() +
-  theme_minimal() +
-  theme(panel.grid = element_line(colour = "grey87"),
-        axis.line = element_line(colour = "black", size = rel(1)),
-        panel.grid.minor = element_line(size = rel(0.1)), 
-        legend.position = "none") +
- ylab("between subjects variance") +
- xlab("error variance") +
-  theme(axis.title.x = element_blank()) +
-  ggtitle("Surface Area") +
-      theme(plot.title = element_text(size = 10))
-
-###
-
-out_GM %>%
-  summarise(mint = min(timeest),
-            maxt = max(timeest),
-            mine = min(eest),
-            maxe = max(eest))
-# 12 max limit
-
-GM_all_between_error_fig <- out_GM %>%
-  ggplot(aes(x = eest,
-             y = timeest,
-             colour = label)) +
-  geom_abline(intercept = 0, slope = 1, alpha = .5) + # ICC = .5
-    annotate("point", x = 1/1*12,  y = 12, colour = "white", size = 6) +
-    annotate("text", x = 1/1*12,  y = 12, label = ".5", size = 3) +
-  geom_abline(intercept = 0, slope = 1.5, alpha = .5) + # ICC = .6
-    annotate("point", x = 1/1.5*12,  y = 12, colour = "white", size = 6) +
-    annotate("text", x = 1/1.5*12,  y = 12, label = ".6", size = 3) +
-  geom_abline(intercept = 0, slope = 2.33, alpha = .5) + # ICC = .7
-    annotate("point", x = 1/2.33*12,  y = 12, colour = "white", size = 6) +
-    annotate("text", x = 1/2.33*12,  y = 12, label = ".7", size = 3) +
-  geom_abline(intercept = 0, slope = 4, alpha = .5) + # ICC = .8
-    annotate("point", x = 1/4*12,  y = 12, colour = "white", size = 6) +
-    annotate("text", x = 1/4*12,  y = 12, label = ".8", size = 3) +
-  geom_abline(intercept = 0, slope = 9, alpha = .5) + # ICC = .9
-    annotate("point", x = 1/9*12,  y = 12, colour = "white", size = 6) +
-    annotate("text", x = 1/9*12,  y = 12, label = ".9", size = 3) +
-  coord_cartesian(ylim=c(0,12),
-                  xlim=c(0,12)) +
-  geom_point() +
-  theme_minimal() +
-  theme(panel.grid = element_line(colour = "grey87"),
-        axis.line = element_line(colour = "black", size = rel(1)),
-        panel.grid.minor = element_line(size = rel(0.1)), 
-        legend.position = "none") +
- ylab("between subjects variance") +
- xlab("error variance") +
-  theme(axis.title.y = element_blank()) +
-  ggtitle("Volume") +
-      theme(plot.title = element_text(size = 10))
-
-CT_all_between_error_fig / SA_all_between_error_fig / GM_all_between_error_fig
-  
-
-```
-
-```{r all_between_error_CT_vars}
+```{r all_between_error_CT_variance_proportions}
 # of interest to compare the spread of estimates
 
+# proportion of between subjects to error variance, by ROI
 between_error_CT %>%
   group_by(ROI) %>%
   summarise(mt = median(time_var),
@@ -364,7 +325,60 @@ between_error_CT %>%
             vare = var(me)) %>%
   mutate(prop = vart / vare)
 
+# proportion of between subjects to error variance, by site
 between_error_CT %>%
+  group_by(site) %>%
+  summarise(mt = median(time_var),
+            me = median(error_var)) %>%
+  ungroup() %>%
+  summarise(vart = var(mt),
+            vare = var(me)) %>%
+  mutate(prop = vart / vare,
+         prop2 = vare / vart)
+
+```
+
+```{r all_between_error_SA_variance_proportions}
+# of interest to compare the spread of estimates
+
+# proportion of between subjects to error variance, by ROI
+between_error_SA %>%
+  group_by(ROI) %>%
+  summarise(mt = median(time_var),
+            me = median(error_var)) %>%
+  ungroup() %>%
+  summarise(vart = var(mt),
+            vare = var(me)) %>%
+  mutate(prop = vart / vare)
+
+# proportion of between subjects to error variance, by site
+between_error_SA %>%
+  group_by(site) %>%
+  summarise(mt = median(time_var),
+            me = median(error_var)) %>%
+  ungroup() %>%
+  summarise(vart = var(mt),
+            vare = var(me)) %>%
+  mutate(prop = vart / vare,
+         prop2 = vare / vart)
+
+```
+
+```{r all_between_error_GM_variance_proportions}
+# of interest to compare the spread of estimates
+
+# proportion of between subjects to error variance, by ROI
+between_error_GM %>%
+  group_by(ROI) %>%
+  summarise(mt = median(time_var),
+            me = median(error_var)) %>%
+  ungroup() %>%
+  summarise(vart = var(mt),
+            vare = var(me)) %>%
+  mutate(prop = vart / vare)
+
+# proportion of between subjects to error variance, by site
+between_error_GM %>%
   group_by(site) %>%
   summarise(mt = median(time_var),
             me = median(error_var)) %>%
@@ -377,115 +391,10 @@ between_error_CT %>%
 ```
   
 
-# between and error - site differences
-
-perhaps as a supplement?
-
-
-```{r between_error_CT, eval = FALSE}
-between_error_CT %>%
-  ggplot(aes(x = error_var,
-             y = time_var,
-             colour = ROI)) +
-  geom_abline(intercept = 0, slope = 1, alpha = .5) + # ICC = .5
-    annotate("point", x = .1/1,  y = .1, colour = "white", size = 6) +
-    annotate("text", x = .1/1,  y = .1, label = ".5", size = 3) +
-  geom_abline(intercept = 0, slope = 1.5, alpha = .5) + # ICC = .6
-    annotate("point", x = .1/1.5,  y = .1, colour = "white", size = 6) +
-    annotate("text", x = .1/1.5,  y = .1, label = ".6", size = 3) +
-  geom_abline(intercept = 0, slope = 2.33, alpha = .5) + # ICC = .7
-    annotate("point", x = .1/2.33,  y = .1, colour = "white", size = 6) +
-    annotate("text", x = .1/2.33,  y = .1, label = ".7", size = 3) +
-  geom_abline(intercept = 0, slope = 4, alpha = .5) + # ICC = .8
-    annotate("point", x = .1/4,  y = .1, colour = "white", size = 6) +
-    annotate("text", x = .1/4,  y = .1, label = ".8", size = 3) +
-  geom_abline(intercept = 0, slope = 9, alpha = .5) + # ICC = .9
-    annotate("point", x = .1/9,  y = .1, colour = "white", size = 6) +
-    annotate("text", x = .1/9,  y = .1, label = ".9", size = 3) +
-  coord_cartesian(ylim=c(0,.1),
-                  xlim=c(0,.1)) +
-  geom_point() +
-  theme_minimal() +
-  theme(panel.grid = element_line(colour = "grey87"),
-        axis.line = element_line(colour = "black", size = rel(1)),
-        panel.grid.minor = element_line(size = rel(0.1)), 
-        legend.position = "none") +
-    facet_wrap(~ site, ncol = 3) +
- ylab("between subjects variance") +
- xlab("error variance")
-
-
-
-```
-
-```{r between_error_SA, eval = FALSE}
-between_error_SA %>%
-  ggplot(aes(x = error_var,
-             y = time_var,
-             colour = ROI)) +
-  geom_abline(intercept = 0, slope = 1, alpha = .5) + # ICC = .5
-    annotate("point", x = .1/1,  y = .1, colour = "white", size = 6) +
-    annotate("text", x = .1/1,  y = .1, label = ".5", size = 3) +
-  geom_abline(intercept = 0, slope = 1.5, alpha = .5) + # ICC = .6
-    annotate("point", x = .1/1.5,  y = .1, colour = "white", size = 6) +
-    annotate("text", x = .1/1.5,  y = .1, label = ".6", size = 3) +
-  geom_abline(intercept = 0, slope = 2.33, alpha = .5) + # ICC = .7
-    annotate("point", x = .1/2.33,  y = .1, colour = "white", size = 6) +
-    annotate("text", x = .1/2.33,  y = .1, label = ".7", size = 3) +
-  geom_abline(intercept = 0, slope = 4, alpha = .5) + # ICC = .8
-    annotate("point", x = .1/4,  y = .1, colour = "white", size = 6) +
-    annotate("text", x = .1/4,  y = .1, label = ".8", size = 3) +
-  geom_abline(intercept = 0, slope = 9, alpha = .5) + # ICC = .9
-    annotate("point", x = .1/9,  y = .1, colour = "white", size = 6) +
-    annotate("text", x = .1/9,  y = .1, label = ".9", size = 3) +
-  coord_cartesian(ylim=c(0,.1),
-                  xlim=c(0,.1)) +
-  geom_point() +
-  theme_minimal() +
-  theme(panel.grid = element_line(colour = "grey87"),
-        axis.line = element_line(colour = "black", size = rel(1)),
-        panel.grid.minor = element_line(size = rel(0.1)), 
-        legend.position = "none") +
-    facet_wrap(~ site, ncol = 3) +
- ylab("between subjects variance") +
- xlab("error variance")
-```
-
-```{r between_error_GM, eval = FALSE}
-between_error_GM %>%
-  ggplot(aes(x = error_var,
-             y = time_var,
-             colour = ROI)) +
-  geom_abline(intercept = 0, slope = 1, alpha = .5) + # ICC = .5
-    annotate("point", x = .1/1,  y = .1, colour = "white", size = 6) +
-    annotate("text", x = .1/1,  y = .1, label = ".5", size = 3) +
-  geom_abline(intercept = 0, slope = 1.5, alpha = .5) + # ICC = .6
-    annotate("point", x = .1/1.5,  y = .1, colour = "white", size = 6) +
-    annotate("text", x = .1/1.5,  y = .1, label = ".6", size = 3) +
-  geom_abline(intercept = 0, slope = 2.33, alpha = .5) + # ICC = .7
-    annotate("point", x = .1/2.33,  y = .1, colour = "white", size = 6) +
-    annotate("text", x = .1/2.33,  y = .1, label = ".7", size = 3) +
-  geom_abline(intercept = 0, slope = 4, alpha = .5) + # ICC = .8
-    annotate("point", x = .1/4,  y = .1, colour = "white", size = 6) +
-    annotate("text", x = .1/4,  y = .1, label = ".8", size = 3) +
-  geom_abline(intercept = 0, slope = 9, alpha = .5) + # ICC = .9
-    annotate("point", x = .1/9,  y = .1, colour = "white", size = 6) +
-    annotate("text", x = .1/9,  y = .1, label = ".9", size = 3) +
-  coord_cartesian(ylim=c(0,.1),
-                  xlim=c(0,.1)) +
-  geom_point() +
-  theme_minimal() +
-  theme(panel.grid = element_line(colour = "grey87"),
-        axis.line = element_line(colour = "black", size = rel(1)),
-        panel.grid.minor = element_line(size = rel(0.1)), 
-        legend.position = "none") +
-    facet_wrap(~ site, ncol = 3) +
- ylab("between subjects variance") +
- xlab("error variance")
-```
-
 
 ## decomposing variance estimates
+
+# Cortical Thickness (included in main paper)
 
 ```{r betweenanderrormain_CT_regions}
 
@@ -535,7 +444,7 @@ by_ROI_CT_box_time <- between_error_CT %>%
         axis.title.x = element_text(size = 14)) +
   ylab("Between-subjects variance")
 
-by_ROI_ICC <- between_error_CT %>%
+by_ROI_ICC_CT <- between_error_CT %>%
   filter(grepl("rh_", ROI)) %>%
   mutate(ROI = str_replace(ROI, "rh_", "")) %>%
   group_by(ROI) %>%
@@ -555,6 +464,7 @@ by_ROI_ICC <- between_error_CT %>%
         axis.title.x = element_text(size = 14)) +
   ylab("ICC")
 
+if(use_sim == FALSE){
 Cairo(file = "6_figures/Figure4.png",
       type = "png",
       units="in", 
@@ -563,12 +473,31 @@ Cairo(file = "6_figures/Figure4.png",
       pointsize=12, 
       dpi=600)
 
-by_ROI_CT_box_time + by_ROI_CT_box_error + by_ROI_ICC + plot_layout(widths = c(4,4,1))
+Figure_4 <- by_ROI_CT_box_time + by_ROI_CT_box_error + by_ROI_ICC_CT + plot_layout(widths = c(4,4,1))
+
+print(Figure_4)
 
 dev.off()
+}
+
+if(use_sim == TRUE){
+Cairo(file = "8_supplement/Figure4_sim.png",
+      type = "png",
+      units="in", 
+      width=8, 
+      height=8, 
+      pointsize=12, 
+      dpi=600)
+
+Figure_4_sim <- by_ROI_CT_box_time + by_ROI_CT_box_error + by_ROI_ICC_CT + plot_layout(widths = c(4,4,1))
+
+print(Figure_4_sim)
+
+dev.off()
+}
+
 
 ```
-
 
 ```{r betweenanderrormain_CT_sites}
 
@@ -630,7 +559,7 @@ by_site_CT_box_true <- between_error_CT %>%
   ylab("Between-subjects variance")
 
 
-by_site_ICC <- between_error_CT %>%
+by_site_ICC_CT <- between_error_CT %>%
   filter(grepl("rh_", ROI)) %>%
   mutate(ROI = str_replace(ROI, "rh_", "")) %>%
   group_by(site) %>%
@@ -649,6 +578,7 @@ by_site_ICC <- between_error_CT %>%
         axis.line = element_blank()) +
   ylab("ICC")
 
+if(use_sim == FALSE){
 Cairo(file = "6_figures/Figure5.png",
       type = "png",
       units="in", 
@@ -657,14 +587,35 @@ Cairo(file = "6_figures/Figure5.png",
       pointsize=12, 
       dpi=600)
 
-by_site_CT_box_true + by_site_CT_box_error + by_site_ICC  + plot_layout(widths = c(4,4,1))
+Figure_5 <- by_site_CT_box_true + by_site_CT_box_error + by_site_ICC_CT + plot_layout(widths = c(4,4,1))
+
+print(Figure_5)
 
 dev.off()
+}
+
+
+if(use_sim == TRUE){
+Cairo(file = "8_supplement/Figure5_sim.png",
+      type = "png",
+      units="in", 
+      width=6, 
+      height=6, 
+      pointsize=12, 
+      dpi=600)
+
+Figure_5_sim <- by_site_CT_box_true + by_site_CT_box_error + by_site_ICC_CT + plot_layout(widths = c(4,4,1))
+
+print(Figure_5_sim)
+
+dev.off()
+}
+
 ```
 
-# look at rank stability
+## look at rank stability (Table 1) - Figures not included in paper
 
-```{r rank_order_stability}
+```{r rank_order_stability_CT}
 
 #### by ROI
 between_error_CT %>%
@@ -675,7 +626,7 @@ between_error_CT %>%
   as.data.frame() %>%
   psych::ICC()
 
-roi_icc <- between_error_CT %>%
+roi_icc_CT <- between_error_CT %>%
   ggplot(aes(x = reorder(site, ICC, FUN = median), y = ICC, group = ROI, colour = ROI)) +
   geom_line() +
   theme(legend.position = "none",
@@ -691,7 +642,7 @@ between_error_CT %>%
   as.data.frame() %>%
   psych::ICC()
 
-roi_between <- between_error_CT %>%
+roi_between_CT <- between_error_CT %>%
   ggplot(aes(x = reorder(site, ICC, FUN = median), y = time_var, group = ROI, colour = ROI)) +
   geom_line() +
   theme(legend.position = "none",
@@ -708,7 +659,7 @@ between_error_CT %>%
   as.data.frame() %>%
   psych::ICC()
 
-roi_err <- between_error_CT %>%
+roi_err_CT <- between_error_CT %>%
   ggplot(aes(x = reorder(site, ICC, FUN = median), y = error_var, group = ROI, colour = ROI)) +
   geom_line() +
   theme(legend.position = "none",
@@ -716,7 +667,7 @@ roi_err <- between_error_CT %>%
   xlab("site") +
   ylab("error \nvariance")
 
-roi_icc / roi_between / roi_err
+roi_icc_CT / roi_between_CT / roi_err_CT
 
 #### by site
 between_error_CT %>%
@@ -727,7 +678,7 @@ between_error_CT %>%
   as.data.frame() %>%
   psych::ICC()
 
-site_icc <- between_error_CT %>%
+site_icc_CT <- between_error_CT %>%
   ggplot(aes(x = reorder(ROI, ICC, FUN = median), y = ICC, group = site, colour = site)) +
   geom_line() +
   theme(legend.position = "none",
@@ -743,7 +694,7 @@ between_error_CT %>%
   as.data.frame() %>%
   psych::ICC()
 
-site_between <- between_error_CT %>%
+site_between_CT <- between_error_CT %>%
   ggplot(aes(x = reorder(ROI, ICC, FUN = median), y = time_var, group = site, colour = site)) +
   geom_line() +
   theme(legend.position = "none",
@@ -760,7 +711,7 @@ between_error_CT %>%
   as.data.frame() %>%
   psych::ICC()
 
-site_error <- between_error_CT %>%
+site_error_CT <- between_error_CT %>%
   ggplot(aes(x = reorder(ROI, ICC, FUN = median), y = error_var, group = site, colour = site)) +
   geom_line() +
   theme(legend.position = "none",
@@ -768,21 +719,120 @@ site_error <- between_error_CT %>%
   xlab("region") +
   ylab("error \nvariance")
 
-site_icc / site_between / site_error
+site_icc_CT / site_between_CT / site_error_CT
 
 ```
 
+# Surface Area (for supplement)
 
-# between and error to be fixed and included in the supplimental materials
-```{r betweenanderrormain_SA}
+```{r betweenanderrormain_SA_regions}
+
+by_ROI_SA_box_error <- between_error_SA %>%
+  filter(grepl("rh_", ROI)) %>%
+  mutate(ROI = str_replace(ROI, "rh_", "")) %>%
+  ggplot(aes(x = reorder(ROI, -time_var, FUN = median),
+             y = error_var)) +
+  geom_point(aes(colour = site),
+             position = position_jitter(width = .25),
+             size = 1.3) +
+      geom_boxplot(outlier.shape = NA, 
+                   width = .8, 
+                   colour = "BLACK",
+                   alpha = 0.2,
+                   size = .3) +
+  coord_flip() +
+  theme_minimal() +
+  theme(legend.position = "none",
+        axis.title.y = element_blank(),
+        axis.text.y = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(colour = "grey50"),
+        axis.title.x = element_text(size = 14)) +
+  ylab("Error variance")
+
+by_ROI_SA_box_time <- between_error_SA %>%
+    filter(grepl("rh_", ROI)) %>%
+    mutate(ROI = str_replace(ROI, "rh_", "")) %>%
+  ggplot(aes(x = reorder(ROI, -time_var, FUN = median),
+             y = time_var)) +
+  geom_point(aes(colour = site),
+             position = position_jitter(width = .25),
+             size = 1.3) +
+      geom_boxplot(outlier.shape = NA, 
+                   width = .8, 
+                   colour = "BLACK",
+                   alpha = 0.2,
+                   size = .3) +
+  coord_flip() +
+  theme_minimal() +
+  theme(legend.position = "none",
+        axis.title.y = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(colour = "grey50"),
+        axis.text.y = element_text(size = 12),
+        axis.title.x = element_text(size = 14)) +
+  ylab("Between-subjects variance")
+
+by_ROI_ICC_SA <- between_error_SA %>%
+  filter(grepl("rh_", ROI)) %>%
+  mutate(ROI = str_replace(ROI, "rh_", "")) %>%
+  group_by(ROI) %>%
+  summarise(m_ICC = median(ICC),
+            m_time = median(time_var)) %>%
+  ggplot(aes(x = reorder(ROI, -m_time),
+             y = "ICC")) +
+   geom_text(aes(label = round(m_ICC,2)),
+            size = 3.5) +
+   coord_flip() +
+  theme_minimal() +
+  theme(legend.position = "none",
+        axis.title.y = element_blank(),
+        axis.text = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_blank(),
+        axis.title.x = element_text(size = 14)) +
+  ylab("ICC")
+
+if(use_sim == FALSE){
+Cairo(file = "8_supplement/Figure4_SA.png",
+      type = "png",
+      units="in", 
+      width=8, 
+      height=8, 
+      pointsize=12, 
+      dpi=600)
+
+Figure4_SA <- by_ROI_SA_box_time + by_ROI_SA_box_error + by_ROI_ICC_SA + plot_layout(widths = c(4,4,1))
+
+print(Figure4_SA)
+
+dev.off()
+}
+
+if(use_sim == TRUE){
+Cairo(file = "8_supplement/Figure4_SA_sim.png",
+      type = "png",
+      units="in", 
+      width=8, 
+      height=8, 
+      pointsize=12, 
+      dpi=600)
+
+Figure4_SA_sim <- by_ROI_SA_box_time + by_ROI_SA_box_error + by_ROI_ICC_SA + plot_layout(widths = c(4,4,1))
+
+print(Figure4_SA_sim)
+
+dev.off()
+}
+
+```
+
+```{r betweenanderrormain_SA_sites}
 
 between_error_SA %>%
   group_by(ROI, site) %>%
   summarise(median_t = median(time_var),
             median_e = median(error_var)) %>%
-  # group_by(site) %>%
-  # summarise(median_t = median(median_t),
-  #           median_e = median(median_e)) %>%
   ungroup() %>%
   summarise(median_t2 = median(median_t),
             quantilet25 = quantile(median_t, .1),
@@ -796,119 +846,319 @@ between_error_SA %>%
 #################
 
 by_site_SA_box_error <- between_error_SA %>%
-  # filter(site == "site01" | 
-  #          site == "site02" | 
-  #          site == "site03" | 
-  #          site == "site04" | 
-  #          site == "site05") %>%
-  ggplot(aes(x = site,
+  ggplot(aes(x = reorder(site, -error_var, FUN = median),
              y = error_var)) +
-#  geom_flat_violin(position = position_nudge(x = .2, y = 0),
-#                   adjust = 1) +
   geom_point(aes(colour = site),
-             position = position_jitter(width = .15),
+             position = position_jitter(width = .25),
              size = 1.3) +
-      geom_boxplot(outlier.shape = NA, width = .5, colour = "BLACK", position = position_nudge(x = .4, y = 0)) +
+      geom_boxplot(outlier.shape = NA, 
+                   width = .8, 
+                   colour = "BLACK",
+                   alpha = 0.2,
+                   size = .3) +
   coord_flip() +
+  theme_minimal() +
   theme(legend.position = "none",
         axis.title.y = element_blank(),
-        axis.text.y = element_blank())
+        axis.text.y = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(colour = "grey50")) +
+  ylab("Error variance")
 
-by_site_true_ICC <- 
-  between_error_SA %>%
-  group_by(site) %>%
-  summarise(m_ICC = median(ICC))
 
 by_site_SA_box_true <- between_error_SA %>%
-  # filter(site == "site01" | 
-  #          site == "site02" | 
-  #          site == "site03" | 
-  #          site == "site04" | 
-  #          site == "site05") %>%
-  ggplot(aes(x = site,
+  ggplot(aes(x = reorder(site, -error_var, FUN = median),
              y = time_var)) +
-#  geom_flat_violin(position = position_nudge(x = .2, y = 0),
-#                   adjust = 1) +
   geom_point(aes(colour = site),
-             position = position_jitter(width = .15),
+             position = position_jitter(width = .25),
              size = 1.3) +
-      geom_boxplot(outlier.shape = NA, width = .5, colour = "BLACK", position = position_nudge(x = .4, y = 0)) +
-  #   geom_text(data = by_site_true_ICC,
-  #         aes(label = round(m_ICC,2), 
-  #             y = .08, x = site)) +
+      geom_boxplot(outlier.shape = NA, 
+                   width = .8, 
+                   colour = "BLACK",
+                   alpha = 0.2,
+                   size = .3) +
   coord_flip() +
-  theme(legend.position = "none")
-
-
-by_site_SA_box_true + by_site_SA_box_error
-
-#################
-
-by_ROI_SA_box_error <- between_error_SA %>%
-  filter(grepl("rh_", ROI)) %>%
-  mutate(ROI = str_replace(ROI, "rh_", "")) %>%
-  # filter(site == "site01" | 
-  #          site == "site02" | 
-  #          site == "site03" | 
-  #          site == "site04" | 
-  #          site == "site05") %>%
-  ggplot(aes(x = ROI,
-             y = error_var)) +
-#  geom_flat_violin(position = position_nudge(x = .2, y = 0),
-#                   adjust = 1) +
-  geom_point(aes(colour = site),
-             position = position_jitter(width = .15),
-             size = 1.3) +
-      geom_boxplot(outlier.shape = NA, width = .5, colour = "BLACK", position = position_nudge(x = .4, y = 0)) +
-  coord_flip() +
+  theme_minimal() +
   theme(legend.position = "none",
         axis.title.y = element_blank(),
-        axis.text.y = element_blank())
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(colour = "grey50"),
+        axis.text.y = element_text(size = 12)) +
+  ylab("Between-subjects variance")
 
-by_ROI_true_ICC <- 
-  between_error_SA %>%
+
+by_site_ICC_SA <- between_error_SA %>%
   filter(grepl("rh_", ROI)) %>%
   mutate(ROI = str_replace(ROI, "rh_", "")) %>%
-  group_by(ROI) %>%
-  summarise(m_ICC = median(ICC))
+  group_by(site) %>%
+  summarise(m_ICC = median(ICC),
+            m_error = median(error_var)) %>%
+  ggplot(aes(x = reorder(site, -m_error),
+             y = "ICC")) +
+   geom_text(aes(label = round(m_ICC,2)),
+            size = 3.5) +
+   coord_flip() +
+  theme_minimal() +
+  theme(legend.position = "none",
+        axis.title.y = element_blank(),
+        axis.text = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_blank()) +
+  ylab("ICC")
 
-by_ROI_SA_box_time <- between_error_SA %>%
-    filter(grepl("rh_", ROI)) %>%
-    mutate(ROI = str_replace(ROI, "rh_", "")) %>%
-  # filter(site == "site01" | 
-  #          site == "site02" | 
-  #          site == "site03" | 
-  #          site == "site04" | 
-  #          site == "site05") %>%
-  ggplot(aes(x = ROI,
-             y = time_var)) +
-#  geom_flat_violin(position = position_nudge(x = .2, y = 0),
-#                   adjust = 1) +
-  geom_point(aes(colour = site),
-             position = position_jitter(width = .15),
-             size = 1.3) +
-      geom_boxplot(outlier.shape = NA, width = .5, colour = "BLACK", position = position_nudge(x = .4, y = 0)) +
-#     geom_text(data = by_ROI_true_ICC,
-#          aes(label = round(m_ICC,2), 
-#              y = .06, x = ROI),
-#          size = 3.5) +
-  coord_flip() +
-  theme(legend.position = "none")
+if(use_sim == FALSE){
+Cairo(file = "8_supplement/Figure5_SA.png",
+      type = "png",
+      units="in", 
+      width=6, 
+      height=6, 
+      pointsize=12, 
+      dpi=600)
 
-by_ROI_SA_box_time + by_ROI_SA_box_error
+Figure5_SA <- by_site_SA_box_true + by_site_SA_box_error + by_site_ICC_SA  + plot_layout(widths = c(4,4,1))
 
+print(Figure5_SA)
+
+dev.off()
+}
+
+if(use_sim == TRUE){
+Cairo(file = "8_supplement/Figure5_SA_sim.png",
+      type = "png",
+      units="in", 
+      width=6, 
+      height=6, 
+      pointsize=12, 
+      dpi=600)
+
+Figure5_SA_sim <- by_site_SA_box_true + by_site_SA_box_error + by_site_ICC_SA  + plot_layout(widths = c(4,4,1))
+
+print(Figure5_SA_sim)
+
+dev.off()
+}
+```
+
+## look at rank stability
+
+```{r rank_order_stability_SA}
+
+#### by ROI
+between_error_SA %>%
+  select(site, ROI, ICC) %>%
+  pivot_wider(values_from = ICC,
+              names_from = site) %>%
+  select(-ROI) %>%
+  as.data.frame() %>%
+  psych::ICC()
+
+roi_icc_SA <- between_error_SA %>%
+  ggplot(aes(x = reorder(site, ICC, FUN = median), y = ICC, group = ROI, colour = ROI)) +
+  geom_line() +
+  theme(legend.position = "none",
+        axis.title.x = element_blank(),
+        axis.text.x = element_blank())
+
+# roi between sub
+between_error_SA %>%
+  select(site, ROI, time_var) %>%
+  pivot_wider(values_from = time_var,
+              names_from = site) %>%
+  select(-ROI) %>%
+  as.data.frame() %>%
+  psych::ICC()
+
+roi_between_SA <- between_error_SA %>%
+  ggplot(aes(x = reorder(site, ICC, FUN = median), y = time_var, group = ROI, colour = ROI)) +
+  geom_line() +
+  theme(legend.position = "none",
+        axis.title.x = element_blank(),
+        axis.text.x = element_blank()) +
+  ylab("between-subjects \nvariance")
+
+# roi error
+between_error_SA %>%
+  select(site, ROI, error_var) %>%
+  pivot_wider(values_from = error_var,
+              names_from = site) %>%
+  select(-ROI) %>%
+  as.data.frame() %>%
+  psych::ICC()
+
+roi_err_SA <- between_error_CT %>%
+  ggplot(aes(x = reorder(site, ICC, FUN = median), y = error_var, group = ROI, colour = ROI)) +
+  geom_line() +
+  theme(legend.position = "none",
+        axis.text.x = element_text(angle = 90)) +
+  xlab("site") +
+  ylab("error \nvariance")
+
+roi_icc_SA / roi_between_SA / roi_err_SA
+
+#### by site
+between_error_SA %>%
+  select(site, ROI, ICC) %>%
+  pivot_wider(values_from = ICC,
+              names_from = ROI) %>%
+  select(-site) %>%
+  as.data.frame() %>%
+  psych::ICC()
+
+site_icc_SA <- between_error_SA %>%
+  ggplot(aes(x = reorder(ROI, ICC, FUN = median), y = ICC, group = site, colour = site)) +
+  geom_line() +
+  theme(legend.position = "none",
+        axis.title.x = element_blank(),
+        axis.text.x = element_blank())
+
+# site between sub
+between_error_SA %>%
+  select(site, ROI, time_var) %>%
+  pivot_wider(values_from = time_var,
+              names_from = ROI) %>%
+  select(-site) %>%
+  as.data.frame() %>%
+  psych::ICC()
+
+site_between_SA <- between_error_SA %>%
+  ggplot(aes(x = reorder(ROI, ICC, FUN = median), y = time_var, group = site, colour = site)) +
+  geom_line() +
+  theme(legend.position = "none",
+        axis.title.x = element_blank(),
+        axis.text.x = element_blank()) +
+  ylab("between-subjects \nvariance")
+
+# site roi
+between_error_SA %>%
+  select(site, ROI, error_var) %>%
+  pivot_wider(values_from = error_var,
+              names_from = ROI) %>%
+  select(-site) %>%
+  as.data.frame() %>%
+  psych::ICC()
+
+site_error_SA <- between_error_SA %>%
+  ggplot(aes(x = reorder(ROI, ICC, FUN = median), y = error_var, group = site, colour = site)) +
+  geom_line() +
+  theme(legend.position = "none",
+        axis.text.x = element_blank()) +
+  xlab("region") +
+  ylab("error \nvariance")
+
+site_icc_SA / site_between_SA / site_error_SA
 
 ```
 
-```{r betweenanderrormain_GM}
+# Grey matter volume (for supplement)
+
+```{r betweenanderrormain_GM_regions}
+
+by_ROI_GM_box_error <- between_error_GM %>%
+  filter(grepl("rh_", ROI)) %>%
+  mutate(ROI = str_replace(ROI, "rh_", "")) %>%
+  ggplot(aes(x = reorder(ROI, -time_var, FUN = median),
+             y = error_var)) +
+  geom_point(aes(colour = site),
+             position = position_jitter(width = .25),
+             size = 1.3) +
+      geom_boxplot(outlier.shape = NA, 
+                   width = .8, 
+                   colour = "BLACK",
+                   alpha = 0.2,
+                   size = .3) +
+  coord_flip() +
+  theme_minimal() +
+  theme(legend.position = "none",
+        axis.title.y = element_blank(),
+        axis.text.y = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(colour = "grey50"),
+        axis.title.x = element_text(size = 14)) +
+  ylab("Error variance")
+
+by_ROI_GM_box_time <- between_error_GM %>%
+    filter(grepl("rh_", ROI)) %>%
+    mutate(ROI = str_replace(ROI, "rh_", "")) %>%
+  ggplot(aes(x = reorder(ROI, -time_var, FUN = median),
+             y = time_var)) +
+  geom_point(aes(colour = site),
+             position = position_jitter(width = .25),
+             size = 1.3) +
+      geom_boxplot(outlier.shape = NA, 
+                   width = .8, 
+                   colour = "BLACK",
+                   alpha = 0.2,
+                   size = .3) +
+  coord_flip() +
+  theme_minimal() +
+  theme(legend.position = "none",
+        axis.title.y = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(colour = "grey50"),
+        axis.text.y = element_text(size = 12),
+        axis.title.x = element_text(size = 14)) +
+  ylab("Between-subjects variance")
+
+by_ROI_ICC_GM <- between_error_GM %>%
+  filter(grepl("rh_", ROI)) %>%
+  mutate(ROI = str_replace(ROI, "rh_", "")) %>%
+  group_by(ROI) %>%
+  summarise(m_ICC = median(ICC),
+            m_time = median(time_var)) %>%
+  ggplot(aes(x = reorder(ROI, -m_time),
+             y = "ICC")) +
+   geom_text(aes(label = round(m_ICC,2)),
+            size = 3.5) +
+   coord_flip() +
+  theme_minimal() +
+  theme(legend.position = "none",
+        axis.title.y = element_blank(),
+        axis.text = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_blank(),
+        axis.title.x = element_text(size = 14)) +
+  ylab("ICC")
+
+if(use_sim == FALSE){
+Cairo(file = "8_supplement/Figure4_GM.png",
+      type = "png",
+      units="in", 
+      width=8, 
+      height=8, 
+      pointsize=12, 
+      dpi=600)
+
+Figure4_GM <- by_ROI_GM_box_time + by_ROI_GM_box_error + by_ROI_ICC_GM + plot_layout(widths = c(4,4,1))
+
+print(Figure4_GM)
+
+dev.off()
+}
+
+if(use_sim == TRUE){
+Cairo(file = "8_supplement/Figure4_GM_sim.png",
+      type = "png",
+      units="in", 
+      width=8, 
+      height=8, 
+      pointsize=12, 
+      dpi=600)
+
+Figure4_GM_sim <- by_ROI_GM_box_time + by_ROI_GM_box_error + by_ROI_ICC_GM + plot_layout(widths = c(4,4,1))
+
+print(Figure4_GM_sim)
+
+dev.off()
+}
+
+```
+
+```{r betweenanderrormain_GM_sites}
 
 between_error_GM %>%
   group_by(ROI, site) %>%
   summarise(median_t = median(time_var),
             median_e = median(error_var)) %>%
-  # group_by(site) %>%
-  # summarise(median_t = median(median_t),
-  #           median_e = median(median_e)) %>%
   ungroup() %>%
   summarise(median_t2 = median(median_t),
             quantilet25 = quantile(median_t, .1),
@@ -922,673 +1172,217 @@ between_error_GM %>%
 #################
 
 by_site_GM_box_error <- between_error_GM %>%
-  # filter(site == "site01" | 
-  #          site == "site02" | 
-  #          site == "site03" | 
-  #          site == "site04" | 
-  #          site == "site05") %>%
-  ggplot(aes(x = site,
+  ggplot(aes(x = reorder(site, -error_var, FUN = median),
              y = error_var)) +
-#  geom_flat_violin(position = position_nudge(x = .2, y = 0),
-#                   adjust = 1) +
   geom_point(aes(colour = site),
-             position = position_jitter(width = .15),
+             position = position_jitter(width = .25),
              size = 1.3) +
-      geom_boxplot(outlier.shape = NA, width = .5, colour = "BLACK", position = position_nudge(x = .4, y = 0)) +
+      geom_boxplot(outlier.shape = NA, 
+                   width = .8, 
+                   colour = "BLACK",
+                   alpha = 0.2,
+                   size = .3) +
   coord_flip() +
+  theme_minimal() +
   theme(legend.position = "none",
         axis.title.y = element_blank(),
-        axis.text.y = element_blank())
+        axis.text.y = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(colour = "grey50")) +
+  ylab("Error variance")
 
-by_site_true_ICC <- 
-  between_error_GM %>%
-  group_by(site) %>%
-  summarise(m_ICC = median(ICC))
 
 by_site_GM_box_true <- between_error_GM %>%
-  # filter(site == "site01" | 
-  #          site == "site02" | 
-  #          site == "site03" | 
-  #          site == "site04" | 
-  #          site == "site05") %>%
-  ggplot(aes(x = site,
+  ggplot(aes(x = reorder(site, -error_var, FUN = median),
              y = time_var)) +
-#  geom_flat_violin(position = position_nudge(x = .2, y = 0),
-#                   adjust = 1) +
   geom_point(aes(colour = site),
-             position = position_jitter(width = .15),
+             position = position_jitter(width = .25),
              size = 1.3) +
-      geom_boxplot(outlier.shape = NA, width = .5, colour = "BLACK", position = position_nudge(x = .4, y = 0)) +
-    # geom_text(data = by_site_true_ICC,
-    #       aes(label = round(m_ICC,2), 
-    #           y = .08, x = site)) +
+      geom_boxplot(outlier.shape = NA, 
+                   width = .8, 
+                   colour = "BLACK",
+                   alpha = 0.2,
+                   size = .3) +
   coord_flip() +
-  theme(legend.position = "none")
-
-
-by_site_GM_box_true + by_site_GM_box_error
-
-#################
-
-by_ROI_GM_box_error <- between_error_GM %>%
-  filter(grepl("rh_", ROI)) %>%
-  mutate(ROI = str_replace(ROI, "rh_", "")) %>%
-  # filter(site == "site01" | 
-  #          site == "site02" | 
-  #          site == "site03" | 
-  #          site == "site04" | 
-  #          site == "site05") %>%
-  ggplot(aes(x = ROI,
-             y = error_var)) +
-#  geom_flat_violin(position = position_nudge(x = .2, y = 0),
-#                   adjust = 1) +
-  geom_point(aes(colour = site),
-             position = position_jitter(width = .15),
-             size = 1.3) +
-      geom_boxplot(outlier.shape = NA, width = .5, colour = "BLACK", position = position_nudge(x = .4, y = 0)) +
-  coord_flip() +
+  theme_minimal() +
   theme(legend.position = "none",
         axis.title.y = element_blank(),
-        axis.text.y = element_blank())
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(colour = "grey50"),
+        axis.text.y = element_text(size = 12)) +
+  ylab("Between-subjects variance")
 
-by_ROI_true_ICC <- 
-  between_error_GM %>%
+
+by_site_ICC_GM <- between_error_GM %>%
   filter(grepl("rh_", ROI)) %>%
   mutate(ROI = str_replace(ROI, "rh_", "")) %>%
-  group_by(ROI) %>%
-  summarise(m_ICC = median(ICC))
+  group_by(site) %>%
+  summarise(m_ICC = median(ICC),
+            m_error = median(error_var)) %>%
+  ggplot(aes(x = reorder(site, -m_error),
+             y = "ICC")) +
+   geom_text(aes(label = round(m_ICC,2)),
+            size = 3.5) +
+   coord_flip() +
+  theme_minimal() +
+  theme(legend.position = "none",
+        axis.title.y = element_blank(),
+        axis.text = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_blank()) +
+  ylab("ICC")
 
-by_ROI_GM_box_time <- between_error_GM %>%
-    filter(grepl("rh_", ROI)) %>%
-    mutate(ROI = str_replace(ROI, "rh_", "")) %>%
-  # filter(site == "site01" | 
-  #          site == "site02" | 
-  #          site == "site03" | 
-  #          site == "site04" | 
-  #          site == "site05") %>%
-  ggplot(aes(x = ROI,
-             y = time_var)) +
-#  geom_flat_violin(position = position_nudge(x = .2, y = 0),
-#                   adjust = 1) +
-  geom_point(aes(colour = site),
-             position = position_jitter(width = .15),
-             size = 1.3) +
-      geom_boxplot(outlier.shape = NA, width = .5, colour = "BLACK", position = position_nudge(x = .4, y = 0)) +
-#      geom_text(data = by_ROI_true_ICC,
-#         aes(label = round(m_ICC,2), 
-#              y = .06, x = ROI),
-#          size = 3.5) +
-  coord_flip() +
-  theme(legend.position = "none")
+if(use_sim == FALSE){
+Cairo(file = "8_supplement/Figure5_GM.png",
+      type = "png",
+      units="in", 
+      width=6, 
+      height=6, 
+      pointsize=12, 
+      dpi=600)
 
-by_ROI_GM_box_time + by_ROI_GM_box_error
+Figure5_GM <- by_site_SA_box_true + by_site_SA_box_error + by_site_ICC_SA  + plot_layout(widths = c(4,4,1))
 
+print(Figure5_GM)
+
+dev.off()
+}
+
+if(use_sim == TRUE){
+Cairo(file = "8_supplement/Figure5_GM_sim.png",
+      type = "png",
+      units="in", 
+      width=6, 
+      height=6, 
+      pointsize=12, 
+      dpi=600)
+
+Figure5_GM_sim <- by_site_SA_box_true + by_site_SA_box_error + by_site_ICC_SA  + plot_layout(widths = c(4,4,1))
+
+print(Figure5_GM_sim)
+
+dev.off()
+}
+```
+
+## look at rank stability
+
+```{r rank_order_stability_GM}
+
+#### by ROI
+between_error_GM %>%
+  select(site, ROI, ICC) %>%
+  pivot_wider(values_from = ICC,
+              names_from = site) %>%
+  select(-ROI) %>%
+  as.data.frame() %>%
+  psych::ICC()
+
+roi_icc_GM <- between_error_GM %>%
+  ggplot(aes(x = reorder(site, ICC, FUN = median), y = ICC, group = ROI, colour = ROI)) +
+  geom_line() +
+  theme(legend.position = "none",
+        axis.title.x = element_blank(),
+        axis.text.x = element_blank())
+
+# roi between sub
+between_error_GM %>%
+  select(site, ROI, time_var) %>%
+  pivot_wider(values_from = time_var,
+              names_from = site) %>%
+  select(-ROI) %>%
+  as.data.frame() %>%
+  psych::ICC()
+
+roi_between_GM <- between_error_GM %>%
+  ggplot(aes(x = reorder(site, ICC, FUN = median), y = time_var, group = ROI, colour = ROI)) +
+  geom_line() +
+  theme(legend.position = "none",
+        axis.title.x = element_blank(),
+        axis.text.x = element_blank()) +
+  ylab("between-subjects \nvariance")
+
+# roi error
+between_error_GM %>%
+  select(site, ROI, error_var) %>%
+  pivot_wider(values_from = error_var,
+              names_from = site) %>%
+  select(-ROI) %>%
+  as.data.frame() %>%
+  psych::ICC()
+
+roi_err_GM <- between_error_GM %>%
+  ggplot(aes(x = reorder(site, ICC, FUN = median), y = error_var, group = ROI, colour = ROI)) +
+  geom_line() +
+  theme(legend.position = "none",
+        axis.text.x = element_text(angle = 90)) +
+  xlab("site") +
+  ylab("error \nvariance")
+
+roi_icc_GM / roi_between_GM / roi_err_GM
+
+#### by site
+between_error_GM %>%
+  select(site, ROI, ICC) %>%
+  pivot_wider(values_from = ICC,
+              names_from = ROI) %>%
+  select(-site) %>%
+  as.data.frame() %>%
+  psych::ICC()
+
+site_icc_GM <- between_error_GM %>%
+  ggplot(aes(x = reorder(ROI, ICC, FUN = median), y = ICC, group = site, colour = site)) +
+  geom_line() +
+  theme(legend.position = "none",
+        axis.title.x = element_blank(),
+        axis.text.x = element_blank())
+
+# site between sub
+between_error_GM %>%
+  select(site, ROI, time_var) %>%
+  pivot_wider(values_from = time_var,
+              names_from = ROI) %>%
+  select(-site) %>%
+  as.data.frame() %>%
+  psych::ICC()
+
+site_between_GM <- between_error_GM %>%
+  ggplot(aes(x = reorder(ROI, ICC, FUN = median), y = time_var, group = site, colour = site)) +
+  geom_line() +
+  theme(legend.position = "none",
+        axis.title.x = element_blank(),
+        axis.text.x = element_blank()) +
+  ylab("between-subjects \nvariance")
+
+# site roi
+between_error_GM %>%
+  select(site, ROI, error_var) %>%
+  pivot_wider(values_from = error_var,
+              names_from = ROI) %>%
+  select(-site) %>%
+  as.data.frame() %>%
+  psych::ICC()
+
+site_error_GM <- between_error_GM %>%
+  ggplot(aes(x = reorder(ROI, ICC, FUN = median), y = error_var, group = site, colour = site)) +
+  geom_line() +
+  theme(legend.position = "none",
+        axis.text.x = element_blank()) +
+  xlab("region") +
+  ylab("error \nvariance")
+
+site_icc_GM / site_between_GM / site_error_GM
 
 ```
 
 
+# multigroup models
 
-# multigroup
+Chi squared differences (for supplement)
 
-```{r CT_multigroup, eval = FALSE}
-CT_LRT_ggseg_errcon_v_con <- dk %>% 
-  as_tibble() %>% 
-  left_join(sites_LRTs_CT_tidy, by = c("label" = "ROI")) %>%
-  filter(comparison == "errcon_v_con") %>%
-ggseg(., atlas = "dk", 
-        colour = "black",
-        size = .1,
-        mapping = aes(fill = LRT_p05)) +
-  theme_void() +
-  scale_fill_manual(values = c("sig" = "#00BFC4", 
-                                 "nonsig" = "#F8766D"),
-                      breaks = c("sig", "nonsig", "NA"),
-                      labels = c("sig", "nonsig", "NA")) +
-  ggtitle("A. constrained vs time varying")
-
-CT_LRT_ggseg_uncon_v_errcon <- dk %>% 
-  as_tibble() %>% 
-  left_join(sites_LRTs_CT_tidy, by = c("label" = "ROI")) %>%
-  filter(comparison == "uncon_v_errcon") %>%
-ggseg(., atlas = "dk", 
-        colour = "black",
-        size = .1,
-        mapping = aes(fill = LRT_p05)) +
-    theme_void() +
-  scale_fill_manual(values = c("sig" = "#00BFC4", 
-                                 "nonsig" = "#F8766D"),
-                      breaks = c("sig", "nonsig", "NA"),
-                      labels = c("sig", "nonsig", "NA")) +
-  ggtitle("B. time varying vs unconstrained")
-
-CT_LRT_ggseg_timecon_v_con <- dk %>% 
-  as_tibble() %>% 
-  left_join(sites_LRTs_CT_tidy, by = c("label" = "ROI")) %>%
-  filter(comparison == "timecon_v_con") %>%
-ggseg(., atlas = "dk", 
-        colour = "black",
-        size = .1,
-        mapping = aes(fill = LRT_p05)) +
-  theme_void() +
-  scale_fill_manual(values = c("sig" = "#00BFC4", 
-                                 "nonsig" = "#F8766D"),
-                      breaks = c("sig", "nonsig", "NA"),
-                      labels = c("sig", "nonsig", "NA")) +
-  ggtitle("C. constrained vs error varying")
-
-CT_LRT_ggseg_uncon_v_timecon <- dk %>% 
-  as_tibble() %>% 
-  left_join(sites_LRTs_CT_tidy, by = c("label" = "ROI")) %>%
-  filter(comparison == "uncon_v_timecon") %>%
-ggseg(., atlas = "dk", 
-        colour = "black",
-        size = .1,
-        mapping = aes(fill = LRT_p05)) +
-    theme_void() +
-  scale_fill_manual(values = c("sig" = "#00BFC4", 
-                                 "nonsig" = "#F8766D"),
-                      breaks = c("sig", "nonsig", "NA"),
-                      labels = c("sig", "nonsig", "NA")) +
-  ggtitle("D. error varying vs unconstrained")
-
-CT_LRT_ggseg_uncon_v_con <- dk %>% 
-  as_tibble() %>% 
-  left_join(sites_LRTs_CT_tidy, by = c("label" = "ROI")) %>%
-  filter(comparison == "uncon_v_con") %>%
-ggseg(., atlas = "dk", 
-        colour = "black",
-        size = .1,
-        mapping = aes(fill = LRT_p05)) +
-    theme_void() +
-  scale_fill_manual(values = c("sig" = "#00BFC4", 
-                                 "nonsig" = "#F8766D"),
-                      breaks = c("sig", "nonsig", "NA"),
-                      labels = c("sig", "nonsig", "NA")) +
-  ggtitle("E. constrained vs unconstrained")
-
-
-ggseg_LRTs <- CT_LRT_ggseg_errcon_v_con / CT_LRT_ggseg_uncon_v_errcon / CT_LRT_ggseg_timecon_v_con / CT_LRT_ggseg_uncon_v_timecon / CT_LRT_ggseg_uncon_v_con + plot_layout(guides = "collect") & theme(legend.position = "right")
-
-
-
-sites_LRTs_CT_tidy %>%
-  filter(comparison != "uncon") %>%
-  ggplot(aes(x = Chisq.diff, fill = comparison)) +
-  geom_histogram(alpha = .5, bins = 20) +
-  facet_wrap(~ factor(comparison,
-                      levels = c("errcon_v_con",
-                                 "uncon_v_errcon",
-                                 "timecon_v_con",
-                                 "uncon_v_timecon",
-                                 "uncon_v_con"),
-                      labels = c("A", "B", "C", "D", "E")),
-             ncol = 1, strip.position = "right")
-
-
-```
-
-
-```{r LRTdiff, eval = FALSE}
-           
-# instead with LRT diff in ggseg
-
-maxLRT_diff <- max(sites_LRTs_CT_tidy$Chisq.diff, na.rm = TRUE)
-
-CT_LRT_ggseg_errcon_v_con <- dk %>% 
-  as_tibble() %>% 
-  left_join(sites_LRTs_CT_tidy, by = c("label" = "ROI")) %>%
-  filter(comparison == "errcon_v_con") %>%
-ggseg(., atlas = "dk", 
-        colour = "black",
-        size = .1,
-        mapping = aes(fill = Chisq.diff)) +
-  theme_void() +
-  scale_fill_continuous(limits = c(0, maxLRT_diff),
-                        type = "viridis") +
-  ggtitle("A. constrained vs time varying")
-
-CT_LRT_ggseg_uncon_v_errcon <- dk %>% 
-  as_tibble() %>% 
-  left_join(sites_LRTs_CT_tidy, by = c("label" = "ROI")) %>%
-  filter(comparison == "uncon_v_errcon") %>%
-ggseg(., atlas = "dk", 
-        colour = "black",
-        size = .1,
-        mapping = aes(fill = Chisq.diff)) +
-    theme_void() +
-  scale_fill_continuous(limits = c(0, maxLRT_diff),
-                        type = "viridis") +
-  ggtitle("B. time varying vs unconstrained")
-
-CT_LRT_ggseg_timecon_v_con <- dk %>% 
-  as_tibble() %>% 
-  left_join(sites_LRTs_CT_tidy, by = c("label" = "ROI")) %>%
-  filter(comparison == "timecon_v_con") %>%
-ggseg(., atlas = "dk", 
-        colour = "black",
-        size = .1,
-        mapping = aes(fill = Chisq.diff)) +
-  theme_void() +
-  scale_fill_continuous(limits = c(0, maxLRT_diff),
-                        type = "viridis") +
-  ggtitle("C. constrained vs error varying")
-
-CT_LRT_ggseg_uncon_v_timecon <- dk %>% 
-  as_tibble() %>% 
-  left_join(sites_LRTs_CT_tidy, by = c("label" = "ROI")) %>%
-  filter(comparison == "uncon_v_timecon") %>%
-ggseg(., atlas = "dk", 
-        colour = "black",
-        size = .1,
-        mapping = aes(fill = Chisq.diff)) +
-    theme_void() +
-  scale_fill_continuous(limits = c(0, maxLRT_diff),
-                        type = "viridis") +
-  ggtitle("D. error varying vs unconstrained")
-
-CT_LRT_ggseg_uncon_v_con <- dk %>% 
-  as_tibble() %>% 
-  left_join(sites_LRTs_CT_tidy, by = c("label" = "ROI")) %>%
-  filter(comparison == "uncon_v_con") %>%
-ggseg(., atlas = "dk", 
-        colour = "black",
-        size = .1,
-        mapping = aes(fill = Chisq.diff)) +
-    theme_void() +
-  scale_fill_continuous(limits = c(0, maxLRT_diff),
-                        type = "viridis") +
-  ggtitle("E. constrained vs unconstrained")
-
-CT_LRT_ggseg_errcon_v_con / CT_LRT_ggseg_uncon_v_errcon / CT_LRT_ggseg_timecon_v_con / CT_LRT_ggseg_uncon_v_timecon / CT_LRT_ggseg_uncon_v_con + plot_layout(guides = "collect") & theme(legend.position = "right", legend.key.height = unit(1, "cm"))
-
-CT_LRT_ggseg_errcon_v_con / CT_LRT_ggseg_timecon_v_con /  CT_LRT_ggseg_uncon_v_con + plot_layout(guides = "collect") & theme(legend.position = "right", legend.key.height = unit(1, "cm"))
-
-
-### try with just chi sq
-
-maxchi_diff <- max(sites_LRTs_CT_tidy$Chisq, na.rm = TRUE)
-
-CT_LRT_ggseg_uncon <- dk %>% 
-  as_tibble() %>% 
-  left_join(sites_LRTs_CT_tidy, by = c("label" = "ROI")) %>%
-  filter(comparison == "uncon") %>%
-ggseg(., atlas = "dk", 
-        colour = "black",
-        size = .1,
-        mapping = aes(fill = Chisq)) +
-  theme_void() +
-  theme(legend.key.width = unit(1, 'cm')) +
-  scale_fill_gradient(limits = c(0, maxchi_diff)) +
-  # scale_fill_manual(values = c("sig" = "#00BFC4", 
-  #                                "nonsig" = "#F8766D"),
-  #                     breaks = c("sig", "nonsig", "NA"),
-  #                     labels = c("sig", "nonsig", "NA")) +
-  ggtitle("A. time and error free across sites")
-
-CT_LRT_ggseg_timecon <- dk %>% 
-  as_tibble() %>% 
-  left_join(sites_LRTs_CT_tidy, by = c("label" = "ROI")) %>%
-  filter(comparison == "uncon_v_timecon") %>%
-ggseg(., atlas = "dk", 
-        colour = "black",
-        size = .1,
-        mapping = aes(fill = Chisq)) +
-  theme_void() +
-  theme(legend.key.width = unit(1, 'cm')) +
-  scale_fill_gradient(limits = c(0, maxchi_diff)) +
-# scale_fill_manual(values = c("sig" = "#00BFC4", 
-  #                                "nonsig" = "#F8766D"),
-  #                     breaks = c("sig", "nonsig", "NA"),
-  #                     labels = c("sig", "nonsig", "NA")) +
-  ggtitle("B. error varying across sites")
-
-CT_LRT_ggseg_errcon <- dk %>% 
-  as_tibble() %>% 
-  left_join(sites_LRTs_CT_tidy, by = c("label" = "ROI")) %>%
-  filter(comparison == "uncon_v_errcon") %>%
-ggseg(., atlas = "dk", 
-        colour = "black",
-        size = .1,
-        mapping = aes(fill = Chisq)) +
-    theme_void() +
-  theme(legend.key.width = unit(1, 'cm')) +
-    scale_fill_gradient(limits = c(0, maxchi_diff)) +
-  # scale_fill_manual(values = c("sig" = "#00BFC4", 
-  #                                "nonsig" = "#F8766D"),
-  #                     breaks = c("sig", "nonsig", "NA"),
-  #                     labels = c("sig", "nonsig", "NA")) +
-  ggtitle("C. time varying across sites")
-
-CT_LRT_ggseg_con <- dk %>% 
-  as_tibble() %>% 
-  left_join(sites_LRTs_CT_tidy, by = c("label" = "ROI")) %>%
-  filter(comparison == "uncon_v_con") %>%
-ggseg(., atlas = "dk", 
-        colour = "black",
-        size = .1,
-        mapping = aes(fill = Chisq)) +
-    theme_void() +
-  theme(legend.key.width = unit(1, 'cm')) +
-  scale_fill_gradient(limits = c(0, maxchi_diff)) +
-  # scale_fill_manual(values = c("sig" = "#00BFC4", 
-  #                                "nonsig" = "#F8766D"),
-  #                     breaks = c("sig", "nonsig", "NA"),
-  #                     labels = c("sig", "nonsig", "NA")) +
-  ggtitle("D. time and error constrained across sites")
-
-
-
-CT_LRT_ggseg_uncon / CT_LRT_ggseg_timecon / CT_LRT_ggseg_errcon / CT_LRT_ggseg_con  + plot_layout(guides = "collect") & theme(legend.position = "bottom")
-
-
-# with other fit values
-
-fit_res_CT <- read.csv("2_analysis_output/fit_res_CT.csv")
-
-rmsea_range <- range(fit_res_CT$rmsea)
-
-fit_res_CT_uncon <- dk %>% 
-  as_tibble() %>% 
-  left_join(fit_res_CT, by = c("label" = "ROI")) %>%
-    filter(model == "unconstrained") %>%
-ggseg(., atlas = "dk", 
-        colour = "black",
-        size = .1,
-        mapping = aes(fill = rmsea)) +
-    theme_void() +
-  theme(legend.key.width = unit(1, 'cm')) +
-  scale_fill_gradient(limits = c(rmsea_range[1], rmsea_range[2])) +
-  ggtitle("A. unconstrained constrained across sites")
-
-fit_res_CT_time_con <- dk %>% 
-  as_tibble() %>% 
-  left_join(fit_res_CT, by = c("label" = "ROI")) %>%
-    filter(model == "time_constrained") %>%
-ggseg(., atlas = "dk", 
-        colour = "black",
-        size = .1,
-        mapping = aes(fill = rmsea)) +
-    theme_void() +
-  theme(legend.key.width = unit(1, 'cm')) +
-  scale_fill_gradient(limits = c(rmsea_range[1], rmsea_range[2])) +
-  ggtitle("B. error varying across sites")
-
-fit_res_CT_e_con <- dk %>% 
-  as_tibble() %>% 
-  left_join(fit_res_CT, by = c("label" = "ROI")) %>%
-    filter(model == "e_constrained") %>%
-ggseg(., atlas = "dk", 
-        colour = "black",
-        size = .1,
-        mapping = aes(fill = rmsea)) +
-    theme_void() +
-  theme(legend.key.width = unit(1, 'cm')) +
-  scale_fill_gradient(limits = c(rmsea_range[1], rmsea_range[2])) +
-  ggtitle("C. time varying across sites")
-
-fit_res_CT_con <- dk %>% 
-  as_tibble() %>% 
-  left_join(fit_res_CT, by = c("label" = "ROI")) %>%
-    filter(model == "constrained") %>%
-ggseg(., atlas = "dk", 
-        colour = "black",
-        size = .1,
-        mapping = aes(fill = rmsea)) +
-    theme_void() +
-  theme(legend.key.width = unit(1, 'cm')) +
-  scale_fill_gradient(limits = c(rmsea_range[1], rmsea_range[2])) +
-  ggtitle("D. constrained across sites")
-
-fit_res_CT_uncon / fit_res_CT_time_con / fit_res_CT_e_con / fit_res_CT_con + plot_layout(guides = "collect") & theme(legend.position = "bottom")
-
-```
-
-
-```{r SA_multigroup}
-SA_LRT_ggseg_errcon_v_con <- dk %>% 
-  as_tibble() %>% 
-  left_join(sites_LRTs_SA_tidy, by = c("label" = "ROI")) %>%
-  filter(comparison == "errcon_v_con") %>%
-ggseg(., atlas = "dk", 
-        colour = "black",
-        size = .1,
-        mapping = aes(fill = LRT_p05)) +
-  theme_void() +
-  scale_fill_manual(values = c("sig" = "#00BFC4", 
-                                 "nonsig" = "#F8766D"),
-                      breaks = c("sig", "nonsig", "NA"),
-                      labels = c("sig", "nonsig", "NA")) +
-  ggtitle("A. constrained vs time varying")
-
-SA_LRT_ggseg_uncon_v_errcon <- dk %>% 
-  as_tibble() %>% 
-  left_join(sites_LRTs_SA_tidy, by = c("label" = "ROI")) %>%
-  filter(comparison == "uncon_v_errcon") %>%
-ggseg(., atlas = "dk", 
-        colour = "black",
-        size = .1,
-        mapping = aes(fill = LRT_p05)) +
-    theme_void() +
-  scale_fill_manual(values = c("sig" = "#00BFC4", 
-                                 "nonsig" = "#F8766D"),
-                      breaks = c("sig", "nonsig", "NA"),
-                      labels = c("sig", "nonsig", "NA")) +
-  ggtitle("B. time varying vs unconstrained")
-
-SA_LRT_ggseg_timecon_v_con <- dk %>% 
-  as_tibble() %>% 
-  left_join(sites_LRTs_SA_tidy, by = c("label" = "ROI")) %>%
-  filter(comparison == "timecon_v_con") %>%
-ggseg(., atlas = "dk", 
-        colour = "black",
-        size = .1,
-        mapping = aes(fill = LRT_p05)) +
-  theme_void() +
-  scale_fill_manual(values = c("sig" = "#00BFC4", 
-                                 "nonsig" = "#F8766D"),
-                      breaks = c("sig", "nonsig", "NA"),
-                      labels = c("sig", "nonsig", "NA")) +
-  ggtitle("C. constrained vs error varying")
-
-SA_LRT_ggseg_uncon_v_timecon <- dk %>% 
-  as_tibble() %>% 
-  left_join(sites_LRTs_SA_tidy, by = c("label" = "ROI")) %>%
-  filter(comparison == "uncon_v_timecon") %>%
-ggseg(., atlas = "dk", 
-        colour = "black",
-        size = .1,
-        mapping = aes(fill = LRT_p05)) +
-    theme_void() +
-  scale_fill_manual(values = c("sig" = "#00BFC4", 
-                                 "nonsig" = "#F8766D"),
-                      breaks = c("sig", "nonsig", "NA"),
-                      labels = c("sig", "nonsig", "NA")) +
-  ggtitle("D. error varying vs unconstrained")
-
-SA_LRT_ggseg_uncon_v_con <- dk %>% 
-  as_tibble() %>% 
-  left_join(sites_LRTs_SA_tidy, by = c("label" = "ROI")) %>%
-  filter(comparison == "uncon_v_con") %>%
-ggseg(., atlas = "dk", 
-        colour = "black",
-        size = .1,
-        mapping = aes(fill = LRT_p05)) +
-  theme(legend.position = "none") +
-  scale_fill_manual(values = c("sig" = "#00BFC4", 
-                                 "nonsig" = "#F8766D"),
-                      breaks = c("sig", "nonsig", "NA"),
-                      labels = c("sig", "nonsig", "NA")) +
-  ggtitle("E. constrained vs unconstrained")
-
-# SA_LRT_ggseg_errcon_v_con / SA_LRT_ggseg_timecon_v_con / SA_LRT_ggseg_uncon_v_con / SA_LRT_ggseg_uncon_v_errcon / SA_LRT_ggseg_uncon_v_timecon + plot_layout(guides = "collect")
-
-SA_LRT_ggseg_errcon_v_con / SA_LRT_ggseg_uncon_v_errcon / SA_LRT_ggseg_timecon_v_con / SA_LRT_ggseg_uncon_v_timecon / SA_LRT_ggseg_uncon_v_con+ plot_layout(guides = "collect")
-
-
-
-dk %>% 
-  as_tibble() %>% 
-  left_join(sites_LRTs_SA_tidy, by = c("label" = "ROI")) %>%
-  filter(comparison != "uncon") %>%
-ggseg(., atlas = "dk", 
-        colour = "black",
-        size = .1,
-        mapping = aes(fill = LRT_p05)) +
-  facet_wrap(~comparison, ncol = 1) +
-  theme(legend.position = "none")
-
-
-sites_LRTs_SA_tidy %>%
-  filter(comparison != "uncon") %>%
-  ggplot(aes(x = Chisq.diff, fill = comparison)) +
-  geom_histogram(alpha = .5, bins = 20) +
-  facet_wrap(~ factor(comparison,
-                      levels = c("errcon_v_con",
-                                 "uncon_v_errcon",
-                                 "timecon_v_con",
-                                 "uncon_v_timecon",
-                                 "uncon_v_con"),
-                      labels = c("A", "B", "C", "D", "E")),
-             ncol = 1, strip.position = "right")
-
-
-
-
-# sites_LRTs_CT_tidy %>%
-#   filter(comparison != "uncon") %>%
-#   ggplot(aes(x = comparison, y = Chisq.diff, fill = comparison)) +
-# geom_flat_violin(position = position_nudge(x = .2, y = 0),adjust = 2) +
-#   geom_point(position = position_jitter(width = .15), size = .25)
-#   
-           
-
-
-```
-
-
-```{r GM_multigroup}
-GM_LRT_ggseg_errcon_v_con <- dk %>% 
-  as_tibble() %>% 
-  left_join(sites_LRTs_GM_tidy, by = c("label" = "ROI")) %>%
-  filter(comparison == "errcon_v_con") %>%
-ggseg(., atlas = "dk", 
-        colour = "black",
-        size = .1,
-        mapping = aes(fill = LRT_p05)) +
-  theme_void() +
-  scale_fill_manual(values = c("sig" = "#00BFC4", 
-                                 "nonsig" = "#F8766D"),
-                      breaks = c("sig", "nonsig", "NA"),
-                      labels = c("sig", "nonsig", "NA")) +
-  ggtitle("A. constrained vs time varying")
-
-GM_LRT_ggseg_uncon_v_errcon <- dk %>% 
-  as_tibble() %>% 
-  left_join(sites_LRTs_GM_tidy, by = c("label" = "ROI")) %>%
-  filter(comparison == "uncon_v_errcon") %>%
-ggseg(., atlas = "dk", 
-        colour = "black",
-        size = .1,
-        mapping = aes(fill = LRT_p05)) +
-    theme_void() +
-  scale_fill_manual(values = c("sig" = "#00BFC4", 
-                                 "nonsig" = "#F8766D"),
-                      breaks = c("sig", "nonsig", "NA"),
-                      labels = c("sig", "nonsig", "NA")) +
-  ggtitle("B. time varying vs unconstrained")
-
-GM_LRT_ggseg_timecon_v_con <- dk %>% 
-  as_tibble() %>% 
-  left_join(sites_LRTs_GM_tidy, by = c("label" = "ROI")) %>%
-  filter(comparison == "timecon_v_con") %>%
-ggseg(., atlas = "dk", 
-        colour = "black",
-        size = .1,
-        mapping = aes(fill = LRT_p05)) +
-  theme_void() +
-  scale_fill_manual(values = c("sig" = "#00BFC4", 
-                                 "nonsig" = "#F8766D"),
-                      breaks = c("sig", "nonsig", "NA"),
-                      labels = c("sig", "nonsig", "NA")) +
-  ggtitle("C. constrained vs error varying")
-
-GM_LRT_ggseg_uncon_v_timecon <- dk %>% 
-  as_tibble() %>% 
-  left_join(sites_LRTs_GM_tidy, by = c("label" = "ROI")) %>%
-  filter(comparison == "uncon_v_timecon") %>%
-ggseg(., atlas = "dk", 
-        colour = "black",
-        size = .1,
-        mapping = aes(fill = LRT_p05)) +
-    theme_void() +
-  scale_fill_manual(values = c("sig" = "#00BFC4", 
-                                 "nonsig" = "#F8766D"),
-                      breaks = c("sig", "nonsig", "NA"),
-                      labels = c("sig", "nonsig", "NA")) +
-  ggtitle("D. error varying vs unconstrained")
-
-GM_LRT_ggseg_uncon_v_con <- dk %>% 
-  as_tibble() %>% 
-  left_join(sites_LRTs_GM_tidy, by = c("label" = "ROI")) %>%
-  filter(comparison == "uncon_v_con") %>%
-ggseg(., atlas = "dk", 
-        colour = "black",
-        size = .1,
-        mapping = aes(fill = LRT_p05)) +
-  theme(legend.position = "none") +
-  scale_fill_manual(values = c("sig" = "#00BFC4", 
-                                 "nonsig" = "#F8766D"),
-                      breaks = c("sig", "nonsig", "NA"),
-                      labels = c("sig", "nonsig", "NA")) +
-  ggtitle("E. constrained vs unconstrained")
-
-# GM_LRT_ggseg_errcon_v_con / GM_LRT_ggseg_timecon_v_con / GM_LRT_ggseg_uncon_v_con / GM_LRT_ggseg_uncon_v_errcon / GM_LRT_ggseg_uncon_v_timecon + plot_layout(guides = "collect")
-
-GM_LRT_ggseg_errcon_v_con / GM_LRT_ggseg_uncon_v_errcon / GM_LRT_ggseg_timecon_v_con / GM_LRT_ggseg_uncon_v_timecon / GM_LRT_ggseg_uncon_v_con+ plot_layout(guides = "collect")
-
-
-
-dk %>% 
-  as_tibble() %>% 
-  left_join(sites_LRTs_GM_tidy, by = c("label" = "ROI")) %>%
-  filter(comparison != "uncon") %>%
-ggseg(., atlas = "dk", 
-        colour = "black",
-        size = .1,
-        mapping = aes(fill = LRT_p05)) +
-  facet_wrap(~comparison, ncol = 1) +
-  theme(legend.position = "none")
-
-
-sites_LRTs_GM_tidy %>%
-  filter(comparison != "uncon") %>%
-  ggplot(aes(x = Chisq.diff, fill = comparison)) +
-  geom_histogram(alpha = .5, bins = 20) +
-  facet_wrap(~ factor(comparison,
-                      levels = c("errcon_v_con",
-                                 "uncon_v_errcon",
-                                 "timecon_v_con",
-                                 "uncon_v_timecon",
-                                 "uncon_v_con"),
-                      labels = c("A", "B", "C", "D", "E")),
-             ncol = 1, strip.position = "right")
-
-
-
-
-# sites_LRTs_CT_tidy %>%
-#   filter(comparison != "uncon") %>%
-#   ggplot(aes(x = comparison, y = Chisq.diff, fill = comparison)) +
-# geom_flat_violin(position = position_nudge(x = .2, y = 0),adjust = 2) +
-#   geom_point(position = position_jitter(width = .15), size = .25)
-#   
-           
-
-
-```
-
-```{r CT_multigroup_final_Chi, eval = FALSE}
-maxLRT_diff <- max(sites_LRTs_CT_tidy$Chisq.diff, na.rm = TRUE)
+```{r CT_multigroup_Chi}
+minLRT_diff_CT <- min(sites_LRTs_CT_tidy$Chisq.diff, na.rm = TRUE)
+maxLRT_diff_CT <- max(sites_LRTs_CT_tidy$Chisq.diff, na.rm = TRUE)
 
 CT_LRT_ggseg_errcon_v_con <- dk %>% 
   as_tibble() %>% 
@@ -1599,9 +1393,9 @@ ggseg(., atlas = "dk",
         size = .1,
         mapping = aes(fill = Chisq.diff)) +
   theme_void() +
-  scale_fill_continuous(limits = c(0, maxLRT_diff),
+  scale_fill_continuous(limits = c(minLRT_diff_CT, maxLRT_diff_CT),
                         type = "viridis") +
-  ggtitle("A. constrained vs time varying")
+  ggtitle("A. Constrained vs Between-subjects varying")
 
 CT_LRT_ggseg_uncon_v_errcon <- dk %>% 
   as_tibble() %>% 
@@ -1612,9 +1406,9 @@ ggseg(., atlas = "dk",
         size = .1,
         mapping = aes(fill = Chisq.diff)) +
     theme_void() +
-  scale_fill_continuous(limits = c(0, maxLRT_diff),
+  scale_fill_continuous(limits = c(minLRT_diff_CT, maxLRT_diff_CT),
                         type = "viridis") +
-  ggtitle("B. time varying vs unconstrained")
+  ggtitle("B. Between-subjects varying vs Unconstrained")
 
 CT_LRT_ggseg_timecon_v_con <- dk %>% 
   as_tibble() %>% 
@@ -1625,9 +1419,9 @@ ggseg(., atlas = "dk",
         size = .1,
         mapping = aes(fill = Chisq.diff)) +
   theme_void() +
-  scale_fill_continuous(limits = c(0, maxLRT_diff),
+  scale_fill_continuous(limits = c(minLRT_diff_CT, maxLRT_diff_CT),
                         type = "viridis") +
-  ggtitle("C. constrained vs error varying")
+  ggtitle("C. Constrained vs Error varying")
 
 CT_LRT_ggseg_uncon_v_timecon <- dk %>% 
   as_tibble() %>% 
@@ -1638,9 +1432,9 @@ ggseg(., atlas = "dk",
         size = .1,
         mapping = aes(fill = Chisq.diff)) +
     theme_void() +
-  scale_fill_continuous(limits = c(0, maxLRT_diff),
+  scale_fill_continuous(limits = c(minLRT_diff_CT, maxLRT_diff_CT),
                         type = "viridis") +
-  ggtitle("D. error varying vs unconstrained")
+  ggtitle("D. Error varying vs Unconstrained")
 
 CT_LRT_ggseg_uncon_v_con <- dk %>% 
   as_tibble() %>% 
@@ -1651,15 +1445,46 @@ ggseg(., atlas = "dk",
         size = .1,
         mapping = aes(fill = Chisq.diff)) +
     theme_void() +
-  scale_fill_continuous(limits = c(0, maxLRT_diff),
+  scale_fill_continuous(limits = c(minLRT_diff_CT, maxLRT_diff_CT),
                         type = "viridis") +
-  ggtitle("E. constrained vs unconstrained")
+  ggtitle("E. Constrained vs Unconstrained")
 
-CT_LRT_ggseg_errcon_v_con / CT_LRT_ggseg_uncon_v_errcon / CT_LRT_ggseg_timecon_v_con / CT_LRT_ggseg_uncon_v_timecon / CT_LRT_ggseg_uncon_v_con + plot_layout(guides = "collect") & theme(legend.position = "right", legend.key.height = unit(1, "cm"))
+if(use_sim == FALSE) {
+Cairo(file = "8_supplement/Figure7_CT_ChisquaredLRT.png",
+      type = "png",
+      units="in", 
+      width=6, 
+      height=6, 
+      pointsize=12, 
+      dpi=600)
+
+Figure7_CT_ChisquaredLRT <- CT_LRT_ggseg_errcon_v_con / CT_LRT_ggseg_uncon_v_errcon / CT_LRT_ggseg_timecon_v_con / CT_LRT_ggseg_uncon_v_timecon / CT_LRT_ggseg_uncon_v_con + plot_layout(guides = "collect") & theme(legend.position = "right", legend.key.height = unit(1, "cm"))
+
+print(Figure7_CT_ChisquaredLRT)
+
+dev.off()
+}
+
+if(use_sim == TRUE) {
+Cairo(file = "8_supplement/Figure7_CT_ChisquaredLRT_sim.png",
+      type = "png",
+      units="in", 
+      width=6, 
+      height=6, 
+      pointsize=12, 
+      dpi=600)
+
+Figure7_CT_ChisquaredLRT_sim <- CT_LRT_ggseg_errcon_v_con / CT_LRT_ggseg_uncon_v_errcon / CT_LRT_ggseg_timecon_v_con / CT_LRT_ggseg_uncon_v_timecon / CT_LRT_ggseg_uncon_v_con + plot_layout(guides = "collect") & theme(legend.position = "right", legend.key.height = unit(1, "cm"))
+
+print(Figure7_CT_ChisquaredLRT_sim)
+
+dev.off()
+}
 ```
 
-```{r SA_multigroup_final_Chi, eval = FALSE}
-maxLRT_diff <- max(sites_LRTs_SA_tidy$Chisq.diff, na.rm = TRUE)
+```{r SA_multigroup_Chi}
+minLRT_diff_SA <- min(sites_LRTs_SA_tidy$Chisq.diff, na.rm = TRUE)
+maxLRT_diff_SA <- max(sites_LRTs_SA_tidy$Chisq.diff, na.rm = TRUE)
 
 SA_LRT_ggseg_errcon_v_con <- dk %>% 
   as_tibble() %>% 
@@ -1670,9 +1495,9 @@ ggseg(., atlas = "dk",
         size = .1,
         mapping = aes(fill = Chisq.diff)) +
   theme_void() +
-  scale_fill_continuous(limits = c(0, maxLRT_diff),
+  scale_fill_continuous(limits = c(minLRT_diff_SA, maxLRT_diff_SA),
                         type = "viridis") +
-  ggtitle("A. constrained vs time varying")
+  ggtitle("A. Constrained vs Between-subjects varying")
 
 SA_LRT_ggseg_uncon_v_errcon <- dk %>% 
   as_tibble() %>% 
@@ -1683,9 +1508,9 @@ ggseg(., atlas = "dk",
         size = .1,
         mapping = aes(fill = Chisq.diff)) +
     theme_void() +
-  scale_fill_continuous(limits = c(0, maxLRT_diff),
+  scale_fill_continuous(limits = c(minLRT_diff_SA, maxLRT_diff_SA),
                         type = "viridis") +
-  ggtitle("B. time varying vs unconstrained")
+  ggtitle("B. Between-subjects varying vs Unconstrained")
 
 SA_LRT_ggseg_timecon_v_con <- dk %>% 
   as_tibble() %>% 
@@ -1696,9 +1521,9 @@ ggseg(., atlas = "dk",
         size = .1,
         mapping = aes(fill = Chisq.diff)) +
   theme_void() +
-  scale_fill_continuous(limits = c(0, maxLRT_diff),
+  scale_fill_continuous(limits = c(minLRT_diff_SA, maxLRT_diff_SA),
                         type = "viridis") +
-  ggtitle("C. constrained vs error varying")
+  ggtitle("C. Constrained vs Error varying")
 
 SA_LRT_ggseg_uncon_v_timecon <- dk %>% 
   as_tibble() %>% 
@@ -1709,9 +1534,9 @@ ggseg(., atlas = "dk",
         size = .1,
         mapping = aes(fill = Chisq.diff)) +
     theme_void() +
-  scale_fill_continuous(limits = c(0, maxLRT_diff),
+  scale_fill_continuous(limits = c(minLRT_diff_SA, maxLRT_diff_SA),
                         type = "viridis") +
-  ggtitle("D. error varying vs unconstrained")
+  ggtitle("D. Error varying vs Unconstrained")
 
 SA_LRT_ggseg_uncon_v_con <- dk %>% 
   as_tibble() %>% 
@@ -1722,15 +1547,47 @@ ggseg(., atlas = "dk",
         size = .1,
         mapping = aes(fill = Chisq.diff)) +
     theme_void() +
-  scale_fill_continuous(limits = c(0, maxLRT_diff),
+  scale_fill_continuous(limits = c(minLRT_diff_SA, maxLRT_diff_SA),
                         type = "viridis") +
-  ggtitle("E. constrained vs unconstrained")
+  ggtitle("E. Constrained vs Unconstrained")
 
-SA_LRT_ggseg_errcon_v_con / SA_LRT_ggseg_uncon_v_errcon / SA_LRT_ggseg_timecon_v_con / SA_LRT_ggseg_uncon_v_timecon / SA_LRT_ggseg_uncon_v_con + plot_layout(guides = "collect") & theme(legend.position = "right", legend.key.height = unit(1, "cm"))
+if(use_sim == FALSE){
+Cairo(file = "8_supplement/Figure7_SA_ChisquaredLRT.png",
+      type = "png",
+      units="in", 
+      width=6, 
+      height=6, 
+      pointsize=12, 
+      dpi=600)
+
+Figure7_SA_ChisquaredLRT <- SA_LRT_ggseg_errcon_v_con / SA_LRT_ggseg_uncon_v_errcon / SA_LRT_ggseg_timecon_v_con / SA_LRT_ggseg_uncon_v_timecon / SA_LRT_ggseg_uncon_v_con + plot_layout(guides = "collect") & theme(legend.position = "right", legend.key.height = unit(1, "cm"))
+
+print(Figure7_SA_ChisquaredLRT)
+
+dev.off()
+}
+
+
+if(use_sim == TRUE){
+Cairo(file = "8_supplement/Figure7_SA_ChisquaredLRT_sim.png",
+      type = "png",
+      units="in", 
+      width=6, 
+      height=6, 
+      pointsize=12, 
+      dpi=600)
+
+Figure7_SA_ChisquaredLRT_sim <- SA_LRT_ggseg_errcon_v_con / SA_LRT_ggseg_uncon_v_errcon / SA_LRT_ggseg_timecon_v_con / SA_LRT_ggseg_uncon_v_timecon / SA_LRT_ggseg_uncon_v_con + plot_layout(guides = "collect") & theme(legend.position = "right", legend.key.height = unit(1, "cm"))
+
+print(Figure7_SA_ChisquaredLRT_sim)
+
+dev.off()
+}
 ```
 
-```{r GM_multigroup_final_Chi, eval = FALSE}
-maxLRT_diff <- max(sites_LRTs_GM_tidy$Chisq.diff, na.rm = TRUE)
+```{r GM_multigroup_Chi}
+minLRT_diff_GM <- min(sites_LRTs_GM_tidy$Chisq.diff, na.rm = TRUE)
+maxLRT_diff_GM <- max(sites_LRTs_GM_tidy$Chisq.diff, na.rm = TRUE)
 
 GM_LRT_ggseg_errcon_v_con <- dk %>% 
   as_tibble() %>% 
@@ -1741,9 +1598,9 @@ ggseg(., atlas = "dk",
         size = .1,
         mapping = aes(fill = Chisq.diff)) +
   theme_void() +
-  scale_fill_continuous(limits = c(0, maxLRT_diff),
+  scale_fill_continuous(limits = c(minLRT_diff_GM, maxLRT_diff_GM),
                         type = "viridis") +
-  ggtitle("A. constrained vs time varying")
+  ggtitle("A. Constrained vs Between-subjects varying")
 
 GM_LRT_ggseg_uncon_v_errcon <- dk %>% 
   as_tibble() %>% 
@@ -1754,9 +1611,9 @@ ggseg(., atlas = "dk",
         size = .1,
         mapping = aes(fill = Chisq.diff)) +
     theme_void() +
-  scale_fill_continuous(limits = c(0, maxLRT_diff),
+  scale_fill_continuous(limits = c(minLRT_diff_GM, maxLRT_diff_GM),
                         type = "viridis") +
-  ggtitle("B. time varying vs unconstrained")
+  ggtitle("B. Between-subjects varying vs Unconstrained")
 
 GM_LRT_ggseg_timecon_v_con <- dk %>% 
   as_tibble() %>% 
@@ -1767,9 +1624,9 @@ ggseg(., atlas = "dk",
         size = .1,
         mapping = aes(fill = Chisq.diff)) +
   theme_void() +
-  scale_fill_continuous(limits = c(0, maxLRT_diff),
+  scale_fill_continuous(limits = c(minLRT_diff_GM, maxLRT_diff_GM),
                         type = "viridis") +
-  ggtitle("C. constrained vs error varying")
+  ggtitle("C. Constrained vs Error varying")
 
 GM_LRT_ggseg_uncon_v_timecon <- dk %>% 
   as_tibble() %>% 
@@ -1780,9 +1637,9 @@ ggseg(., atlas = "dk",
         size = .1,
         mapping = aes(fill = Chisq.diff)) +
     theme_void() +
-  scale_fill_continuous(limits = c(0, maxLRT_diff),
+  scale_fill_continuous(limits = c(minLRT_diff_GM, maxLRT_diff_GM),
                         type = "viridis") +
-  ggtitle("D. error varying vs unconstrained")
+  ggtitle("D. Error varying vs Unconstrained")
 
 GM_LRT_ggseg_uncon_v_con <- dk %>% 
   as_tibble() %>% 
@@ -1793,18 +1650,51 @@ ggseg(., atlas = "dk",
         size = .1,
         mapping = aes(fill = Chisq.diff)) +
     theme_void() +
-  scale_fill_continuous(limits = c(0, maxLRT_diff),
+  scale_fill_continuous(limits = c(minLRT_diff_GM, maxLRT_diff_GM),
                         type = "viridis") +
-  ggtitle("E. constrained vs unconstrained")
+  ggtitle("E. Constrained vs Unconstrained")
 
-GM_LRT_ggseg_errcon_v_con / GM_LRT_ggseg_uncon_v_errcon / GM_LRT_ggseg_timecon_v_con / GM_LRT_ggseg_uncon_v_timecon / GM_LRT_ggseg_uncon_v_con + plot_layout(guides = "collect") & theme(legend.position = "right", legend.key.height = unit(1, "cm"))
+if(use_sim == FALSE){
+Cairo(file = "8_supplement/Figure7_GM_ChisquaredLRT.png",
+      type = "png",
+      units="in", 
+      width=6, 
+      height=6, 
+      pointsize=12, 
+      dpi=600)
+
+Figure7_GM_ChisquaredLRT <- GM_LRT_ggseg_errcon_v_con / GM_LRT_ggseg_uncon_v_errcon / GM_LRT_ggseg_timecon_v_con / GM_LRT_ggseg_uncon_v_timecon / GM_LRT_ggseg_uncon_v_con + plot_layout(guides = "collect") & theme(legend.position = "right", legend.key.height = unit(1, "cm"))
+
+print(Figure7_GM_ChisquaredLRT)
+
+dev.off()
+}
+
+
+if(use_sim == TRUE){
+Cairo(file = "8_supplement/Figure7_GM_ChisquaredLRT_sim.png",
+      type = "png",
+      units="in", 
+      width=6, 
+      height=6, 
+      pointsize=12, 
+      dpi=600)
+
+Figure7_GM_ChisquaredLRT_sim <- GM_LRT_ggseg_errcon_v_con / GM_LRT_ggseg_uncon_v_errcon / GM_LRT_ggseg_timecon_v_con / GM_LRT_ggseg_uncon_v_timecon / GM_LRT_ggseg_uncon_v_con + plot_layout(guides = "collect") & theme(legend.position = "right", legend.key.height = unit(1, "cm"))
+
+print(Figure7_GM_ChisquaredLRT_sim)
+
+dev.off()
+}
 ```
 
-```{r CT_multigroup_final_AIC, eval = FALSE}
-minLRT_diff <- min(sites_LRTs_CT_tidy_aicbic$AICdiff, na.rm = TRUE)
-maxLRT_diff <- max(sites_LRTs_CT_tidy_aicbic$AICdiff, na.rm = TRUE)
+delta AIC (for supplement)
 
-CT_LRT_ggseg_errcon_v_con <- dk %>% 
+```{r CT_multigroup_AIC}
+minAIC_diff_CT <- min(sites_LRTs_CT_tidy_aicbic$AICdiff, na.rm = TRUE)
+maxAIC_diff_CT <- max(sites_LRTs_CT_tidy_aicbic$AICdiff, na.rm = TRUE)
+
+CT_AIC_ggseg_errcon_v_con <- dk %>% 
   as_tibble() %>% 
   left_join(sites_LRTs_CT_tidy_aicbic, by = c("label" = "ROI")) %>%
   filter(comparison == "errcon_v_con") %>%
@@ -1813,26 +1703,11 @@ ggseg(., atlas = "dk",
         size = .1,
         mapping = aes(fill = AICdiff)) +
   theme_void() +
-  scale_fill_continuous(limits = c(minLRT_diff, maxLRT_diff),
+  scale_fill_continuous(limits = c(minAIC_diff_CT, maxAIC_diff_CT),
                         type = "viridis") +
-  ggtitle("A. constrained vs time varying (df = 20)")
+  ggtitle("A. Constrained vs Between-subjects varying (df = 20)")
 
-dk %>% 
-  as_tibble() %>% 
-  left_join(sites_LRTs_CT_tidy_aicbic, by = c("label" = "ROI")) %>%
-  filter(comparison == "errcon_v_con") %>%
-ggseg(., atlas = "dk", 
-        colour = "black",
-        size = .1,
-        mapping = aes(fill = AICdiff)) +
-  theme_void() +
-  scale_fill_gradient2(limits = c(minLRT_diff, maxLRT_diff),
-                        colours = "viridis",
-                       mid = "white",
-                       midpoint = 0) +
-  ggtitle("A. constrained vs time varying (df = 20)")
-
-CT_LRT_ggseg_uncon_v_errcon <- dk %>% 
+CT_AIC_ggseg_uncon_v_errcon <- dk %>% 
   as_tibble() %>% 
   left_join(sites_LRTs_CT_tidy_aicbic, by = c("label" = "ROI")) %>%
   filter(comparison == "uncon_v_errcon") %>%
@@ -1841,11 +1716,11 @@ ggseg(., atlas = "dk",
         size = .1,
         mapping = aes(fill = AICdiff)) +
     theme_void() +
-  scale_fill_continuous(limits = c(minLRT_diff, maxLRT_diff),
+  scale_fill_continuous(limits = c(minAIC_diff_CT, maxAIC_diff_CT),
                         type = "viridis") +
-  ggtitle("B. time varying vs unconstrained (df = 20)")
+  ggtitle("B. Between-subjects varying vs Unconstrained (df = 20)")
 
-CT_LRT_ggseg_timecon_v_con <- dk %>% 
+CT_AIC_ggseg_timecon_v_con <- dk %>% 
   as_tibble() %>% 
   left_join(sites_LRTs_CT_tidy_aicbic, by = c("label" = "ROI")) %>%
   filter(comparison == "timecon_v_con") %>%
@@ -1854,11 +1729,11 @@ ggseg(., atlas = "dk",
         size = .1,
         mapping = aes(fill = AICdiff)) +
   theme_void() +
-  scale_fill_continuous(limits = c(minLRT_diff, maxLRT_diff),
+  scale_fill_continuous(limits = c(minAIC_diff_CT, maxAIC_diff_CT),
                         type = "viridis") +
-  ggtitle("C. constrained vs error varying (df = 20)")
+  ggtitle("C. Constrained vs Error varying (df = 20)")
 
-CT_LRT_ggseg_uncon_v_timecon <- dk %>% 
+CT_AIC_ggseg_uncon_v_timecon <- dk %>% 
   as_tibble() %>% 
   left_join(sites_LRTs_CT_tidy_aicbic, by = c("label" = "ROI")) %>%
   filter(comparison == "uncon_v_timecon") %>%
@@ -1867,11 +1742,11 @@ ggseg(., atlas = "dk",
         size = .1,
         mapping = aes(fill = AICdiff)) +
     theme_void() +
-  scale_fill_continuous(limits = c(minLRT_diff, maxLRT_diff),
+  scale_fill_continuous(limits = c(minAIC_diff_CT, maxAIC_diff_CT),
                         type = "viridis") +
-  ggtitle("D. error varying vs unconstrained (df = 20)")
+  ggtitle("D. Error varying vs Unconstrained (df = 20)")
 
-CT_LRT_ggseg_uncon_v_con <- dk %>% 
+CT_AIC_ggseg_uncon_v_con <- dk %>% 
   as_tibble() %>% 
   left_join(sites_LRTs_CT_tidy_aicbic, by = c("label" = "ROI")) %>%
   filter(comparison == "uncon_v_con") %>%
@@ -1880,18 +1755,259 @@ ggseg(., atlas = "dk",
         size = .1,
         mapping = aes(fill = AICdiff)) +
     theme_void() +
-  scale_fill_continuous(limits = c(minLRT_diff, maxLRT_diff),
+  scale_fill_continuous(limits = c(minAIC_diff_CT, maxAIC_diff_CT),
                         type = "viridis") +
-  ggtitle("E. constrained vs unconstrained (df = 40)")
+  ggtitle("E. Constrained vs Unconstrained (df = 40)")
 
-CT_LRT_ggseg_errcon_v_con / CT_LRT_ggseg_uncon_v_errcon / CT_LRT_ggseg_timecon_v_con / CT_LRT_ggseg_uncon_v_timecon / CT_LRT_ggseg_uncon_v_con + plot_layout(guides = "collect") & theme(legend.position = "right", legend.key.height = unit(1, "cm"))
+if(use_sim == FALSE){
+Cairo(file = "8_supplement/Figure7_CT_deltaAIC.png",
+      type = "png",
+      units="in", 
+      width=6, 
+      height=6, 
+      pointsize=12, 
+      dpi=600)
+
+Figure7_CT_deltaAIC <- CT_AIC_ggseg_errcon_v_con / CT_AIC_ggseg_uncon_v_errcon / CT_AIC_ggseg_timecon_v_con / CT_AIC_ggseg_uncon_v_timecon / CT_AIC_ggseg_uncon_v_con + plot_layout(guides = "collect") & theme(legend.position = "right", legend.key.height = unit(1, "cm"))
+
+print(Figure7_CT_deltaAIC)
+
+dev.off()
+}
+
+
+if(use_sim == TRUE){
+Cairo(file = "8_supplement/Figure7_CT_deltaAIC_sim.png",
+      type = "png",
+      units="in", 
+      width=6, 
+      height=6, 
+      pointsize=12, 
+      dpi=600)
+
+Figure7_CT_deltaAIC_sim <- CT_AIC_ggseg_errcon_v_con / CT_AIC_ggseg_uncon_v_errcon / CT_AIC_ggseg_timecon_v_con / CT_AIC_ggseg_uncon_v_timecon / CT_AIC_ggseg_uncon_v_con + plot_layout(guides = "collect") & theme(legend.position = "right", legend.key.height = unit(1, "cm"))
+
+print(Figure7_CT_deltaAIC_sim)
+
+dev.off()
+}
 ```
 
-```{r CT_multigroup_final_BIC, eval = FALSE}
-minLRT_diff <- min(sites_LRTs_CT_tidy_aicbic$BICdiff, na.rm = TRUE)
-maxLRT_diff <- max(sites_LRTs_CT_tidy_aicbic$BICdiff, na.rm = TRUE)
+```{r SA_multigroup_AIC}
+minAIC_diff_SA <- min(sites_LRTs_SA_tidy_aicbic$AICdiff, na.rm = TRUE)
+maxAIC_diff_SA <- max(sites_LRTs_SA_tidy_aicbic$AICdiff, na.rm = TRUE)
 
-CT_LRT_ggseg_errcon_v_con <- dk %>% 
+SA_AIC_ggseg_errcon_v_con <- dk %>% 
+  as_tibble() %>% 
+  left_join(sites_LRTs_SA_tidy_aicbic, by = c("label" = "ROI")) %>%
+  filter(comparison == "errcon_v_con") %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = AICdiff)) +
+  theme_void() +
+  scale_fill_continuous(limits = c(minAIC_diff_SA, maxAIC_diff_SA),
+                        type = "viridis") +
+  ggtitle("A. Constrained vs Between-subjects varying (df = 20)")
+
+SA_AIC_ggseg_uncon_v_errcon <- dk %>% 
+  as_tibble() %>% 
+  left_join(sites_LRTs_SA_tidy_aicbic, by = c("label" = "ROI")) %>%
+  filter(comparison == "uncon_v_errcon") %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = AICdiff)) +
+    theme_void() +
+  scale_fill_continuous(limits = c(minAIC_diff_SA, maxAIC_diff_SA),
+                        type = "viridis") +
+  ggtitle("B. Between-subjects varying vs Unconstrained (df = 20)")
+
+SA_AIC_ggseg_timecon_v_con <- dk %>% 
+  as_tibble() %>% 
+  left_join(sites_LRTs_SA_tidy_aicbic, by = c("label" = "ROI")) %>%
+  filter(comparison == "timecon_v_con") %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = AICdiff)) +
+  theme_void() +
+  scale_fill_continuous(limits = c(minAIC_diff_SA, maxAIC_diff_SA),
+                        type = "viridis") +
+  ggtitle("C. Constrained vs Error varying (df = 20)")
+
+SA_AIC_ggseg_uncon_v_timecon <- dk %>% 
+  as_tibble() %>% 
+  left_join(sites_LRTs_SA_tidy_aicbic, by = c("label" = "ROI")) %>%
+  filter(comparison == "uncon_v_timecon") %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = AICdiff)) +
+    theme_void() +
+  scale_fill_continuous(limits = c(minAIC_diff_SA, maxAIC_diff_SA),
+                        type = "viridis") +
+  ggtitle("D. Error varying vs Unconstrained (df = 20)")
+
+SA_AIC_ggseg_uncon_v_con <- dk %>% 
+  as_tibble() %>% 
+  left_join(sites_LRTs_SA_tidy_aicbic, by = c("label" = "ROI")) %>%
+  filter(comparison == "uncon_v_con") %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = AICdiff)) +
+    theme_void() +
+  scale_fill_continuous(limits = c(minAIC_diff_SA, maxAIC_diff_SA),
+                        type = "viridis") +
+  ggtitle("E. Constrained vs Unconstrained (df = 40)")
+
+
+if(use_sim == FALSE){
+Cairo(file = "8_supplement/Figure7_SA_deltaAIC.png",
+      type = "png",
+      units="in", 
+      width=6, 
+      height=6, 
+      pointsize=12, 
+      dpi=600)
+
+Figure7_SA_deltaAIC <- SA_AIC_ggseg_errcon_v_con / SA_AIC_ggseg_uncon_v_errcon / SA_AIC_ggseg_timecon_v_con / SA_AIC_ggseg_uncon_v_timecon / SA_AIC_ggseg_uncon_v_con + plot_layout(guides = "collect") & theme(legend.position = "right", legend.key.height = unit(1, "cm"))
+
+print(Figure7_SA_deltaAIC)
+
+dev.off()
+}
+
+
+if(use_sim == TRUE){
+Cairo(file = "8_supplement/Figure7_SA_deltaAIC_sim.png",
+      type = "png",
+      units="in", 
+      width=6, 
+      height=6, 
+      pointsize=12, 
+      dpi=600)
+
+Figure7_SA_deltaAIC_sim <- SA_AIC_ggseg_errcon_v_con / SA_AIC_ggseg_uncon_v_errcon / SA_AIC_ggseg_timecon_v_con / SA_AIC_ggseg_uncon_v_timecon / SA_AIC_ggseg_uncon_v_con + plot_layout(guides = "collect") & theme(legend.position = "right", legend.key.height = unit(1, "cm"))
+
+print(Figure7_SA_deltaAIC_sim)
+
+dev.off()
+}
+```
+
+```{r GM_multigroup_AIC}
+minAIC_diff_GM <- min(sites_LRTs_GM_tidy_aicbic$AICdiff, na.rm = TRUE)
+maxAIC_diff_GM <- max(sites_LRTs_GM_tidy_aicbic$AICdiff, na.rm = TRUE)
+
+GM_AIC_ggseg_errcon_v_con <- dk %>% 
+  as_tibble() %>% 
+  left_join(sites_LRTs_GM_tidy_aicbic, by = c("label" = "ROI")) %>%
+  filter(comparison == "errcon_v_con") %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = AICdiff)) +
+  theme_void() +
+  scale_fill_continuous(limits = c(minAIC_diff_GM, maxAIC_diff_GM),
+                        type = "viridis") +
+  ggtitle("A. Constrained vs Between-subjects varying (df = 20)")
+
+GM_AIC_ggseg_uncon_v_errcon <- dk %>% 
+  as_tibble() %>% 
+  left_join(sites_LRTs_GM_tidy_aicbic, by = c("label" = "ROI")) %>%
+  filter(comparison == "uncon_v_errcon") %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = AICdiff)) +
+    theme_void() +
+  scale_fill_continuous(limits = c(minAIC_diff_GM, maxAIC_diff_GM),
+                        type = "viridis") +
+  ggtitle("B. Between-subjects varying vs Unconstrained (df = 20)")
+
+GM_AIC_ggseg_timecon_v_con <- dk %>% 
+  as_tibble() %>% 
+  left_join(sites_LRTs_GM_tidy_aicbic, by = c("label" = "ROI")) %>%
+  filter(comparison == "timecon_v_con") %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = AICdiff)) +
+  theme_void() +
+  scale_fill_continuous(limits = c(minAIC_diff_GM, maxAIC_diff_GM),
+                        type = "viridis") +
+  ggtitle("C. Constrained vs Error varying (df = 20)")
+
+GM_AIC_ggseg_uncon_v_timecon <- dk %>% 
+  as_tibble() %>% 
+  left_join(sites_LRTs_GM_tidy_aicbic, by = c("label" = "ROI")) %>%
+  filter(comparison == "uncon_v_timecon") %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = AICdiff)) +
+    theme_void() +
+  scale_fill_continuous(limits = c(minAIC_diff_GM, maxAIC_diff_GM),
+                        type = "viridis") +
+  ggtitle("D. Error varying vs Unconstrained (df = 20)")
+
+GM_AIC_ggseg_uncon_v_con <- dk %>% 
+  as_tibble() %>% 
+  left_join(sites_LRTs_GM_tidy_aicbic, by = c("label" = "ROI")) %>%
+  filter(comparison == "uncon_v_con") %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = AICdiff)) +
+    theme_void() +
+  scale_fill_continuous(limits = c(minAIC_diff_GM, maxAIC_diff_GM),
+                        type = "viridis") +
+  ggtitle("E. Constrained vs Unconstrained (df = 40)")
+
+if(use_sim == FALSE){
+Cairo(file = "8_supplement/Figure7_GM_deltaAIC.png",
+      type = "png",
+      units="in", 
+      width=6, 
+      height=6, 
+      pointsize=12, 
+      dpi=600)
+
+Figure7_GM_deltaAIC <- GM_AIC_ggseg_errcon_v_con / GM_AIC_ggseg_uncon_v_errcon / GM_AIC_ggseg_timecon_v_con / GM_AIC_ggseg_uncon_v_timecon / GM_AIC_ggseg_uncon_v_con + plot_layout(guides = "collect") & theme(legend.position = "right", legend.key.height = unit(1, "cm"))
+
+print(Figure7_GM_deltaAIC)
+
+dev.off()
+}
+
+
+if(use_sim == TRUE){
+Cairo(file = "8_supplement/Figure7_GM_deltaAIC_sim.png",
+      type = "png",
+      units="in", 
+      width=6, 
+      height=6, 
+      pointsize=12, 
+      dpi=600)
+
+Figure7_GM_deltaAIC_sim <- GM_AIC_ggseg_errcon_v_con / GM_AIC_ggseg_uncon_v_errcon / GM_AIC_ggseg_timecon_v_con / GM_AIC_ggseg_uncon_v_timecon / GM_AIC_ggseg_uncon_v_con + plot_layout(guides = "collect") & theme(legend.position = "right", legend.key.height = unit(1, "cm"))
+
+print(Figure7_GM_deltaAIC_sim)
+
+dev.off()
+}
+```
+
+
+delta BIC (for supplement)
+
+```{r CT_multigroup_BIC}
+minBIC_diff_CT <- min(sites_LRTs_CT_tidy_aicbic$BICdiff, na.rm = TRUE)
+maxBIC_diff_CT <- max(sites_LRTs_CT_tidy_aicbic$BICdiff, na.rm = TRUE)
+
+CT_BIC_ggseg_errcon_v_con <- dk %>% 
   as_tibble() %>% 
   left_join(sites_LRTs_CT_tidy_aicbic, by = c("label" = "ROI")) %>%
   filter(comparison == "errcon_v_con") %>%
@@ -1900,11 +2016,11 @@ ggseg(., atlas = "dk",
         size = .1,
         mapping = aes(fill = BICdiff)) +
   theme_void() +
-  scale_fill_continuous(limits = c(minLRT_diff, maxLRT_diff),
+  scale_fill_continuous(limits = c(minBIC_diff_CT, maxBIC_diff_CT),
                         type = "viridis") +
-  ggtitle("A. constrained vs time varying (df = 20)")
+  ggtitle("A. Constrained vs Between-subjects varying (df = 20)")
 
-CT_LRT_ggseg_uncon_v_errcon <- dk %>% 
+CT_BIC_ggseg_uncon_v_errcon <- dk %>% 
   as_tibble() %>% 
   left_join(sites_LRTs_CT_tidy_aicbic, by = c("label" = "ROI")) %>%
   filter(comparison == "uncon_v_errcon") %>%
@@ -1913,11 +2029,11 @@ ggseg(., atlas = "dk",
         size = .1,
         mapping = aes(fill = BICdiff)) +
     theme_void() +
-  scale_fill_continuous(limits = c(minLRT_diff, maxLRT_diff),
+  scale_fill_continuous(limits = c(minBIC_diff_CT, maxBIC_diff_CT),
                         type = "viridis") +
-  ggtitle("B. time varying vs unconstrained (df = 20)")
+  ggtitle("B. Between-subjects varying vs Unconstrained (df = 20)")
 
-CT_LRT_ggseg_timecon_v_con <- dk %>% 
+CT_BIC_ggseg_timecon_v_con <- dk %>% 
   as_tibble() %>% 
   left_join(sites_LRTs_CT_tidy_aicbic, by = c("label" = "ROI")) %>%
   filter(comparison == "timecon_v_con") %>%
@@ -1926,11 +2042,11 @@ ggseg(., atlas = "dk",
         size = .1,
         mapping = aes(fill = BICdiff)) +
   theme_void() +
-  scale_fill_continuous(limits = c(minLRT_diff, maxLRT_diff),
+  scale_fill_continuous(limits = c(minBIC_diff_CT, maxBIC_diff_CT),
                         type = "viridis") +
-  ggtitle("C. constrained vs error varying (df = 20)")
+  ggtitle("C. Constrained vs Error varying (df = 20)")
 
-CT_LRT_ggseg_uncon_v_timecon <- dk %>% 
+CT_BIC_ggseg_uncon_v_timecon <- dk %>% 
   as_tibble() %>% 
   left_join(sites_LRTs_CT_tidy_aicbic, by = c("label" = "ROI")) %>%
   filter(comparison == "uncon_v_timecon") %>%
@@ -1939,11 +2055,11 @@ ggseg(., atlas = "dk",
         size = .1,
         mapping = aes(fill = BICdiff)) +
     theme_void() +
-  scale_fill_continuous(limits = c(minLRT_diff, maxLRT_diff),
+  scale_fill_continuous(limits = c(minBIC_diff_CT, maxBIC_diff_CT),
                         type = "viridis") +
-  ggtitle("D. error varying vs unconstrained (df = 20)")
+  ggtitle("D. Error varying vs Unconstrained (df = 20)")
 
-CT_LRT_ggseg_uncon_v_con <- dk %>% 
+CT_BIC_ggseg_uncon_v_con <- dk %>% 
   as_tibble() %>% 
   left_join(sites_LRTs_CT_tidy_aicbic, by = c("label" = "ROI")) %>%
   filter(comparison == "uncon_v_con") %>%
@@ -1952,12 +2068,251 @@ ggseg(., atlas = "dk",
         size = .1,
         mapping = aes(fill = BICdiff)) +
     theme_void() +
-  scale_fill_continuous(limits = c(minLRT_diff, maxLRT_diff),
+  scale_fill_continuous(limits = c(minBIC_diff_CT, maxBIC_diff_CT),
                         type = "viridis") +
-  ggtitle("E. constrained vs unconstrained (df = 40)")
+  ggtitle("E. Constrained vs Unconstrained (df = 40)")
 
-CT_LRT_ggseg_errcon_v_con / CT_LRT_ggseg_uncon_v_errcon / CT_LRT_ggseg_timecon_v_con / CT_LRT_ggseg_uncon_v_timecon / CT_LRT_ggseg_uncon_v_con + plot_layout(guides = "collect") & theme(legend.position = "right", legend.key.height = unit(1, "cm"))
+if(use_sim == FALSE){
+Cairo(file = "8_supplement/Figure7_CT_deltaBIC.png",
+      type = "png",
+      units="in", 
+      width=6, 
+      height=6, 
+      pointsize=12, 
+      dpi=600)
+
+Figure7_CT_deltaBIC <- CT_BIC_ggseg_errcon_v_con / CT_BIC_ggseg_uncon_v_errcon / CT_BIC_ggseg_timecon_v_con / CT_BIC_ggseg_uncon_v_timecon / CT_BIC_ggseg_uncon_v_con + plot_layout(guides = "collect") & theme(legend.position = "right", legend.key.height = unit(1, "cm"))
+
+print(Figure7_CT_deltaBIC)
+
+dev.off()
+}
+
+if(use_sim == TRUE){
+Cairo(file = "8_supplement/Figure7_CT_deltaBIC_sim.png",
+      type = "png",
+      units="in", 
+      width=6, 
+      height=6, 
+      pointsize=12, 
+      dpi=600)
+
+Figure7_CT_deltaBIC_sim <- CT_BIC_ggseg_errcon_v_con / CT_BIC_ggseg_uncon_v_errcon / CT_BIC_ggseg_timecon_v_con / CT_BIC_ggseg_uncon_v_timecon / CT_BIC_ggseg_uncon_v_con + plot_layout(guides = "collect") & theme(legend.position = "right", legend.key.height = unit(1, "cm"))
+
+print(Figure7_CT_deltaBIC_sim)
+
+dev.off()
+}
 ```
+
+```{r SA_multigroup_BIC}
+minBIC_diff_SA <- min(sites_LRTs_SA_tidy_aicbic$BICdiff, na.rm = TRUE)
+maxBIC_diff_SA <- max(sites_LRTs_SA_tidy_aicbic$BICdiff, na.rm = TRUE)
+
+SA_BIC_ggseg_errcon_v_con <- dk %>% 
+  as_tibble() %>% 
+  left_join(sites_LRTs_SA_tidy_aicbic, by = c("label" = "ROI")) %>%
+  filter(comparison == "errcon_v_con") %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = BICdiff)) +
+  theme_void() +
+  scale_fill_continuous(limits = c(minBIC_diff_SA, maxBIC_diff_SA),
+                        type = "viridis") +
+  ggtitle("A. Constrained vs Between-subjects varying (df = 20)")
+
+SA_BIC_ggseg_uncon_v_errcon <- dk %>% 
+  as_tibble() %>% 
+  left_join(sites_LRTs_SA_tidy_aicbic, by = c("label" = "ROI")) %>%
+  filter(comparison == "uncon_v_errcon") %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = BICdiff)) +
+    theme_void() +
+  scale_fill_continuous(limits = c(minBIC_diff_SA, maxBIC_diff_SA),
+                        type = "viridis") +
+  ggtitle("B. Between-subjects varying vs Unconstrained (df = 20)")
+
+SA_BIC_ggseg_timecon_v_con <- dk %>% 
+  as_tibble() %>% 
+  left_join(sites_LRTs_SA_tidy_aicbic, by = c("label" = "ROI")) %>%
+  filter(comparison == "timecon_v_con") %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = BICdiff)) +
+  theme_void() +
+  scale_fill_continuous(limits = c(minBIC_diff_SA, maxBIC_diff_SA),
+                        type = "viridis") +
+  ggtitle("C. Constrained vs Error varying (df = 20)")
+
+SA_BIC_ggseg_uncon_v_timecon <- dk %>% 
+  as_tibble() %>% 
+  left_join(sites_LRTs_SA_tidy_aicbic, by = c("label" = "ROI")) %>%
+  filter(comparison == "uncon_v_timecon") %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = BICdiff)) +
+    theme_void() +
+  scale_fill_continuous(limits = c(minBIC_diff_SA, maxBIC_diff_SA),
+                        type = "viridis") +
+  ggtitle("D. Error varying vs Unconstrained (df = 20)")
+
+SA_BIC_ggseg_uncon_v_con <- dk %>% 
+  as_tibble() %>% 
+  left_join(sites_LRTs_SA_tidy_aicbic, by = c("label" = "ROI")) %>%
+  filter(comparison == "uncon_v_con") %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = BICdiff)) +
+    theme_void() +
+  scale_fill_continuous(limits = c(minBIC_diff_SA, maxBIC_diff_SA),
+                        type = "viridis") +
+  ggtitle("E. Constrained vs Unconstrained (df = 40)")
+
+if(use_sim == FALSE){
+Cairo(file = "8_supplement/Figure7_SA_deltaBIC.png",
+      type = "png",
+      units="in", 
+      width=6, 
+      height=6, 
+      pointsize=12, 
+      dpi=600)
+
+Figure7_SA_deltaBIC <- SA_BIC_ggseg_errcon_v_con / SA_BIC_ggseg_uncon_v_errcon / SA_BIC_ggseg_timecon_v_con / SA_BIC_ggseg_uncon_v_timecon / SA_BIC_ggseg_uncon_v_con + plot_layout(guides = "collect") & theme(legend.position = "right", legend.key.height = unit(1, "cm"))
+
+print(Figure7_SA_deltaBIC)
+
+dev.off()
+}
+
+
+if(use_sim == TRUE){
+Cairo(file = "8_supplement/Figure7_SA_deltaBIC_sim.png",
+      type = "png",
+      units="in", 
+      width=6, 
+      height=6, 
+      pointsize=12, 
+      dpi=600)
+
+Figure7_SA_deltaBIC_sim <- SA_BIC_ggseg_errcon_v_con / SA_BIC_ggseg_uncon_v_errcon / SA_BIC_ggseg_timecon_v_con / SA_BIC_ggseg_uncon_v_timecon / SA_BIC_ggseg_uncon_v_con + plot_layout(guides = "collect") & theme(legend.position = "right", legend.key.height = unit(1, "cm"))
+
+print(Figure7_SA_deltaBIC_sim)
+
+dev.off()
+}
+```
+
+```{r GM_multigroup_BIC}
+minBIC_diff_GM <- min(sites_LRTs_GM_tidy_aicbic$BICdiff, na.rm = TRUE)
+maxBIC_diff_GM <- max(sites_LRTs_GM_tidy_aicbic$BICdiff, na.rm = TRUE)
+
+GM_BIC_ggseg_errcon_v_con <- dk %>% 
+  as_tibble() %>% 
+  left_join(sites_LRTs_GM_tidy_aicbic, by = c("label" = "ROI")) %>%
+  filter(comparison == "errcon_v_con") %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = BICdiff)) +
+  theme_void() +
+  scale_fill_continuous(limits = c(minBIC_diff_GM, maxBIC_diff_GM),
+                        type = "viridis") +
+  ggtitle("A. Constrained vs Between-subjects varying (df = 20)")
+
+GM_BIC_ggseg_uncon_v_errcon <- dk %>% 
+  as_tibble() %>% 
+  left_join(sites_LRTs_GM_tidy_aicbic, by = c("label" = "ROI")) %>%
+  filter(comparison == "uncon_v_errcon") %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = BICdiff)) +
+    theme_void() +
+  scale_fill_continuous(limits = c(minBIC_diff_GM, maxBIC_diff_GM),
+                        type = "viridis") +
+  ggtitle("B. Between-subjects varying vs Unconstrained (df = 20)")
+
+GM_BIC_ggseg_timecon_v_con <- dk %>% 
+  as_tibble() %>% 
+  left_join(sites_LRTs_GM_tidy_aicbic, by = c("label" = "ROI")) %>%
+  filter(comparison == "timecon_v_con") %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = BICdiff)) +
+  theme_void() +
+  scale_fill_continuous(limits = c(minBIC_diff_GM, maxBIC_diff_GM),
+                        type = "viridis") +
+  ggtitle("C. Constrained vs Error varying (df = 20)")
+
+GM_BIC_ggseg_uncon_v_timecon <- dk %>% 
+  as_tibble() %>% 
+  left_join(sites_LRTs_GM_tidy_aicbic, by = c("label" = "ROI")) %>%
+  filter(comparison == "uncon_v_timecon") %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = BICdiff)) +
+    theme_void() +
+  scale_fill_continuous(limits = c(minBIC_diff_GM, maxBIC_diff_GM),
+                        type = "viridis") +
+  ggtitle("D. Error varying vs Unconstrained (df = 20)")
+
+GM_BIC_ggseg_uncon_v_con <- dk %>% 
+  as_tibble() %>% 
+  left_join(sites_LRTs_GM_tidy_aicbic, by = c("label" = "ROI")) %>%
+  filter(comparison == "uncon_v_con") %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = BICdiff)) +
+    theme_void() +
+  scale_fill_continuous(limits = c(minBIC_diff_GM, maxBIC_diff_GM),
+                        type = "viridis") +
+  ggtitle("E. Constrained vs Unconstrained (df = 40)")
+
+if(use_sim == FALSE){
+Cairo(file = "8_supplement/Figure7_GM_deltaBIC.png",
+      type = "png",
+      units="in", 
+      width=6, 
+      height=6, 
+      pointsize=12, 
+      dpi=600)
+
+Figure7_GM_deltaBIC <- GM_BIC_ggseg_errcon_v_con / GM_BIC_ggseg_uncon_v_errcon / GM_BIC_ggseg_timecon_v_con / GM_BIC_ggseg_uncon_v_timecon / GM_BIC_ggseg_uncon_v_con + plot_layout(guides = "collect") & theme(legend.position = "right", legend.key.height = unit(1, "cm"))
+
+print(Figure7_GM_deltaBIC)
+
+dev.off()
+}
+
+
+if(use_sim == TRUE){
+Cairo(file = "8_supplement/Figure7_GM_deltaBIC_sim.png",
+      type = "png",
+      units="in", 
+      width=6, 
+      height=6, 
+      pointsize=12, 
+      dpi=600)
+
+Figure7_GM_deltaBIC_sim <- GM_BIC_ggseg_errcon_v_con / GM_BIC_ggseg_uncon_v_errcon / GM_BIC_ggseg_timecon_v_con / GM_BIC_ggseg_uncon_v_timecon / GM_BIC_ggseg_uncon_v_con + plot_layout(guides = "collect") & theme(legend.position = "right", legend.key.height = unit(1, "cm"))
+
+print(Figure7_GM_deltaBIC_sim)
+
+dev.off()
+}
+```
+
+
+delta CFI (CT in main paper; SA and GM in supplement)
 
 ```{r multigroup_CFIs_CT}
 
@@ -1968,11 +2323,11 @@ multigroup_CFIs_CT <- multigroup_CFIs_CT %>%
          uncon_v_timecon = m_unconstrained - m_time_constrained,
          uncon_v_con = m_unconstrained - m_constrained)
 
-min_deltaCFI <- multigroup_CFIs_CT %>%
+min_deltaCFI_CT <- multigroup_CFIs_CT %>%
   select(errcon_v_con, uncon_v_errcon, timecon_v_con, uncon_v_timecon, uncon_v_con) %>%
   min(na.rm = TRUE)
 
-max_deltaCFI <- multigroup_CFIs_CT %>%
+max_deltaCFI_CT <- multigroup_CFIs_CT %>%
   select(errcon_v_con, uncon_v_errcon, timecon_v_con, uncon_v_timecon, uncon_v_con) %>%
   max(na.rm = TRUE)
 
@@ -2007,7 +2362,7 @@ uncon_v_con),
   group_by(model) %>%
   summarise(n_0 = sum(deltaCFI < 0)/n())
 
-deltaCFI_errcon_v_con <- dk %>% 
+deltaCFI_errcon_v_con_CT <- dk %>% 
   as_tibble() %>% 
   left_join(multigroup_CFIs_CT, by = c("label" = "region")) %>%
 ggseg(., atlas = "dk", 
@@ -2016,11 +2371,11 @@ ggseg(., atlas = "dk",
         mapping = aes(fill = errcon_v_con)) +
     theme_void() +
   scale_fill_continuous(name = "delta CFI",
-                        limits = c(min_deltaCFI, max_deltaCFI),
+                        limits = c(min_deltaCFI_CT, max_deltaCFI_CT),
                         type = "viridis") +
   ggtitle("A. Constrained vs Between-subjects varying")
 
-deltaCFI_uncon_v_errcon <- dk %>% 
+deltaCFI_uncon_v_errcon_CT <- dk %>% 
   as_tibble() %>% 
   left_join(multigroup_CFIs_CT, by = c("label" = "region")) %>%
 ggseg(., atlas = "dk", 
@@ -2029,11 +2384,11 @@ ggseg(., atlas = "dk",
         mapping = aes(fill = uncon_v_errcon)) +
     theme_void() +
   scale_fill_continuous(name = "delta CFI",
-                        limits = c(min_deltaCFI, max_deltaCFI),
+                        limits = c(min_deltaCFI_CT, max_deltaCFI_CT),
                         type = "viridis") +
-  ggtitle("B. Between-subjects vs Unconstrained")
+  ggtitle("B. Between-subjects varying vs Unconstrained")
 
-deltaCFI_timecon_v_con <- dk %>% 
+deltaCFI_timecon_v_con_CT <- dk %>% 
   as_tibble() %>% 
   left_join(multigroup_CFIs_CT, by = c("label" = "region")) %>%
 ggseg(., atlas = "dk", 
@@ -2042,11 +2397,11 @@ ggseg(., atlas = "dk",
         mapping = aes(fill = timecon_v_con)) +
     theme_void() +
   scale_fill_continuous(name = "delta CFI",
-                        limits = c(min_deltaCFI, max_deltaCFI),
+                        limits = c(min_deltaCFI_CT, max_deltaCFI_CT),
                         type = "viridis") +
   ggtitle("C. Constrained vs Error varying")
 
-deltaCFI_uncon_v_timecon <- dk %>% 
+deltaCFI_uncon_v_timecon_CT <- dk %>% 
   as_tibble() %>% 
   left_join(multigroup_CFIs_CT, by = c("label" = "region")) %>%
 ggseg(., atlas = "dk", 
@@ -2055,11 +2410,11 @@ ggseg(., atlas = "dk",
         mapping = aes(fill = uncon_v_timecon)) +
     theme_void() +
   scale_fill_continuous(name = "delta CFI",
-                        limits = c(min_deltaCFI, max_deltaCFI),
+                        limits = c(min_deltaCFI_CT, max_deltaCFI_CT),
                         type = "viridis") +
   ggtitle("D. Error varying vs Unconstrained")
 
-deltaCFI_uncon_v_con <- dk %>% 
+deltaCFI_uncon_v_con_CT <- dk %>% 
   as_tibble() %>% 
   left_join(multigroup_CFIs_CT, by = c("label" = "region")) %>%
 ggseg(., atlas = "dk", 
@@ -2068,11 +2423,11 @@ ggseg(., atlas = "dk",
         mapping = aes(fill = uncon_v_con)) +
     theme_void() +
   scale_fill_continuous(name = "delta CFI",
-                        limits = c(min_deltaCFI, max_deltaCFI),
+                        limits = c(min_deltaCFI_CT, max_deltaCFI_CT),
                         type = "viridis") +
   ggtitle("E. Constrained vs Unconstrained")
 
-
+if(use_sim == FALSE){
 Cairo(file = "6_figures/Figure7.png",
       type = "png",
       units="in", 
@@ -2081,12 +2436,328 @@ Cairo(file = "6_figures/Figure7.png",
       pointsize=12, 
       dpi=600)
 
-deltaCFI_errcon_v_con / deltaCFI_uncon_v_errcon / deltaCFI_timecon_v_con / deltaCFI_uncon_v_timecon / deltaCFI_uncon_v_con + plot_layout(guides = "collect") & theme(legend.position = "bottom", legend.key.width = unit(1, "cm"), legend.title.align=0.5)
+Figure7 <- deltaCFI_errcon_v_con_CT / deltaCFI_uncon_v_errcon_CT / deltaCFI_timecon_v_con_CT / deltaCFI_uncon_v_timecon_CT / deltaCFI_uncon_v_con_CT + plot_layout(guides = "collect") & theme(legend.position = "bottom", legend.key.width = unit(1, "cm"), legend.title.align=0.5)
+
+print(Figure7)
 
 dev.off()
+}
+
+
+if(use_sim == TRUE){
+Cairo(file = "8_supplement/Figure7_sim.png",
+      type = "png",
+      units="in", 
+      width=6, 
+      height=6, 
+      pointsize=12, 
+      dpi=600)
+
+Figure7_sim <- deltaCFI_errcon_v_con_CT / deltaCFI_uncon_v_errcon_CT / deltaCFI_timecon_v_con_CT / deltaCFI_uncon_v_timecon_CT / deltaCFI_uncon_v_con_CT + plot_layout(guides = "collect") & theme(legend.position = "bottom", legend.key.width = unit(1, "cm"), legend.title.align=0.5)
+
+print(Figure7_sim)
+
+dev.off()
+}
+```
+
+```{r multigroup_CFIs_SA}
+
+multigroup_CFIs_SA <- multigroup_CFIs_SA %>%
+  mutate(errcon_v_con = m_e_constrained - m_constrained,
+         uncon_v_errcon = m_unconstrained - m_e_constrained,
+         timecon_v_con = m_time_constrained - m_constrained,
+         uncon_v_timecon = m_unconstrained - m_time_constrained,
+         uncon_v_con = m_unconstrained - m_constrained)
+
+min_deltaCFI_SA <- multigroup_CFIs_SA %>%
+  select(errcon_v_con, uncon_v_errcon, timecon_v_con, uncon_v_timecon, uncon_v_con) %>%
+  min(na.rm = TRUE)
+
+max_deltaCFI_SA <- multigroup_CFIs_SA %>%
+  select(errcon_v_con, uncon_v_errcon, timecon_v_con, uncon_v_timecon, uncon_v_con) %>%
+  max(na.rm = TRUE)
+
+# for added info
+
+multigroup_CFIs_SA %>%
+  pivot_longer(cols = c(errcon_v_con,
+uncon_v_errcon,
+timecon_v_con,
+uncon_v_timecon,
+uncon_v_con),
+               names_to = "model",
+               values_to = "deltaCFI") %>%
+  group_by(model) %>%
+  summarise(n_01 = sum(deltaCFI > .01)/n(),
+            n_02 = sum(deltaCFI > .02)/n())
+# 1 errcon_v_con    0.324  0.191
+# 2 timecon_v_con   0.985  0.971
+# 3 uncon_v_con     0.985  0.985
+# 4 uncon_v_errcon  0.985  0.971
+# 5 uncon_v_timecon 0.0441 0 
+
+
+multigroup_CFIs_SA %>%
+  pivot_longer(cols = c(errcon_v_con,
+uncon_v_errcon,
+timecon_v_con,
+uncon_v_timecon,
+uncon_v_con),
+               names_to = "model",
+               values_to = "deltaCFI") %>%
+  group_by(model) %>%
+  summarise(n_0 = sum(deltaCFI < 0)/n())
+
+deltaCFI_errcon_v_con_SA <- dk %>% 
+  as_tibble() %>% 
+  left_join(multigroup_CFIs_SA, by = c("label" = "region")) %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = errcon_v_con)) +
+    theme_void() +
+  scale_fill_continuous(name = "delta CFI",
+                        limits = c(min_deltaCFI_SA, max_deltaCFI_SA),
+                        type = "viridis") +
+  ggtitle("A. Constrained vs Between-subjects varying")
+
+deltaCFI_uncon_v_errcon_SA <- dk %>% 
+  as_tibble() %>% 
+  left_join(multigroup_CFIs_SA, by = c("label" = "region")) %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = uncon_v_errcon)) +
+    theme_void() +
+  scale_fill_continuous(name = "delta CFI",
+                        limits = c(min_deltaCFI_SA, max_deltaCFI_SA),
+                        type = "viridis") +
+  ggtitle("B. Between-subjects varying vs Unconstrained")
+
+deltaCFI_timecon_v_con_SA <- dk %>% 
+  as_tibble() %>% 
+  left_join(multigroup_CFIs_SA, by = c("label" = "region")) %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = timecon_v_con)) +
+    theme_void() +
+  scale_fill_continuous(name = "delta CFI",
+                        limits = c(min_deltaCFI_SA, max_deltaCFI_SA),
+                        type = "viridis") +
+  ggtitle("C. Constrained vs Error varying")
+
+deltaCFI_uncon_v_timecon_SA <- dk %>% 
+  as_tibble() %>% 
+  left_join(multigroup_CFIs_SA, by = c("label" = "region")) %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = uncon_v_timecon)) +
+    theme_void() +
+  scale_fill_continuous(name = "delta CFI",
+                        limits = c(min_deltaCFI_SA, max_deltaCFI_SA),
+                        type = "viridis") +
+  ggtitle("D. Error varying vs Unconstrained")
+
+deltaCFI_uncon_v_con_SA <- dk %>% 
+  as_tibble() %>% 
+  left_join(multigroup_CFIs_SA, by = c("label" = "region")) %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = uncon_v_con)) +
+    theme_void() +
+  scale_fill_continuous(name = "delta CFI",
+                        limits = c(min_deltaCFI_SA, max_deltaCFI_SA),
+                        type = "viridis") +
+  ggtitle("E. Constrained vs Unconstrained")
+
+
+if(use_sim == FALSE){
+Cairo(file = "8_supplement/Figure7_SA_deltaCFI.png",
+      type = "png",
+      units="in", 
+      width=6, 
+      height=6, 
+      pointsize=12, 
+      dpi=600)
+
+Figure7_SA_deltaCFI <- deltaCFI_errcon_v_con_SA / deltaCFI_uncon_v_errcon_SA / deltaCFI_timecon_v_con_SA / deltaCFI_uncon_v_timecon_SA / deltaCFI_uncon_v_con_SA + plot_layout(guides = "collect") & theme(legend.position = "bottom", legend.key.width = unit(1, "cm"), legend.title.align=0.5)
+
+print(Figure7_SA_deltaCFI)
+
+dev.off()
+}
+
+
+if(use_sim == TRUE){
+Cairo(file = "8_supplement/Figure7_SA_deltaCFI_sim.png",
+      type = "png",
+      units="in", 
+      width=6, 
+      height=6, 
+      pointsize=12, 
+      dpi=600)
+
+Figure7_SA_deltaCFI_sim <- deltaCFI_errcon_v_con_SA / deltaCFI_uncon_v_errcon_SA / deltaCFI_timecon_v_con_SA / deltaCFI_uncon_v_timecon_SA / deltaCFI_uncon_v_con_SA + plot_layout(guides = "collect") & theme(legend.position = "bottom", legend.key.width = unit(1, "cm"), legend.title.align=0.5)
+
+print(Figure7_SA_deltaCFI_sim)
+
+dev.off()
+}
 
 ```
 
+```{r multigroup_CFIs_GM}
+
+multigroup_CFIs_GM <- multigroup_CFIs_GM %>%
+  mutate(errcon_v_con = m_e_constrained - m_constrained,
+         uncon_v_errcon = m_unconstrained - m_e_constrained,
+         timecon_v_con = m_time_constrained - m_constrained,
+         uncon_v_timecon = m_unconstrained - m_time_constrained,
+         uncon_v_con = m_unconstrained - m_constrained)
+
+min_deltaCFI_GM <- multigroup_CFIs_GM %>%
+  select(errcon_v_con, uncon_v_errcon, timecon_v_con, uncon_v_timecon, uncon_v_con) %>%
+  min(na.rm = TRUE)
+
+max_deltaCFI_GM <- multigroup_CFIs_GM %>%
+  select(errcon_v_con, uncon_v_errcon, timecon_v_con, uncon_v_timecon, uncon_v_con) %>%
+  max(na.rm = TRUE)
+
+# for added info
+
+multigroup_CFIs_GM %>%
+  pivot_longer(cols = c(errcon_v_con,
+uncon_v_errcon,
+timecon_v_con,
+uncon_v_timecon,
+uncon_v_con),
+               names_to = "model",
+               values_to = "deltaCFI") %>%
+  group_by(model) %>%
+  summarise(n_01 = sum(deltaCFI > .01)/n(),
+            n_02 = sum(deltaCFI > .02)/n())
+# 1 errcon_v_con    0.324  0.191
+# 2 timecon_v_con   0.985  0.971
+# 3 uncon_v_con     0.985  0.985
+# 4 uncon_v_errcon  0.985  0.971
+# 5 uncon_v_timecon 0.0441 0 
+
+
+multigroup_CFIs_GM %>%
+  pivot_longer(cols = c(errcon_v_con,
+uncon_v_errcon,
+timecon_v_con,
+uncon_v_timecon,
+uncon_v_con),
+               names_to = "model",
+               values_to = "deltaCFI") %>%
+  group_by(model) %>%
+  summarise(n_0 = sum(deltaCFI < 0)/n())
+
+deltaCFI_errcon_v_con_GM <- dk %>% 
+  as_tibble() %>% 
+  left_join(multigroup_CFIs_GM, by = c("label" = "region")) %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = errcon_v_con)) +
+    theme_void() +
+  scale_fill_continuous(name = "delta CFI",
+                        limits = c(min_deltaCFI_GM, max_deltaCFI_GM),
+                        type = "viridis") +
+  ggtitle("A. Constrained vs Between-subjects varying")
+
+deltaCFI_uncon_v_errcon_GM <- dk %>% 
+  as_tibble() %>% 
+  left_join(multigroup_CFIs_GM, by = c("label" = "region")) %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = uncon_v_errcon)) +
+    theme_void() +
+  scale_fill_continuous(name = "delta CFI",
+                        limits = c(min_deltaCFI_GM, max_deltaCFI_GM),
+                        type = "viridis") +
+  ggtitle("B. Between-subjects varying vs Unconstrained")
+
+deltaCFI_timecon_v_con_GM <- dk %>% 
+  as_tibble() %>% 
+  left_join(multigroup_CFIs_GM, by = c("label" = "region")) %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = timecon_v_con)) +
+    theme_void() +
+  scale_fill_continuous(name = "delta CFI",
+                        limits = c(min_deltaCFI_GM, max_deltaCFI_GM),
+                        type = "viridis") +
+  ggtitle("C. Constrained vs Error varying")
+
+deltaCFI_uncon_v_timecon_GM <- dk %>% 
+  as_tibble() %>% 
+  left_join(multigroup_CFIs_GM, by = c("label" = "region")) %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = uncon_v_timecon)) +
+    theme_void() +
+  scale_fill_continuous(name = "delta CFI",
+                        limits = c(min_deltaCFI_GM, max_deltaCFI_GM),
+                        type = "viridis") +
+  ggtitle("D. Error varying vs Unconstrained")
+
+deltaCFI_uncon_v_con_GM <- dk %>% 
+  as_tibble() %>% 
+  left_join(multigroup_CFIs_GM, by = c("label" = "region")) %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = uncon_v_con)) +
+    theme_void() +
+  scale_fill_continuous(name = "delta CFI",
+                        limits = c(min_deltaCFI_GM, max_deltaCFI_GM),
+                        type = "viridis") +
+  ggtitle("E. Constrained vs Unconstrained")
+
+if(use_sim == FALSE){
+Cairo(file = "8_supplement/Figure7_GM_deltaCFI.png",
+      type = "png",
+      units="in", 
+      width=6, 
+      height=6, 
+      pointsize=12, 
+      dpi=600)
+
+Figure7_GM_deltaCFI <- deltaCFI_errcon_v_con_GM / deltaCFI_uncon_v_errcon_GM / deltaCFI_timecon_v_con_GM / deltaCFI_uncon_v_timecon_GM / deltaCFI_uncon_v_con_GM + plot_layout(guides = "collect") & theme(legend.position = "bottom", legend.key.width = unit(1, "cm"), legend.title.align=0.5)
+
+print(Figure7_GM_deltaCFI)
+
+dev.off()
+}
+
+if(use_sim == TRUE){
+Cairo(file = "8_supplement/Figure7_GM_deltaCFI_sim.png",
+      type = "png",
+      units="in", 
+      width=6, 
+      height=6, 
+      pointsize=12, 
+      dpi=600)
+
+Figure7_GM_deltaCFI_sim <- deltaCFI_errcon_v_con_GM / deltaCFI_uncon_v_errcon_GM / deltaCFI_timecon_v_con_GM / deltaCFI_uncon_v_timecon_GM / deltaCFI_uncon_v_con_GM + plot_layout(guides = "collect") & theme(legend.position = "bottom", legend.key.width = unit(1, "cm"), legend.title.align=0.5)
+
+print(Figure7_GM_deltaCFI_sim)
+
+dev.off()
+}
+```
+
+
+# 3. Practical implications
 # D-study for CT
 
 ```{r d_study}
