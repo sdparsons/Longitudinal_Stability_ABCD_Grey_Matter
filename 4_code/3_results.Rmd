@@ -23,7 +23,7 @@ library("pwr")
 ```{r read_data}
 
 # use simulated data? if set to TRUE then the simulated data will be used and results saved under different file names
-use_sim = TRUE
+use_sim = FALSE
 
 if(use_sim == FALSE) {
 
