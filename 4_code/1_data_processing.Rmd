@@ -86,6 +86,19 @@ dat1_smri <- dat1_smri %>%
   mutate(eventname = recode(eventname,
                             "baseline_year_1_arm_1" = "T1",
                             "2_year_follow_up_y_arm_1" = "T2"))
+
+
+# include scanner info
+
+info_mri <- read.delim("1_raw_data/abcd_mri01.txt")[-1,] %>%
+  filter(subjectkey %in% unique(dat1_smri$subjectkey)) %>%
+  mutate(eventname = ifelse(eventname == "baseline_year_1_arm_1", "T1", "T2"))
+
+info_mri2 <- info_mri[,c("subjectkey","mri_info_manufacturer")] %>%
+  distinct()
+
+
+
 }
 ```
 
@@ -112,7 +125,7 @@ names(GM_volume) <- c("subjectkey","interview_age","eventname","sex","lh_banksst
 }
 ```
 
-```{r include_site_id}
+```{r include_site_id_and_scanner}
 
 # code to add the site id to the dataset
 
@@ -137,6 +150,33 @@ Surface_area <- Surface_area %>%
 GM_volume <- GM_volume %>%
   filter(site_id_l != "site22")
 
+# add scanner
+
+# checking whether participants were scanned at different locations
+Cortical_thickness %>%
+  select(subjectkey, eventname, site_id_l) %>%
+  pivot_wider(names_from = eventname, values_from = site_id_l) %>%
+  mutate(same = ifelse(T1 == T2, 1, 0)) %>%
+  filter(same == 0) %>%
+  select(subjectkey, T1, T2)
+
+Cortical_thickness <- left_join(Cortical_thickness, info_mri2, by = c("subjectkey")) %>%
+  group_by(site_id_l, mri_info_manufacturer) %>%
+  mutate(n = n()) %>%
+  filter(n > 100) %>% # to ensure that folk who moved are not included
+  select(-n)
+
+Surface_area <- left_join(Surface_area, info_mri2, by = c("subjectkey")) %>%
+  group_by(site_id_l, mri_info_manufacturer) %>%
+  mutate(n = n()) %>%
+  filter(n > 100) %>% # to ensure that folk who moved are not included
+  select(-n)
+
+GM_volume <- left_join(GM_volume, info_mri2, by = c("subjectkey")) %>%
+  group_by(site_id_l, mri_info_manufacturer) %>%
+  mutate(n = n()) %>%
+  filter(n > 100) %>% # to ensure that folk who moved are not included
+  select(-n)
 
 
 # extract site sample sizes
@@ -173,7 +213,7 @@ GM_volume <- read.csv("3_simulated_data/GM_sim.csv")
 
 # extract variable names
 variables_CT <- colnames(Cortical_thickness)[5:ncol(Cortical_thickness)]
-variables_CT <- variables_CT[1:(length(variables_CT)-1)]
+variables_CT <- variables_CT[!variables_CT %in% c("site_id_l", "mri_info_manufacturer")]
 
 # restructure into wide format for lavaan
 Cortical_thickness2 <- Cortical_thickness %>%
@@ -213,7 +253,7 @@ if(use_sim == FALSE){
 write.csv(out_CT, "2_analysis_output/out_CT.csv")
 }
 if(use_sim == TRUE){
-write.csv(out_CT, "2_analysis_output/out_CT_sim.csv")
+write.csv(out_CT, "5_simulated_analyses_output/out_CT_sim.csv")
 }
 
 ```
@@ -222,7 +262,7 @@ write.csv(out_CT, "2_analysis_output/out_CT_sim.csv")
 
 # extract variable names
 variables_SA <- colnames(Surface_area)[5:ncol(Surface_area)]
-variables_SA <- variables_SA[1:(length(variables_SA)-1)]
+variables_SA <- variables_SA[!variables_SA %in% c("site_id_l","mri_info_manufacturer")]
 
 # restructure into wide format for lavaan
 Surface_area2 <- Surface_area %>%
@@ -263,7 +303,7 @@ if(use_sim == FALSE){
 write.csv(out_SA, "2_analysis_output/out_SA.csv")
 }
 if(use_sim == TRUE){
-write.csv(out_SA, "2_analysis_output/out_SA_sim.csv")
+write.csv(out_SA, "5_simulated_analyses_output/out_SA_sim.csv")
 }
 ```
 
@@ -271,7 +311,7 @@ write.csv(out_SA, "2_analysis_output/out_SA_sim.csv")
 
 # extract variable names
 variables_GM <- colnames(GM_volume)[5:ncol(GM_volume)]
-variables_GM <- variables_GM[1:(length(variables_GM)-1)]
+variables_GM <- variables_GM[!variables_GM %in% c("site_id_l", "mri_info_manufacturer")]
 
 # restructure into wide format for lavaan
 GM_volume2 <- GM_volume %>%
@@ -312,7 +352,7 @@ if(use_sim == FALSE){
 write.csv(out_GM, "2_analysis_output/out_GM.csv")
 }
 if(use_sim == TRUE){
-write.csv(out_GM, "2_analysis_output/out_GM_sim.csv")
+write.csv(out_GM, "5_simulated_analyses_output/out_GM_sim.csv")
 }
 
 ```
@@ -354,11 +394,7 @@ dat1_smri %>%
   summarise(M1 = sum(sex == "M"),
             F1 = sum(sex == "F"))
 
-Cortical_thickness %>%
-  filt
-  select(subjectkey, site_id_l)
 
-  
   
 Cortical_thickness %>%
   select(subjectkey, eventname, site_id_l, sex, interview_age) %>%
@@ -430,7 +466,7 @@ if(use_sim == FALSE) {
 write.csv(between_error_CT, "2_analysis_output/between_error_CT.csv")
 }
 if(use_sim == TRUE) {
-write.csv(between_error_CT, "2_analysis_output/between_error_CT_sim.csv")
+write.csv(between_error_CT, "5_simulated_analyses_output/between_error_CT_sim.csv")
 }
 
 ```
@@ -492,7 +528,7 @@ if(use_sim == FALSE) {
 write.csv(between_error_SA, "2_analysis_output/between_error_SA.csv")
 }
 if(use_sim == TRUE) {
-write.csv(between_error_SA, "2_analysis_output/between_error_SA_sim.csv")
+write.csv(between_error_SA, "5_simulated_analyses_output/between_error_SA_sim.csv")
 }
 
 
@@ -555,11 +591,13 @@ if(use_sim == FALSE) {
 write.csv(between_error_GM, "2_analysis_output/between_error_GM.csv")
 }
 if(use_sim == TRUE) {
-write.csv(between_error_GM, "2_analysis_output/between_error_GM_sim.csv")
+write.csv(between_error_GM, "5_simulated_analyses_output/between_error_GM_sim.csv")
 }
 
 
 ```
+
+
 
 ## Multigroup ICED models
 
@@ -603,6 +641,851 @@ g_tmp_CT <- Cortical_thickness %>%
   filter(site_id_l %in% sites)
 
 sites_LRTs_CT <- foreach(i = variables_CT, 
+        .packages=c("dplyr", "tidyr", "lavaan", "ICED")) %dopar% {
+
+g_tmp1 <- g_tmp_CT %>%
+  select("subjectkey","eventname", i, "site_id_l") %>%
+  pivot_wider(names_from = eventname,
+              values_from = i)
+
+
+# run models
+m_constrained <- lavaan(data = g_tmp1,
+       model = syn,
+       group = "site_id_l")
+
+m_e_constrained <- lavaan(data = g_tmp1,
+       model = syn_group_fix_error,
+       group = "site_id_l")
+
+m_time_constrained <- lavaan(data = g_tmp1,
+       model = syn_group_fix_time,
+       group = "site_id_l")
+
+m_unconstrained <- lavaan(data = g_tmp1,
+       model = syn_group,
+       group = "site_id_l")
+
+
+# extract LRT results
+LRT_time <- lavTestLRT(m_constrained, 
+                  m_time_constrained,
+                  m_unconstrained)
+
+LRT_e <- lavTestLRT(m_constrained, 
+                  m_e_constrained,
+                  m_unconstrained)
+
+LRT <- lavTestLRT(m_constrained, 
+                  m_unconstrained)
+
+# save final list, including all model fits
+list(ROI = i,
+     LRT_time = lavTestLRT(m_constrained, 
+                  m_time_constrained,
+                  m_unconstrained),
+     LRT_e = lavTestLRT(m_constrained, 
+                  m_e_constrained,
+                  m_unconstrained),
+     LRT = lavTestLRT(m_constrained, 
+                  m_unconstrained),
+     fits = list(fitmeasures(m_constrained),
+             fitmeasures(m_e_constrained),
+             fitmeasures(m_time_constrained),
+             fitmeasures(m_unconstrained)))
+
+    }
+
+}) # aprox time = 4000s
+
+
+# save LRT Rdata file
+if(use_sim == FALSE) {
+save(sites_LRTs_CT, file = "2_analysis_output/sites_LRTs_and_fit_CT.Rdata")
+}
+if(use_sim == TRUE) {
+save(sites_LRTs_CT, file = "5_simulated_analyses_output/sites_LRTs_and_fit_CT_sim.Rdata")
+}
+
+
+### Extract AIC, BIC, and Chi squared values from the LRTs
+
+sites_LRTs_CT_tidy_aicbic <- NULL
+
+for(i in 1:length(variables_CT)) {
+  
+LRT1 <- as.data.frame(sites_LRTs_CT[[i]]$LRT_time)
+LRT1 <- LRT1 %>%
+  mutate(AICdiff = AIC - lag(AIC, 1),
+         BICdiff = BIC - lag(BIC, 1))
+LRT1$comparison <- c("uncon", "uncon_v_timecon", "timecon_v_con")
+LRT2 <- as.data.frame(sites_LRTs_CT[[i]]$LRT_e)
+LRT2 <- LRT2 %>%
+  mutate(AICdiff = AIC - lag(AIC, 1),
+         BICdiff = BIC - lag(BIC, 1))
+LRT2$comparison <- c("uncon", "uncon_v_errcon", "errcon_v_con")
+LRT3 <- as.data.frame(sites_LRTs_CT[[i]]$LRT)
+LRT3 <- LRT3 %>%
+  mutate(AICdiff = AIC - lag(AIC, 1),
+         BICdiff = BIC - lag(BIC, 1))
+LRT3$comparison <- c("uncon", "uncon_v_con")
+
+LRT123 <- rbind(LRT1, LRT2, LRT3) %>%
+  mutate(ROI = i) %>%
+  select(comparison, ROI, AIC, AICdiff, BIC, BICdiff, Chisq, "Chisq diff", "Pr(>Chisq)")
+LRT123
+
+
+rownames(LRT123) <- 1:nrow(LRT123)
+LRT123 <- LRT123[c(1,2,3,5,6,8),]
+LRT123$ROI <- variables_CT[i]
+
+sites_LRTs_CT_tidy_aicbic <- rbind(sites_LRTs_CT_tidy_aicbic, LRT123)
+  
+}
+
+sites_LRTs_CT_tidy_aicbic$LRT_p05 <- ifelse(sites_LRTs_CT_tidy_aicbic$`Pr(>Chisq)` < .05, "sig", "nonsig")
+
+sites_LRTs_CT_tidy_aicbic %>%
+  group_by(comparison) %>%
+  summarise(n = sum(LRT_p05 == "sig"))
+
+
+# save LRT data
+if(use_sim == FALSE) {
+write.csv(sites_LRTs_CT_tidy_aicbic, "2_analysis_output/sites_LRTs_CT_tidy_aicbic.csv")
+}
+if(use_sim == TRUE) {
+write.csv(sites_LRTs_CT_tidy_aicbic, "5_simulated_analyses_output/sites_LRTs_CT_tidy_aicbic_sim.csv")
+}
+
+
+# extract model CIFs
+
+multigroup_CFIs_CT <- data.frame(region = variables_CT,
+                   m_constrained = NA,
+                   m_e_constrained = NA,
+                   m_time_constrained = NA,
+                   m_unconstrained = NA)
+
+count <- 1
+
+for(i in 1:length(variables_CT)) {
+
+multigroup_CFIs_CT$region[count] <- sites_LRTs_CT[[i]]$ROI
+
+multigroup_CFIs_CT$m_constrained[count] <- sites_LRTs_CT[[i]]$fits[[1]][["cfi"]]
+multigroup_CFIs_CT$m_e_constrained[count] <- sites_LRTs_CT[[i]]$fits[[2]][["cfi"]]
+multigroup_CFIs_CT$m_time_constrained[count] <- sites_LRTs_CT[[i]]$fits[[3]][["cfi"]]
+multigroup_CFIs_CT$m_unconstrained[count] <- sites_LRTs_CT[[i]]$fits[[4]][["cfi"]]
+  
+count <- count + 1
+}  
+  
+if(use_sim == FALSE) {
+write.csv(multigroup_CFIs_CT, "2_analysis_output/multigroup_CFIs_CT.csv")
+}
+if(use_sim == TRUE) {
+write.csv(multigroup_CFIs_CT, "5_simulated_analyses_output/multigroup_CFIs_CT_sim.csv")
+}
+
+
+```
+
+```{r ICED_many_sites_multigroup_SA_parallel}
+
+#sites list
+sites <- unique(Surface_area$site_id_l)
+
+structure <- data.frame(time = c("T1",
+                                 "T2"))
+
+# model structure - fully constrained
+syn <- iced_syntax(structure,
+                   fix_lower_bounds = TRUE)
+cat(syn)
+
+# fully unconstrained
+syn_group <- iced_syntax(structure,
+                   fix_lower_bounds = TRUE,
+                   groups = sites)
+cat(syn_group)
+
+# fixing error aka alowing between subjects variance to be free between groups
+syn_group_fix_error <- iced_syntax(structure,
+                   fix_lower_bounds = TRUE,
+                   groups = sites,
+                   groups_inequality = c("time"))
+cat(syn_group_fix_error)
+
+# fixing between subjects variance aka alowing error variance to be free between groups
+syn_group_fix_time <- iced_syntax(structure,
+                   fix_lower_bounds = TRUE,
+                   groups = sites,
+                   groups_inequality = c("e"))
+cat(syn_group_fix_time)
+
+# look across each brain region, run each umitigroup model and extract Likelihood ratio tests and model fit estimates
+time_sites_LRTs_SA <- system.time({
+
+g_tmp_SA <- Surface_area %>%
+  filter(site_id_l %in% sites)
+
+sites_LRTs_SA <- foreach(i = variables_SA, 
+        .packages=c("dplyr", "tidyr", "lavaan", "ICED")) %dopar% {
+
+g_tmp1 <- g_tmp_SA %>%
+  select("subjectkey","eventname", i, "site_id_l") %>%
+  pivot_wider(names_from = eventname,
+              values_from = i)
+
+if(use_sim == FALSE) {
+  g_tmp1$T1 <- g_tmp1$T1 / 1000
+  g_tmp1$T2 <- g_tmp1$T2 / 1000
+  }
+
+
+# run models
+m_constrained <- lavaan(data = g_tmp1,
+       model = syn,
+       group = "site_id_l")
+
+m_e_constrained <- lavaan(data = g_tmp1,
+       model = syn_group_fix_error,
+       group = "site_id_l")
+
+m_time_constrained <- lavaan(data = g_tmp1,
+       model = syn_group_fix_time,
+       group = "site_id_l")
+
+m_unconstrained <- lavaan(data = g_tmp1,
+       model = syn_group,
+       group = "site_id_l")
+
+
+# extract LRT results
+LRT_time <- lavTestLRT(m_constrained, 
+                  m_time_constrained,
+                  m_unconstrained)
+
+LRT_e <- lavTestLRT(m_constrained, 
+                  m_e_constrained,
+                  m_unconstrained)
+
+LRT <- lavTestLRT(m_constrained, 
+                  m_unconstrained)
+
+# save final list, including all model fits
+list(ROI = i,
+     LRT_time = lavTestLRT(m_constrained, 
+                  m_time_constrained,
+                  m_unconstrained),
+     LRT_e = lavTestLRT(m_constrained, 
+                  m_e_constrained,
+                  m_unconstrained),
+     LRT = lavTestLRT(m_constrained, 
+                  m_unconstrained),
+     fits = list(fitmeasures(m_constrained),
+             fitmeasures(m_e_constrained),
+             fitmeasures(m_time_constrained),
+             fitmeasures(m_unconstrained)))
+
+    }
+
+}) # aprox time = 4000s
+
+
+
+if(use_sim == FALSE) {
+save(sites_LRTs_SA, file = "2_analysis_output/sites_LRTs_and_fit_SA.Rdata")
+}
+if(use_sim == TRUE) {
+save(sites_LRTs_SA, file = "5_simulated_analyses_output/sites_LRTs_and_fit_SA_sim.Rdata")
+}
+
+
+### Extract AIC, BIC, and Chi squared values from the LRTs
+
+sites_LRTs_SA_tidy_aicbic <- NULL
+
+for(i in 1:length(variables_SA)) {
+  
+LRT1 <- as.data.frame(sites_LRTs_SA[[i]]$LRT_time)
+LRT1 <- LRT1 %>%
+  mutate(AICdiff = AIC - lag(AIC, 1),
+         BICdiff = BIC - lag(BIC, 1))
+LRT1$comparison <- c("uncon", "uncon_v_timecon", "timecon_v_con")
+LRT2 <- as.data.frame(sites_LRTs_SA[[i]]$LRT_e)
+LRT2 <- LRT2 %>%
+  mutate(AICdiff = AIC - lag(AIC, 1),
+         BICdiff = BIC - lag(BIC, 1))
+LRT2$comparison <- c("uncon", "uncon_v_errcon", "errcon_v_con")
+LRT3 <- as.data.frame(sites_LRTs_SA[[i]]$LRT)
+LRT3 <- LRT3 %>%
+  mutate(AICdiff = AIC - lag(AIC, 1),
+         BICdiff = BIC - lag(BIC, 1))
+LRT3$comparison <- c("uncon", "uncon_v_con")
+
+LRT123 <- rbind(LRT1, LRT2, LRT3) %>%
+  mutate(ROI = i) %>%
+  select(comparison, ROI, AIC, AICdiff, BIC, BICdiff, Chisq, "Chisq diff", "Pr(>Chisq)")
+LRT123
+
+
+rownames(LRT123) <- 1:nrow(LRT123)
+LRT123 <- LRT123[c(1,2,3,5,6,8),]
+LRT123$ROI <- variables_SA[i]
+
+sites_LRTs_SA_tidy_aicbic <- rbind(sites_LRTs_SA_tidy_aicbic, LRT123)
+  
+}
+
+sites_LRTs_SA_tidy_aicbic$LRT_p05 <- ifelse(sites_LRTs_SA_tidy_aicbic$`Pr(>Chisq)` < .05, "sig", "nonsig")
+
+sites_LRTs_SA_tidy_aicbic %>%
+  group_by(comparison) %>%
+  summarise(n = sum(LRT_p05 == "sig"))
+
+
+if(use_sim == FALSE) {
+write.csv(sites_LRTs_SA_tidy_aicbic, "2_analysis_output/sites_LRTs_SA_tidy_aicbic.csv")
+}
+if(use_sim == TRUE) {
+write.csv(sites_LRTs_SA_tidy_aicbic, "5_simulated_analyses_output/sites_LRTs_SA_tidy_aicbic_sim.csv")
+}
+
+# extract model CIFs
+
+multigroup_CFIs_SA <- data.frame(region = variables_SA,
+                   m_constrained = NA,
+                   m_e_constrained = NA,
+                   m_time_constrained = NA,
+                   m_unconstrained = NA)
+
+count <- 1
+
+for(i in 1:length(variables_SA)) {
+
+multigroup_CFIs_SA$region[count] <- sites_LRTs_SA[[i]]$ROI
+
+multigroup_CFIs_SA$m_constrained[count] <- sites_LRTs_SA[[i]]$fits[[1]][["cfi"]]
+multigroup_CFIs_SA$m_e_constrained[count] <- sites_LRTs_SA[[i]]$fits[[2]][["cfi"]]
+multigroup_CFIs_SA$m_time_constrained[count] <- sites_LRTs_SA[[i]]$fits[[3]][["cfi"]]
+multigroup_CFIs_SA$m_unconstrained[count] <- sites_LRTs_SA[[i]]$fits[[4]][["cfi"]]
+  
+count <- count + 1
+}  
+  
+if(use_sim == FALSE) {
+write.csv(multigroup_CFIs_SA, "2_analysis_output/multigroup_CFIs_SA.csv")
+}
+if(use_sim == TRUE) {
+write.csv(multigroup_CFIs_SA, "5_simulated_analyses_output/multigroup_CFIs_SA_sim.csv")
+}
+
+```
+
+```{r ICED_many_sites_multigroup_GMV_parallel}
+
+#sites list
+sites <- unique(GM_volume$site_id_l)
+
+structure <- data.frame(time = c("T1",
+                                 "T2"))
+
+# model structure - fully constrained
+syn <- iced_syntax(structure,
+                   fix_lower_bounds = TRUE)
+cat(syn)
+
+# fully unconstrained
+syn_group <- iced_syntax(structure,
+                   fix_lower_bounds = TRUE,
+                   groups = sites)
+cat(syn_group)
+
+# fixing error aka alowing between subjects variance to be free between groups
+syn_group_fix_error <- iced_syntax(structure,
+                   fix_lower_bounds = TRUE,
+                   groups = sites,
+                   groups_inequality = c("time"))
+cat(syn_group_fix_error)
+
+# fixing between subjects variance aka alowing error variance to be free between groups
+syn_group_fix_time <- iced_syntax(structure,
+                   fix_lower_bounds = TRUE,
+                   groups = sites,
+                   groups_inequality = c("e"))
+cat(syn_group_fix_time)
+
+# look across each brain region, run each umitigroup model and extract Likelihood ratio tests and model fit estimates
+time_sites_LRTs_GM <- system.time({
+
+g_tmp_GM <- GM_volume %>%
+  filter(site_id_l %in% sites)
+
+sites_LRTs_GM <- foreach(i = variables_GM, 
+        .packages=c("dplyr", "tidyr", "lavaan", "ICED")) %dopar% {
+
+g_tmp1 <- g_tmp_GM %>%
+  select("subjectkey","eventname", i, "site_id_l") %>%
+  pivot_wider(names_from = eventname,
+              values_from = i)
+
+if(use_sim == FALSE) {
+  g_tmp1$T1 <- g_tmp1$T1 / 1000
+  g_tmp1$T2 <- g_tmp1$T2 / 1000
+  }
+
+# run models
+m_constrained <- lavaan(data = g_tmp1,
+       model = syn,
+       group = "site_id_l")
+
+m_e_constrained <- lavaan(data = g_tmp1,
+       model = syn_group_fix_error,
+       group = "site_id_l")
+
+m_time_constrained <- lavaan(data = g_tmp1,
+       model = syn_group_fix_time,
+       group = "site_id_l")
+
+m_unconstrained <- lavaan(data = g_tmp1,
+       model = syn_group,
+       group = "site_id_l")
+
+
+# extract LRT results
+LRT_time <- lavTestLRT(m_constrained, 
+                  m_time_constrained,
+                  m_unconstrained)
+
+LRT_e <- lavTestLRT(m_constrained, 
+                  m_e_constrained,
+                  m_unconstrained)
+
+LRT <- lavTestLRT(m_constrained, 
+                  m_unconstrained)
+
+# save final list, including all model fits
+list(ROI = i,
+     LRT_time = lavTestLRT(m_constrained, 
+                  m_time_constrained,
+                  m_unconstrained),
+     LRT_e = lavTestLRT(m_constrained, 
+                  m_e_constrained,
+                  m_unconstrained),
+     LRT = lavTestLRT(m_constrained, 
+                  m_unconstrained),
+     fits = list(fitmeasures(m_constrained),
+             fitmeasures(m_e_constrained),
+             fitmeasures(m_time_constrained),
+             fitmeasures(m_unconstrained)))
+
+    }
+
+}) # aprox time = 4000s
+
+
+if(use_sim == FALSE) {
+save(sites_LRTs_GM, file = "2_analysis_output/sites_LRTs_and_fit_GM.Rdata")
+}
+if(use_sim == TRUE) {
+save(sites_LRTs_GM, file = "5_simulated_analyses_output/sites_LRTs_and_fit_GM_sim.Rdata")
+}
+
+### Extract AIC, BIC, and Chi squared values from the LRTs
+
+sites_LRTs_GM_tidy_aicbic <- NULL
+
+for(i in 1:length(variables_GM)) {
+  
+LRT1 <- as.data.frame(sites_LRTs_GM[[i]]$LRT_time)
+LRT1 <- LRT1 %>%
+  mutate(AICdiff = AIC - lag(AIC, 1),
+         BICdiff = BIC - lag(BIC, 1))
+LRT1$comparison <- c("uncon", "uncon_v_timecon", "timecon_v_con")
+LRT2 <- as.data.frame(sites_LRTs_GM[[i]]$LRT_e)
+LRT2 <- LRT2 %>%
+  mutate(AICdiff = AIC - lag(AIC, 1),
+         BICdiff = BIC - lag(BIC, 1))
+LRT2$comparison <- c("uncon", "uncon_v_errcon", "errcon_v_con")
+LRT3 <- as.data.frame(sites_LRTs_GM[[i]]$LRT)
+LRT3 <- LRT3 %>%
+  mutate(AICdiff = AIC - lag(AIC, 1),
+         BICdiff = BIC - lag(BIC, 1))
+LRT3$comparison <- c("uncon", "uncon_v_con")
+
+LRT123 <- rbind(LRT1, LRT2, LRT3) %>%
+  mutate(ROI = i) %>%
+  select(comparison, ROI, AIC, AICdiff, BIC, BICdiff, Chisq, "Chisq diff", "Pr(>Chisq)")
+LRT123
+
+
+rownames(LRT123) <- 1:nrow(LRT123)
+LRT123 <- LRT123[c(1,2,3,5,6,8),]
+LRT123$ROI <- variables_GM[i]
+
+sites_LRTs_GM_tidy_aicbic <- rbind(sites_LRTs_GM_tidy_aicbic, LRT123)
+  
+}
+
+sites_LRTs_GM_tidy_aicbic$LRT_p05 <- ifelse(sites_LRTs_GM_tidy_aicbic$`Pr(>Chisq)` < .05, "sig", "nonsig")
+
+sites_LRTs_GM_tidy_aicbic %>%
+  group_by(comparison) %>%
+  summarise(n = sum(LRT_p05 == "sig"))
+
+
+if(use_sim == FALSE) {
+write.csv(sites_LRTs_GM_tidy_aicbic, "2_analysis_output/sites_LRTs_GM_tidy_aicbic.csv")
+}
+if(use_sim == TRUE) {
+write.csv(sites_LRTs_GM_tidy_aicbic, "5_simulated_analyses_output/sites_LRTs_GM_tidy_aicbic_sim.csv")
+}
+
+# extract model CIFs
+
+multigroup_CFIs_GM <- data.frame(region = variables_GM,
+                   m_constrained = NA,
+                   m_e_constrained = NA,
+                   m_time_constrained = NA,
+                   m_unconstrained = NA)
+
+count <- 1
+
+for(i in 1:length(variables_GM)) {
+
+multigroup_CFIs_GM$region[count] <- sites_LRTs_GM[[i]]$ROI
+
+multigroup_CFIs_GM$m_constrained[count] <- sites_LRTs_GM[[i]]$fits[[1]][["cfi"]]
+multigroup_CFIs_GM$m_e_constrained[count] <- sites_LRTs_GM[[i]]$fits[[2]][["cfi"]]
+multigroup_CFIs_GM$m_time_constrained[count] <- sites_LRTs_GM[[i]]$fits[[3]][["cfi"]]
+multigroup_CFIs_GM$m_unconstrained[count] <- sites_LRTs_GM[[i]]$fits[[4]][["cfi"]]
+  
+count <- count + 1
+}  
+  
+if(use_sim == FALSE) {
+write.csv(multigroup_CFIs_GM, "2_analysis_output/multigroup_CFIs_GM.csv")
+}
+if(use_sim == TRUE) {
+write.csv(multigroup_CFIs_GM, "5_simulated_analyses_output/multigroup_CFIs_GM_sim.csv")
+}
+
+```
+
+
+
+
+# multigroup by scanner - CT
+
+```{r ICED_many_sites_multigroup_CT_parallel_scanner}
+
+
+
+
+# Cortical_thickness %>%
+#   select(mri_info_manufacturer, site_id_l) %>%
+#   group_by(site_id_l, mri_info_manufacturer)%>%
+#   summarise(n = n()) %>%
+#   View()
+# 
+# info_mri %>%
+#   select(subjectkey, site_id_l, eventname) %>%
+#   pivot_wider(names_from = eventname, values_from = site_id_l, id_cols = subjectkey)
+
+#sites list
+scanners <- unique(Cortical_thickness$mri_info_manufacturer)
+
+structure <- data.frame(time = c("T1",
+                                 "T2"))
+
+# model structure - fully constrained
+syn <- iced_syntax(structure,
+                   fix_lower_bounds = TRUE)
+cat(syn)
+
+# fully unconstrained
+syn_group <- iced_syntax(structure,
+                   fix_lower_bounds = TRUE,
+                   groups = scanners)
+cat(syn_group)
+
+# fixing error aka alowing between subjects variance to be free between groups
+syn_group_fix_error <- iced_syntax(structure,
+                   fix_lower_bounds = TRUE,
+                   groups = scanners,
+                   groups_inequality = c("time"))
+cat(syn_group_fix_error)
+
+# fixing between subjects variance aka alowing error variance to be free between groups
+syn_group_fix_time <- iced_syntax(structure,
+                   fix_lower_bounds = TRUE,
+                   groups = scanners,
+                   groups_inequality = c("e"))
+cat(syn_group_fix_time)
+
+# look across each brain region, run each umitigroup model and extract Likelihood ratio tests and model fit estimates
+time_scanners_LRTs_CT <- system.time({
+
+g_tmp_CT_scanners <- Cortical_thickness %>%
+  filter(mri_info_manufacturer %in% scanners)
+
+scanners_LRTs_CT <- foreach(i = variables_CT, 
+        .packages=c("dplyr", "tidyr", "lavaan", "ICED")) %dopar% {
+
+g_tmp1 <- g_tmp_CT_scanners %>%
+  select("subjectkey","eventname", i, "mri_info_manufacturer") %>%
+  pivot_wider(names_from = eventname,
+              values_from = i)
+
+# run models
+m_constrained <- lavaan(data = g_tmp1,
+       model = syn,
+       group = "mri_info_manufacturer")
+
+m_e_constrained <- lavaan(data = g_tmp1,
+       model = syn_group_fix_error,
+       group = "mri_info_manufacturer")
+
+m_time_constrained <- lavaan(data = g_tmp1,
+       model = syn_group_fix_time,
+       group = "mri_info_manufacturer")
+
+m_unconstrained <- lavaan(data = g_tmp1,
+       model = syn_group,
+       group = "mri_info_manufacturer")
+
+
+# extract LRT results
+LRT_time <- lavTestLRT(m_constrained, 
+                  m_time_constrained,
+                  m_unconstrained)
+
+LRT_e <- lavTestLRT(m_constrained, 
+                  m_e_constrained,
+                  m_unconstrained)
+
+LRT <- lavTestLRT(m_constrained, 
+                  m_unconstrained)
+
+# save final list, including all model fits
+list(ROI = i,
+     LRT_time = lavTestLRT(m_constrained, 
+                  m_time_constrained,
+                  m_unconstrained),
+     LRT_e = lavTestLRT(m_constrained, 
+                  m_e_constrained,
+                  m_unconstrained),
+     LRT = lavTestLRT(m_constrained, 
+                  m_unconstrained),
+     fits = list(fitmeasures(m_constrained),
+             fitmeasures(m_e_constrained),
+             fitmeasures(m_time_constrained),
+             fitmeasures(m_unconstrained)))
+
+    }
+
+}) # aprox time = 4000s
+
+ 
+ # save LRT Rdata file
+ if(use_sim == FALSE) {
+ save(scanners_LRTs_CT, file = "2_analysis_output/scanners_LRTs_and_fit_CT.Rdata")
+ }
+ if(use_sim == TRUE) {
+ save(sites_LRTs_CT, file = "5_simulated_analyses_output/scanners_LRTs_and_fit_CT_sim.Rdata")
+ }
+
+
+### Extract AIC, BIC, and Chi squared values from the LRTs
+
+scanners_LRTs_CT_tidy_aicbic <- NULL
+
+for(i in 1:length(variables_CT)) {
+  
+LRT1 <- as.data.frame(scanners_LRTs_CT[[i]]$LRT_time)
+LRT1 <- LRT1 %>%
+  mutate(AICdiff = AIC - lag(AIC, 1),
+         BICdiff = BIC - lag(BIC, 1))
+LRT1$comparison <- c("uncon", "uncon_v_timecon", "timecon_v_con")
+LRT2 <- as.data.frame(scanners_LRTs_CT[[i]]$LRT_e)
+LRT2 <- LRT2 %>%
+  mutate(AICdiff = AIC - lag(AIC, 1),
+         BICdiff = BIC - lag(BIC, 1))
+LRT2$comparison <- c("uncon", "uncon_v_errcon", "errcon_v_con")
+LRT3 <- as.data.frame(scanners_LRTs_CT[[i]]$LRT)
+LRT3 <- LRT3 %>%
+  mutate(AICdiff = AIC - lag(AIC, 1),
+         BICdiff = BIC - lag(BIC, 1))
+LRT3$comparison <- c("uncon", "uncon_v_con")
+
+LRT123 <- rbind(LRT1, LRT2, LRT3) %>%
+  mutate(ROI = i) %>%
+  select(comparison, ROI, AIC, AICdiff, BIC, BICdiff, Chisq, "Chisq diff", "Pr(>Chisq)")
+LRT123
+
+
+rownames(LRT123) <- 1:nrow(LRT123)
+LRT123 <- LRT123[c(1,2,3,5,6,8),]
+LRT123$ROI <- variables_CT[i]
+
+scanners_LRTs_CT_tidy_aicbic <- rbind(scanners_LRTs_CT_tidy_aicbic, LRT123)
+  
+}
+
+scanners_LRTs_CT_tidy_aicbic$LRT_p05 <- ifelse(scanners_LRTs_CT_tidy_aicbic$`Pr(>Chisq)` < .05, "sig", "nonsig")
+
+scanners_LRTs_CT_tidy_aicbic %>%
+  group_by(comparison) %>%
+  summarise(n = sum(LRT_p05 == "sig"))
+
+# 
+# # save LRT data
+ if(use_sim == FALSE) {
+ write.csv(scanners_LRTs_CT_tidy_aicbic, "2_analysis_output/scanners_LRTs_CT_tidy_aicbic.csv")
+ }
+ if(use_sim == TRUE) {
+ write.csv(scanners_LRTs_CT_tidy_aicbic, "5_simulated_analyses_output/sites_LRTs_CT_tidy_aicbic_sim.csv")
+ }
+ 
+
+# extract model CIFs
+
+multigroup_CFIs_CT_scanners <- data.frame(region = variables_CT,
+                   m_constrained = NA,
+                   m_e_constrained = NA,
+                   m_time_constrained = NA,
+                   m_unconstrained = NA)
+
+count <- 1
+
+for(i in 1:length(variables_CT)) {
+
+multigroup_CFIs_CT_scanners$region[count] <- scanners_LRTs_CT[[i]]$ROI
+
+multigroup_CFIs_CT_scanners$m_constrained[count] <- scanners_LRTs_CT[[i]]$fits[[1]][["cfi"]]
+multigroup_CFIs_CT_scanners$m_e_constrained[count] <- scanners_LRTs_CT[[i]]$fits[[2]][["cfi"]]
+multigroup_CFIs_CT_scanners$m_time_constrained[count] <- scanners_LRTs_CT[[i]]$fits[[3]][["cfi"]]
+multigroup_CFIs_CT_scanners$m_unconstrained[count] <- scanners_LRTs_CT[[i]]$fits[[4]][["cfi"]]
+  
+count <- count + 1
+}  
+#   
+ if(use_sim == FALSE) {
+ write.csv(multigroup_CFIs_CT_scanners, "2_analysis_output/multigroup_CFIs_CT_scanners.csv")
+ }
+ if(use_sim == TRUE) {
+ write.csv(multigroup_CFIs_CT, "5_simulated_analyses_output/multigroup_CFIs_CT_scanners_sim.csv")
+ }
+
+
+```
+
+```{r ICED_scanner_compare_CT_between_vs_error_parallel}
+
+# ICED model structure - two timepoints
+structure <- data.frame(time = c("T1",
+                                 "T2"))
+# ICED syntax for lavaan
+syn <- iced_syntax(structure,
+                   fix_lower_bounds = TRUE)
+cat(syn)
+
+# list of sites
+scanner <- unique(Cortical_thickness$mri_info_manufacturer)
+
+# nested for loop: for each site for each brain region run the ICED models
+time_between_error_CT_scanner <- system.time({
+between_error_CT_scanner <- foreach(j = scanner,
+               .combine = 'rbind') %:%
+
+foreach(i = variables_CT, 
+                  .packages=c("dplyr", "tidyr", "lavaan", "ICED"),
+                  .combine = 'rbind') %dopar% {
+  
+                    
+  tmp_data <- Cortical_thickness %>%
+    filter(mri_info_manufacturer == j)
+
+  tmp <- select(tmp_data,
+                subjectkey,
+                eventname, contains(i)) %>%
+    pivot_wider(names_from = "eventname",
+                values_from = i,
+                id_cols = "subjectkey") %>%
+    select(-subjectkey)
+
+capture.output({
+  tmp_res <- run_ICED(data = tmp, 
+                      model = syn)
+})
+  
+data.frame(site = j,
+ROI = i,
+time_var = tmp_res$timeest,
+error_var = tmp_res$eest,
+ICC = tmp_res$ICC,
+ICC2 = tmp_res$ICC2)
+  
+  }
+})
+ 
+if(use_sim == FALSE) {
+ write.csv(between_error_CT_scanner, "2_analysis_output/between_error_CT_scanner.csv")
+ }
+ if(use_sim == TRUE) {
+ write.csv(between_error_CT_scanner, "5_simulated_analyses_output/between_error_CT_scanner_sim.csv")
+ }
+
+```
+
+# multigroup by site, within each scanner - CT
+
+```{r ICED_many_sites_multigroup_CT_parallel_Philips}
+
+Cortical_thickness_Philips <- Cortical_thickness %>%
+  filter(mri_info_manufacturer == "Philips Medical Systems")
+
+#sites list
+sites <- unique(Cortical_thickness_Philips$site_id_l)
+
+structure <- data.frame(time = c("T1",
+                                 "T2"))
+
+# model structure - fully constrained
+syn <- iced_syntax(structure,
+                   fix_lower_bounds = TRUE)
+cat(syn)
+
+# fully unconstrained
+syn_group <- iced_syntax(structure,
+                   fix_lower_bounds = TRUE,
+                   groups = sites)
+cat(syn_group)
+
+# fixing error aka alowing between subjects variance to be free between groups
+syn_group_fix_error <- iced_syntax(structure,
+                   fix_lower_bounds = TRUE,
+                   groups = sites,
+                   groups_inequality = c("time"))
+cat(syn_group_fix_error)
+
+# fixing between subjects variance aka alowing error variance to be free between groups
+syn_group_fix_time <- iced_syntax(structure,
+                   fix_lower_bounds = TRUE,
+                   groups = sites,
+                   groups_inequality = c("e"))
+cat(syn_group_fix_time)
+
+# look across each brain region, run each umitigroup model and extract Likelihood ratio tests and model fit estimates
+time_sites_LRTs_CT_Philips <- system.time({
+
+g_tmp_CT <- Cortical_thickness_Philips %>%
+  filter(site_id_l %in% sites)
+
+sites_LRTs_CT_Philips <- foreach(i = variables_CT, 
         .packages=c("dplyr", "tidyr", "lavaan", "ICED")) %dopar% {
 
 g_tmp1 <- g_tmp_CT %>%
@@ -662,30 +1545,30 @@ list(ROI = i,
 
 # save LRT Rdata file
 if(use_sim == FALSE) {
-save(sites_LRTs_CT, file = "2_analysis_output/sites_LRTs_and_fit_CT.Rdata")
+save(sites_LRTs_CT_Philips, file = "2_analysis_output/sites_LRTs_and_fit_CT_Philips.Rdata")
 }
 if(use_sim == TRUE) {
-save(sites_LRTs_CT, file = "2_analysis_output/sites_LRTs_and_fit_CT_sim.Rdata")
+save(sites_LRTs_CT_Philips, file = "5_simulated_analyses_output/sites_LRTs_and_fit_CT_sim_Philips.Rdata")
 }
 
 
 ### Extract AIC, BIC, and Chi squared values from the LRTs
 
-sites_LRTs_CT_tidy_aicbic <- NULL
+sites_LRTs_CT_tidy_aicbic_Philips <- NULL
 
 for(i in 1:length(variables_CT)) {
   
-LRT1 <- as.data.frame(sites_LRTs_CT[[i]]$LRT_time)
+LRT1 <- as.data.frame(sites_LRTs_CT_Philips[[i]]$LRT_time)
 LRT1 <- LRT1 %>%
   mutate(AICdiff = AIC - lag(AIC, 1),
          BICdiff = BIC - lag(BIC, 1))
 LRT1$comparison <- c("uncon", "uncon_v_timecon", "timecon_v_con")
-LRT2 <- as.data.frame(sites_LRTs_CT[[i]]$LRT_e)
+LRT2 <- as.data.frame(sites_LRTs_CT_Philips[[i]]$LRT_e)
 LRT2 <- LRT2 %>%
   mutate(AICdiff = AIC - lag(AIC, 1),
          BICdiff = BIC - lag(BIC, 1))
 LRT2$comparison <- c("uncon", "uncon_v_errcon", "errcon_v_con")
-LRT3 <- as.data.frame(sites_LRTs_CT[[i]]$LRT)
+LRT3 <- as.data.frame(sites_LRTs_CT_Philips[[i]]$LRT)
 LRT3 <- LRT3 %>%
   mutate(AICdiff = AIC - lag(AIC, 1),
          BICdiff = BIC - lag(BIC, 1))
@@ -701,29 +1584,29 @@ rownames(LRT123) <- 1:nrow(LRT123)
 LRT123 <- LRT123[c(1,2,3,5,6,8),]
 LRT123$ROI <- variables_CT[i]
 
-sites_LRTs_CT_tidy_aicbic <- rbind(sites_LRTs_CT_tidy_aicbic, LRT123)
+sites_LRTs_CT_tidy_aicbic_Philips <- rbind(sites_LRTs_CT_tidy_aicbic_Philips, LRT123)
   
 }
 
-sites_LRTs_CT_tidy_aicbic$LRT_p05 <- ifelse(sites_LRTs_CT_tidy_aicbic$`Pr(>Chisq)` < .05, "sig", "nonsig")
+sites_LRTs_CT_tidy_aicbic_Philips$LRT_p05 <- ifelse(sites_LRTs_CT_tidy_aicbic_Philips$`Pr(>Chisq)` < .05, "sig", "nonsig")
 
-sites_LRTs_CT_tidy_aicbic %>%
+sites_LRTs_CT_tidy_aicbic_Philips %>%
   group_by(comparison) %>%
   summarise(n = sum(LRT_p05 == "sig"))
 
 
 # save LRT data
 if(use_sim == FALSE) {
-write.csv(sites_LRTs_CT_tidy_aicbic, "2_analysis_output/sites_LRTs_CT_tidy_aicbic.csv")
+write.csv(sites_LRTs_CT_tidy_aicbic_Philips, "2_analysis_output/sites_LRTs_CT_tidy_aicbic_Philips.csv")
 }
 if(use_sim == TRUE) {
-write.csv(sites_LRTs_CT_tidy_aicbic, "2_analysis_output/sites_LRTs_CT_tidy_aicbic_sim.csv")
+write.csv(sites_LRTs_CT_tidy_aicbic_Philips, "5_simulated_analyses_output/sites_LRTs_CT_tidy_aicbic_sim_Philips.csv")
 }
 
 
 # extract model CIFs
 
-multigroup_CFIs_CT <- data.frame(region = variables_CT,
+multigroup_CFIs_CT_Philips <- data.frame(region = variables_CT,
                    m_constrained = NA,
                    m_e_constrained = NA,
                    m_time_constrained = NA,
@@ -733,30 +1616,33 @@ count <- 1
 
 for(i in 1:length(variables_CT)) {
 
-multigroup_CFIs_CT$region[count] <- sites_LRTs_CT[[i]]$ROI
+multigroup_CFIs_CT_Philips$region[count] <- sites_LRTs_CT_Philips[[i]]$ROI
 
-multigroup_CFIs_CT$m_constrained[count] <- sites_LRTs_CT[[i]]$fits[[1]][["cfi"]]
-multigroup_CFIs_CT$m_e_constrained[count] <- sites_LRTs_CT[[i]]$fits[[2]][["cfi"]]
-multigroup_CFIs_CT$m_time_constrained[count] <- sites_LRTs_CT[[i]]$fits[[3]][["cfi"]]
-multigroup_CFIs_CT$m_unconstrained[count] <- sites_LRTs_CT[[i]]$fits[[4]][["cfi"]]
+multigroup_CFIs_CT_Philips$m_constrained[count] <- sites_LRTs_CT_Philips[[i]]$fits[[1]][["cfi"]]
+multigroup_CFIs_CT_Philips$m_e_constrained[count] <- sites_LRTs_CT_Philips[[i]]$fits[[2]][["cfi"]]
+multigroup_CFIs_CT_Philips$m_time_constrained[count] <- sites_LRTs_CT_Philips[[i]]$fits[[3]][["cfi"]]
+multigroup_CFIs_CT_Philips$m_unconstrained[count] <- sites_LRTs_CT_Philips[[i]]$fits[[4]][["cfi"]]
   
 count <- count + 1
 }  
   
 if(use_sim == FALSE) {
-write.csv(multigroup_CFIs_CT, "2_analysis_output/multigroup_CFIs_CT.csv")
+write.csv(multigroup_CFIs_CT_Philips, "2_analysis_output/multigroup_CFIs_CT_Philips.csv")
 }
 if(use_sim == TRUE) {
-write.csv(multigroup_CFIs_CT, "2_analysis_output/multigroup_CFIs_CT_sim.csv")
+write.csv(multigroup_CFIs_CT_Philips, "5_simulated_analyses_output/multigroup_CFIs_CT_sim_Philips.csv")
 }
 
 
 ```
 
-```{r ICED_many_sites_multigroup_SA_parallel}
+```{r ICED_many_sites_multigroup_CT_parallel_GE}
+
+Cortical_thickness_GE <- Cortical_thickness %>%
+  filter(mri_info_manufacturer == "GE MEDICAL SYSTEMS")
 
 #sites list
-sites <- unique(Surface_area$site_id_l)
+sites <- unique(Cortical_thickness_GE$site_id_l)
 
 structure <- data.frame(time = c("T1",
                                  "T2"))
@@ -787,15 +1673,15 @@ syn_group_fix_time <- iced_syntax(structure,
 cat(syn_group_fix_time)
 
 # look across each brain region, run each umitigroup model and extract Likelihood ratio tests and model fit estimates
-time_sites_LRTs_SA <- system.time({
+time_sites_LRTs_CT_GE <- system.time({
 
-g_tmp_SA <- Surface_area %>%
+g_tmp_CT <- Cortical_thickness_GE %>%
   filter(site_id_l %in% sites)
 
-sites_LRTs_SA <- foreach(i = variables_SA, 
+sites_LRTs_CT_GE <- foreach(i = variables_CT, 
         .packages=c("dplyr", "tidyr", "lavaan", "ICED")) %dopar% {
 
-g_tmp1 <- g_tmp_SA %>%
+g_tmp1 <- g_tmp_CT %>%
   select("subjectkey","eventname", i, "site_id_l") %>%
   pivot_wider(names_from = eventname,
               values_from = i)
@@ -850,32 +1736,436 @@ list(ROI = i,
 }) # aprox time = 4000s
 
 
-
+# save LRT Rdata file
 if(use_sim == FALSE) {
-save(sites_LRTs_SA, file = "2_analysis_output/sites_LRTs_and_fit_SA.Rdata")
+save(sites_LRTs_CT_GE, file = "2_analysis_output/sites_LRTs_and_fit_CT_GE.Rdata")
 }
 if(use_sim == TRUE) {
-save(sites_LRTs_SA, file = "2_analysis_output/sites_LRTs_and_fit_SA_sim.Rdata")
+save(sites_LRTs_CT_GE, file = "5_simulated_analyses_output/sites_LRTs_and_fit_CT_sim_GE.Rdata")
 }
 
 
 ### Extract AIC, BIC, and Chi squared values from the LRTs
 
-sites_LRTs_SA_tidy_aicbic <- NULL
+sites_LRTs_CT_tidy_aicbic_GE <- NULL
 
-for(i in 1:length(variables_SA)) {
+for(i in 1:length(variables_CT)) {
   
-LRT1 <- as.data.frame(sites_LRTs_SA[[i]]$LRT_time)
+LRT1 <- as.data.frame(sites_LRTs_CT_GE[[i]]$LRT_time)
 LRT1 <- LRT1 %>%
   mutate(AICdiff = AIC - lag(AIC, 1),
          BICdiff = BIC - lag(BIC, 1))
 LRT1$comparison <- c("uncon", "uncon_v_timecon", "timecon_v_con")
-LRT2 <- as.data.frame(sites_LRTs_SA[[i]]$LRT_e)
+LRT2 <- as.data.frame(sites_LRTs_CT_GE[[i]]$LRT_e)
 LRT2 <- LRT2 %>%
   mutate(AICdiff = AIC - lag(AIC, 1),
          BICdiff = BIC - lag(BIC, 1))
 LRT2$comparison <- c("uncon", "uncon_v_errcon", "errcon_v_con")
-LRT3 <- as.data.frame(sites_LRTs_SA[[i]]$LRT)
+LRT3 <- as.data.frame(sites_LRTs_CT_GE[[i]]$LRT)
+LRT3 <- LRT3 %>%
+  mutate(AICdiff = AIC - lag(AIC, 1),
+         BICdiff = BIC - lag(BIC, 1))
+LRT3$comparison <- c("uncon", "uncon_v_con")
+
+LRT123 <- rbind(LRT1, LRT2, LRT3) %>%
+  mutate(ROI = i) %>%
+  select(comparison, ROI, AIC, AICdiff, BIC, BICdiff, Chisq, "Chisq diff", "Pr(>Chisq)")
+LRT123
+
+
+rownames(LRT123) <- 1:nrow(LRT123)
+LRT123 <- LRT123[c(1,2,3,5,6,8),]
+LRT123$ROI <- variables_CT[i]
+
+sites_LRTs_CT_tidy_aicbic_GE <- rbind(sites_LRTs_CT_tidy_aicbic_GE, LRT123)
+  
+}
+
+sites_LRTs_CT_tidy_aicbic_GE$LRT_p05 <- ifelse(sites_LRTs_CT_tidy_aicbic_GE$`Pr(>Chisq)` < .05, "sig", "nonsig")
+
+sites_LRTs_CT_tidy_aicbic_GE %>%
+  group_by(comparison) %>%
+  summarise(n = sum(LRT_p05 == "sig"))
+
+
+# save LRT data
+if(use_sim == FALSE) {
+write.csv(sites_LRTs_CT_tidy_aicbic_GE, "2_analysis_output/sites_LRTs_CT_tidy_aicbic_GE.csv")
+}
+if(use_sim == TRUE) {
+write.csv(sites_LRTs_CT_tidy_aicbic_GE, "5_simulated_analyses_output/sites_LRTs_CT_tidy_aicbic_sim_GE.csv")
+}
+
+
+# extract model CIFs
+
+multigroup_CFIs_CT_GE <- data.frame(region = variables_CT,
+                   m_constrained = NA,
+                   m_e_constrained = NA,
+                   m_time_constrained = NA,
+                   m_unconstrained = NA)
+
+count <- 1
+
+for(i in 1:length(variables_CT)) {
+
+multigroup_CFIs_CT_GE$region[count] <- sites_LRTs_CT_GE[[i]]$ROI
+
+multigroup_CFIs_CT_GE$m_constrained[count] <- sites_LRTs_CT_GE[[i]]$fits[[1]][["cfi"]]
+multigroup_CFIs_CT_GE$m_e_constrained[count] <- sites_LRTs_CT_GE[[i]]$fits[[2]][["cfi"]]
+multigroup_CFIs_CT_GE$m_time_constrained[count] <- sites_LRTs_CT_GE[[i]]$fits[[3]][["cfi"]]
+multigroup_CFIs_CT_GE$m_unconstrained[count] <- sites_LRTs_CT_GE[[i]]$fits[[4]][["cfi"]]
+  
+count <- count + 1
+}  
+  
+if(use_sim == FALSE) {
+write.csv(multigroup_CFIs_CT_GE, "2_analysis_output/multigroup_CFIs_CT_GE.csv")
+}
+if(use_sim == TRUE) {
+write.csv(multigroup_CFIs_CT_GE, "5_simulated_analyses_output/multigroup_CFIs_CT_sim_GE.csv")
+}
+
+
+```
+
+```{r ICED_many_sites_multigroup_CT_parallel_Siemens}
+
+Cortical_thickness_Siemens <- Cortical_thickness %>%
+  filter(mri_info_manufacturer == "SIEMENS")
+
+#sites list
+sites <- unique(Cortical_thickness_Siemens$site_id_l)
+
+structure <- data.frame(time = c("T1",
+                                 "T2"))
+
+# model structure - fully constrained
+syn <- iced_syntax(structure,
+                   fix_lower_bounds = TRUE)
+cat(syn)
+
+# fully unconstrained
+syn_group <- iced_syntax(structure,
+                   fix_lower_bounds = TRUE,
+                   groups = sites)
+cat(syn_group)
+
+# fixing error aka alowing between subjects variance to be free between groups
+syn_group_fix_error <- iced_syntax(structure,
+                   fix_lower_bounds = TRUE,
+                   groups = sites,
+                   groups_inequality = c("time"))
+cat(syn_group_fix_error)
+
+# fixing between subjects variance aka alowing error variance to be free between groups
+syn_group_fix_time <- iced_syntax(structure,
+                   fix_lower_bounds = TRUE,
+                   groups = sites,
+                   groups_inequality = c("e"))
+cat(syn_group_fix_time)
+
+# look across each brain region, run each umitigroup model and extract Likelihood ratio tests and model fit estimates
+time_sites_LRTs_CT_Siemens <- system.time({
+
+g_tmp_CT <- Cortical_thickness_Siemens %>%
+  filter(site_id_l %in% sites)
+
+sites_LRTs_CT_Siemens <- foreach(i = variables_CT, 
+        .packages=c("dplyr", "tidyr", "lavaan", "ICED")) %dopar% {
+
+g_tmp1 <- g_tmp_CT %>%
+  select("subjectkey","eventname", i, "site_id_l") %>%
+  pivot_wider(names_from = eventname,
+              values_from = i)
+
+# run models
+m_constrained <- lavaan(data = g_tmp1,
+       model = syn,
+       group = "site_id_l")
+
+m_e_constrained <- lavaan(data = g_tmp1,
+       model = syn_group_fix_error,
+       group = "site_id_l")
+
+m_time_constrained <- lavaan(data = g_tmp1,
+       model = syn_group_fix_time,
+       group = "site_id_l")
+
+m_unconstrained <- lavaan(data = g_tmp1,
+       model = syn_group,
+       group = "site_id_l")
+
+
+# extract LRT results
+LRT_time <- lavTestLRT(m_constrained, 
+                  m_time_constrained,
+                  m_unconstrained)
+
+LRT_e <- lavTestLRT(m_constrained, 
+                  m_e_constrained,
+                  m_unconstrained)
+
+LRT <- lavTestLRT(m_constrained, 
+                  m_unconstrained)
+
+# save final list, including all model fits
+list(ROI = i,
+     LRT_time = lavTestLRT(m_constrained, 
+                  m_time_constrained,
+                  m_unconstrained),
+     LRT_e = lavTestLRT(m_constrained, 
+                  m_e_constrained,
+                  m_unconstrained),
+     LRT = lavTestLRT(m_constrained, 
+                  m_unconstrained),
+     fits = list(fitmeasures(m_constrained),
+             fitmeasures(m_e_constrained),
+             fitmeasures(m_time_constrained),
+             fitmeasures(m_unconstrained)))
+
+    }
+
+}) # aprox time = 4000s
+
+
+# save LRT Rdata file
+if(use_sim == FALSE) {
+save(sites_LRTs_CT_Siemens, file = "2_analysis_output/sites_LRTs_and_fit_CT_Siemens.Rdata")
+}
+if(use_sim == TRUE) {
+save(sites_LRTs_CT_Siemens, file = "5_simulated_analyses_output/sites_LRTs_and_fit_CT_sim_Siemens.Rdata")
+}
+
+
+### Extract AIC, BIC, and Chi squared values from the LRTs
+
+sites_LRTs_CT_tidy_aicbic_Siemens <- NULL
+
+for(i in 1:length(variables_CT)) {
+  
+LRT1 <- as.data.frame(sites_LRTs_CT_Siemens[[i]]$LRT_time)
+LRT1 <- LRT1 %>%
+  mutate(AICdiff = AIC - lag(AIC, 1),
+         BICdiff = BIC - lag(BIC, 1))
+LRT1$comparison <- c("uncon", "uncon_v_timecon", "timecon_v_con")
+LRT2 <- as.data.frame(sites_LRTs_CT_Siemens[[i]]$LRT_e)
+LRT2 <- LRT2 %>%
+  mutate(AICdiff = AIC - lag(AIC, 1),
+         BICdiff = BIC - lag(BIC, 1))
+LRT2$comparison <- c("uncon", "uncon_v_errcon", "errcon_v_con")
+LRT3 <- as.data.frame(sites_LRTs_CT_Siemens[[i]]$LRT)
+LRT3 <- LRT3 %>%
+  mutate(AICdiff = AIC - lag(AIC, 1),
+         BICdiff = BIC - lag(BIC, 1))
+LRT3$comparison <- c("uncon", "uncon_v_con")
+
+LRT123 <- rbind(LRT1, LRT2, LRT3) %>%
+  mutate(ROI = i) %>%
+  select(comparison, ROI, AIC, AICdiff, BIC, BICdiff, Chisq, "Chisq diff", "Pr(>Chisq)")
+LRT123
+
+
+rownames(LRT123) <- 1:nrow(LRT123)
+LRT123 <- LRT123[c(1,2,3,5,6,8),]
+LRT123$ROI <- variables_CT[i]
+
+sites_LRTs_CT_tidy_aicbic_Siemens <- rbind(sites_LRTs_CT_tidy_aicbic_Siemens, LRT123)
+  
+}
+
+sites_LRTs_CT_tidy_aicbic_Siemens$LRT_p05 <- ifelse(sites_LRTs_CT_tidy_aicbic_Siemens$`Pr(>Chisq)` < .05, "sig", "nonsig")
+
+sites_LRTs_CT_tidy_aicbic_Siemens %>%
+  group_by(comparison) %>%
+  summarise(n = sum(LRT_p05 == "sig"))
+
+
+# save LRT data
+if(use_sim == FALSE) {
+write.csv(sites_LRTs_CT_tidy_aicbic_Siemens, "2_analysis_output/sites_LRTs_CT_tidy_aicbic_Siemens.csv")
+}
+if(use_sim == TRUE) {
+write.csv(sites_LRTs_CT_tidy_aicbic_Siemens, "5_simulated_analyses_output/sites_LRTs_CT_tidy_aicbic_sim_Siemens.csv")
+}
+
+
+# extract model CIFs
+
+multigroup_CFIs_CT_Siemens <- data.frame(region = variables_CT,
+                   m_constrained = NA,
+                   m_e_constrained = NA,
+                   m_time_constrained = NA,
+                   m_unconstrained = NA)
+
+count <- 1
+
+for(i in 1:length(variables_CT)) {
+
+multigroup_CFIs_CT_Siemens$region[count] <- sites_LRTs_CT_Siemens[[i]]$ROI
+
+multigroup_CFIs_CT_Siemens$m_constrained[count] <- sites_LRTs_CT_Siemens[[i]]$fits[[1]][["cfi"]]
+multigroup_CFIs_CT_Siemens$m_e_constrained[count] <- sites_LRTs_CT_Siemens[[i]]$fits[[2]][["cfi"]]
+multigroup_CFIs_CT_Siemens$m_time_constrained[count] <- sites_LRTs_CT_Siemens[[i]]$fits[[3]][["cfi"]]
+multigroup_CFIs_CT_Siemens$m_unconstrained[count] <- sites_LRTs_CT_Siemens[[i]]$fits[[4]][["cfi"]]
+  
+count <- count + 1
+}  
+  
+if(use_sim == FALSE) {
+write.csv(multigroup_CFIs_CT_Siemens, "2_analysis_output/multigroup_CFIs_CT_Siemens.csv")
+}
+if(use_sim == TRUE) {
+write.csv(multigroup_CFIs_CT_Siemens, "5_simulated_analyses_output/multigroup_CFIs_CT_sim_Siemens.csv")
+}
+
+
+```
+
+
+# multigroup by scanner - SA
+
+```{r ICED_many_sites_multigroup_SA_parallel_scanner}
+
+
+
+
+# Surface_area %>%
+#   select(mri_info_manufacturer, site_id_l) %>%
+#   group_by(site_id_l, mri_info_manufacturer)%>%
+#   summarise(n = n()) %>%
+#   View()
+# 
+# info_mri %>%
+#   select(subjectkey, site_id_l, eventname) %>%
+#   pivot_wider(names_from = eventname, values_from = site_id_l, id_cols = subjectkey)
+
+#sites list
+scanners <- unique(Surface_area$mri_info_manufacturer)
+
+structure <- data.frame(time = c("T1",
+                                 "T2"))
+
+# model structure - fully constrained
+syn <- iced_syntax(structure,
+                   fix_lower_bounds = TRUE)
+cat(syn)
+
+# fully unconstrained
+syn_group <- iced_syntax(structure,
+                   fix_lower_bounds = TRUE,
+                   groups = scanners)
+cat(syn_group)
+
+# fixing error aka alowing between subjects variance to be free between groups
+syn_group_fix_error <- iced_syntax(structure,
+                   fix_lower_bounds = TRUE,
+                   groups = scanners,
+                   groups_inequality = c("time"))
+cat(syn_group_fix_error)
+
+# fixing between subjects variance aka alowing error variance to be free between groups
+syn_group_fix_time <- iced_syntax(structure,
+                   fix_lower_bounds = TRUE,
+                   groups = scanners,
+                   groups_inequality = c("e"))
+cat(syn_group_fix_time)
+
+# look across each brain region, run each umitigroup model and extract Likelihood ratio tests and model fit estimates
+time_scanners_LRTs_SA <- system.time({
+
+g_tmp_SA_scanners <- Surface_area %>%
+  filter(mri_info_manufacturer %in% scanners)
+
+scanners_LRTs_SA <- foreach(i = variables_SA, 
+        .packages=c("dplyr", "tidyr", "lavaan", "ICED")) %dopar% {
+
+g_tmp1 <- g_tmp_SA_scanners %>%
+  select("subjectkey","eventname", i, "mri_info_manufacturer") %>%
+  pivot_wider(names_from = eventname,
+              values_from = i)
+
+if(use_sim == FALSE) {
+  g_tmp1$T1 <- g_tmp1$T1 / 1000
+  g_tmp1$T2 <- g_tmp1$T2 / 1000
+  }
+
+# run models
+m_constrained <- lavaan(data = g_tmp1,
+       model = syn,
+       group = "mri_info_manufacturer")
+
+m_e_constrained <- lavaan(data = g_tmp1,
+       model = syn_group_fix_error,
+       group = "mri_info_manufacturer")
+
+m_time_constrained <- lavaan(data = g_tmp1,
+       model = syn_group_fix_time,
+       group = "mri_info_manufacturer")
+
+m_unconstrained <- lavaan(data = g_tmp1,
+       model = syn_group,
+       group = "mri_info_manufacturer")
+
+
+# extract LRT results
+LRT_time <- lavTestLRT(m_constrained, 
+                  m_time_constrained,
+                  m_unconstrained)
+
+LRT_e <- lavTestLRT(m_constrained, 
+                  m_e_constrained,
+                  m_unconstrained)
+
+LRT <- lavTestLRT(m_constrained, 
+                  m_unconstrained)
+
+# save final list, including all model fits
+list(ROI = i,
+     LRT_time = lavTestLRT(m_constrained, 
+                  m_time_constrained,
+                  m_unconstrained),
+     LRT_e = lavTestLRT(m_constrained, 
+                  m_e_constrained,
+                  m_unconstrained),
+     LRT = lavTestLRT(m_constrained, 
+                  m_unconstrained),
+     fits = list(fitmeasures(m_constrained),
+             fitmeasures(m_e_constrained),
+             fitmeasures(m_time_constrained),
+             fitmeasures(m_unconstrained)))
+
+    }
+
+}) # aprox time = 4000s
+
+ 
+ # save LRT Rdata file
+ if(use_sim == FALSE) {
+ save(scanners_LRTs_SA, file = "2_analysis_output/scanners_LRTs_and_fit_SA.Rdata")
+ }
+ if(use_sim == TRUE) {
+ save(sites_LRTs_SA, file = "5_simulated_analyses_output/scanners_LRTs_and_fit_SA_sim.Rdata")
+ }
+
+
+### Extract AIC, BIC, and Chi squared values from the LRTs
+
+scanners_LRTs_SA_tidy_aicbic <- NULL
+
+for(i in 1:length(variables_SA)) {
+  
+LRT1 <- as.data.frame(scanners_LRTs_SA[[i]]$LRT_time)
+LRT1 <- LRT1 %>%
+  mutate(AICdiff = AIC - lag(AIC, 1),
+         BICdiff = BIC - lag(BIC, 1))
+LRT1$comparison <- c("uncon", "uncon_v_timecon", "timecon_v_con")
+LRT2 <- as.data.frame(scanners_LRTs_SA[[i]]$LRT_e)
+LRT2 <- LRT2 %>%
+  mutate(AICdiff = AIC - lag(AIC, 1),
+         BICdiff = BIC - lag(BIC, 1))
+LRT2$comparison <- c("uncon", "uncon_v_errcon", "errcon_v_con")
+LRT3 <- as.data.frame(scanners_LRTs_SA[[i]]$LRT)
 LRT3 <- LRT3 %>%
   mutate(AICdiff = AIC - lag(AIC, 1),
          BICdiff = BIC - lag(BIC, 1))
@@ -891,27 +2181,29 @@ rownames(LRT123) <- 1:nrow(LRT123)
 LRT123 <- LRT123[c(1,2,3,5,6,8),]
 LRT123$ROI <- variables_SA[i]
 
-sites_LRTs_SA_tidy_aicbic <- rbind(sites_LRTs_SA_tidy_aicbic, LRT123)
+scanners_LRTs_SA_tidy_aicbic <- rbind(scanners_LRTs_SA_tidy_aicbic, LRT123)
   
 }
 
-sites_LRTs_SA_tidy_aicbic$LRT_p05 <- ifelse(sites_LRTs_SA_tidy_aicbic$`Pr(>Chisq)` < .05, "sig", "nonsig")
+scanners_LRTs_SA_tidy_aicbic$LRT_p05 <- ifelse(scanners_LRTs_SA_tidy_aicbic$`Pr(>Chisq)` < .05, "sig", "nonsig")
 
-sites_LRTs_SA_tidy_aicbic %>%
+scanners_LRTs_SA_tidy_aicbic %>%
   group_by(comparison) %>%
   summarise(n = sum(LRT_p05 == "sig"))
 
-
-if(use_sim == FALSE) {
-write.csv(sites_LRTs_SA_tidy_aicbic, "2_analysis_output/sites_LRTs_SA_tidy_aicbic.csv")
-}
-if(use_sim == TRUE) {
-write.csv(sites_LRTs_SA_tidy_aicbic, "2_analysis_output/sites_LRTs_SA_tidy_aicbic_sim.csv")
-}
+# 
+# # save LRT data
+ if(use_sim == FALSE) {
+ write.csv(scanners_LRTs_SA_tidy_aicbic, "2_analysis_output/scanners_LRTs_SA_tidy_aicbic.csv")
+ }
+ if(use_sim == TRUE) {
+ write.csv(scanners_LRTs_SA_tidy_aicbic, "5_simulated_analyses_output/sites_LRTs_SA_tidy_aicbic_sim.csv")
+ }
+ 
 
 # extract model CIFs
 
-multigroup_CFIs_SA <- data.frame(region = variables_SA,
+multigroup_CFIs_SA_scanners <- data.frame(region = variables_SA,
                    m_constrained = NA,
                    m_e_constrained = NA,
                    m_time_constrained = NA,
@@ -921,29 +2213,96 @@ count <- 1
 
 for(i in 1:length(variables_SA)) {
 
-multigroup_CFIs_SA$region[count] <- sites_LRTs_SA[[i]]$ROI
+multigroup_CFIs_SA_scanners$region[count] <- scanners_LRTs_SA[[i]]$ROI
 
-multigroup_CFIs_SA$m_constrained[count] <- sites_LRTs_SA[[i]]$fits[[1]][["cfi"]]
-multigroup_CFIs_SA$m_e_constrained[count] <- sites_LRTs_SA[[i]]$fits[[2]][["cfi"]]
-multigroup_CFIs_SA$m_time_constrained[count] <- sites_LRTs_SA[[i]]$fits[[3]][["cfi"]]
-multigroup_CFIs_SA$m_unconstrained[count] <- sites_LRTs_SA[[i]]$fits[[4]][["cfi"]]
+multigroup_CFIs_SA_scanners$m_constrained[count] <- scanners_LRTs_SA[[i]]$fits[[1]][["cfi"]]
+multigroup_CFIs_SA_scanners$m_e_constrained[count] <- scanners_LRTs_SA[[i]]$fits[[2]][["cfi"]]
+multigroup_CFIs_SA_scanners$m_time_constrained[count] <- scanners_LRTs_SA[[i]]$fits[[3]][["cfi"]]
+multigroup_CFIs_SA_scanners$m_unconstrained[count] <- scanners_LRTs_SA[[i]]$fits[[4]][["cfi"]]
   
 count <- count + 1
 }  
-  
-if(use_sim == FALSE) {
-write.csv(multigroup_CFIs_SA, "2_analysis_output/multigroup_CFIs_SA.csv")
-}
-if(use_sim == TRUE) {
-write.csv(multigroup_CFIs_SA, "2_analysis_output/multigroup_CFIs_SA_sim.csv")
-}
+#   
+ if(use_sim == FALSE) {
+ write.csv(multigroup_CFIs_SA_scanners, "2_analysis_output/multigroup_CFIs_SA_scanners.csv")
+ }
+ if(use_sim == TRUE) {
+ write.csv(multigroup_CFIs_SA, "5_simulated_analyses_output/multigroup_CFIs_SA_scanners_sim.csv")
+ }
+
 
 ```
 
-```{r ICED_many_sites_multigroup_GMV_parallel}
+```{r ICED_scanner_compare_SA_between_vs_error_parallel}
+
+# ICED model structure - two timepoints
+structure <- data.frame(time = c("T1",
+                                 "T2"))
+# ICED syntax for lavaan
+syn <- iced_syntax(structure,
+                   fix_lower_bounds = TRUE)
+cat(syn)
+
+# list of sites
+scanner <- unique(Surface_area$mri_info_manufacturer)
+
+# nested for loop: for each site for each brain region run the ICED models
+time_between_error_SA_scanner <- system.time({
+between_error_SA_scanner <- foreach(j = scanner,
+               .combine = 'rbind') %:%
+
+foreach(i = variables_SA, 
+                  .packages=c("dplyr", "tidyr", "lavaan", "ICED"),
+                  .combine = 'rbind') %dopar% {
+  
+                    
+  tmp_data <- Surface_area %>%
+    filter(mri_info_manufacturer == j)
+
+  tmp <- select(tmp_data,
+                subjectkey,
+                eventname, contains(i)) %>%
+    pivot_wider(names_from = "eventname",
+                values_from = i,
+                id_cols = "subjectkey") %>%
+    select(-subjectkey)
+  
+  if(use_sim == FALSE) {tmp <- tmp / 1000}
+
+
+capture.output({
+  tmp_res <- run_ICED(data = tmp, 
+                      model = syn)
+})
+  
+data.frame(site = j,
+ROI = i,
+time_var = tmp_res$timeest,
+error_var = tmp_res$eest,
+ICC = tmp_res$ICC,
+ICC2 = tmp_res$ICC2)
+  
+  }
+})
+ 
+if(use_sim == FALSE) {
+ write.csv(between_error_SA_scanner, "2_analysis_output/between_error_SA_scanner.csv")
+ }
+ if(use_sim == TRUE) {
+ write.csv(between_error_SA_scanner, "5_simulated_analyses_output/between_error_SA_scanner_sim.csv")
+ }
+
+```
+
+# multigroup by site, within each scanner - SA
+
+```{r ICED_many_sites_multigroup_SA_parallel_Philips}
+
+Surface_area_Philips <- Surface_area %>%
+  filter(mri_info_manufacturer == "Philips Medical Systems")
 
 #sites list
-sites <- unique(GM_volume$site_id_l)
+sites <- unique(Surface_area_Philips$site_id_l)
 
 structure <- data.frame(time = c("T1",
                                  "T2"))
@@ -974,18 +2333,23 @@ syn_group_fix_time <- iced_syntax(structure,
 cat(syn_group_fix_time)
 
 # look across each brain region, run each umitigroup model and extract Likelihood ratio tests and model fit estimates
-time_sites_LRTs_GM <- system.time({
+time_sites_LRTs_SA_Philips <- system.time({
 
-g_tmp_GM <- GM_volume %>%
+g_tmp_SA <- Surface_area_Philips %>%
   filter(site_id_l %in% sites)
 
-sites_LRTs_GM <- foreach(i = variables_GM, 
+sites_LRTs_SA_Philips <- foreach(i = variables_SA, 
         .packages=c("dplyr", "tidyr", "lavaan", "ICED")) %dopar% {
 
-g_tmp1 <- g_tmp_GM %>%
+g_tmp1 <- g_tmp_SA %>%
   select("subjectkey","eventname", i, "site_id_l") %>%
   pivot_wider(names_from = eventname,
               values_from = i)
+
+if(use_sim == FALSE) {
+  g_tmp1$T1 <- g_tmp1$T1 / 1000
+  g_tmp1$T2 <- g_tmp1$T2 / 1000
+  }
 
 # run models
 m_constrained <- lavaan(data = g_tmp1,
@@ -1037,30 +2401,639 @@ list(ROI = i,
 }) # aprox time = 4000s
 
 
+# save LRT Rdata file
 if(use_sim == FALSE) {
-save(sites_LRTs_GM, file = "2_analysis_output/sites_LRTs_and_fit_GM.Rdata")
+save(sites_LRTs_SA_Philips, file = "2_analysis_output/sites_LRTs_and_fit_SA_Philips.Rdata")
 }
 if(use_sim == TRUE) {
-save(sites_LRTs_GM, file = "2_analysis_output/sites_LRTs_and_fit_GM_sim.Rdata")
+save(sites_LRTs_SA_Philips, file = "5_simulated_analyses_output/sites_LRTs_and_fit_SA_sim_Philips.Rdata")
 }
+
 
 ### Extract AIC, BIC, and Chi squared values from the LRTs
 
-sites_LRTs_GM_tidy_aicbic <- NULL
+sites_LRTs_SA_tidy_aicbic_Philips <- NULL
 
-for(i in 1:length(variables_GM)) {
+for(i in 1:length(variables_SA)) {
   
-LRT1 <- as.data.frame(sites_LRTs_GM[[i]]$LRT_time)
+LRT1 <- as.data.frame(sites_LRTs_SA_Philips[[i]]$LRT_time)
 LRT1 <- LRT1 %>%
   mutate(AICdiff = AIC - lag(AIC, 1),
          BICdiff = BIC - lag(BIC, 1))
 LRT1$comparison <- c("uncon", "uncon_v_timecon", "timecon_v_con")
-LRT2 <- as.data.frame(sites_LRTs_GM[[i]]$LRT_e)
+LRT2 <- as.data.frame(sites_LRTs_SA_Philips[[i]]$LRT_e)
 LRT2 <- LRT2 %>%
   mutate(AICdiff = AIC - lag(AIC, 1),
          BICdiff = BIC - lag(BIC, 1))
 LRT2$comparison <- c("uncon", "uncon_v_errcon", "errcon_v_con")
-LRT3 <- as.data.frame(sites_LRTs_GM[[i]]$LRT)
+LRT3 <- as.data.frame(sites_LRTs_SA_Philips[[i]]$LRT)
+LRT3 <- LRT3 %>%
+  mutate(AICdiff = AIC - lag(AIC, 1),
+         BICdiff = BIC - lag(BIC, 1))
+LRT3$comparison <- c("uncon", "uncon_v_con")
+
+LRT123 <- rbind(LRT1, LRT2, LRT3) %>%
+  mutate(ROI = i) %>%
+  select(comparison, ROI, AIC, AICdiff, BIC, BICdiff, Chisq, "Chisq diff", "Pr(>Chisq)")
+LRT123
+
+
+rownames(LRT123) <- 1:nrow(LRT123)
+LRT123 <- LRT123[c(1,2,3,5,6,8),]
+LRT123$ROI <- variables_SA[i]
+
+sites_LRTs_SA_tidy_aicbic_Philips <- rbind(sites_LRTs_SA_tidy_aicbic_Philips, LRT123)
+  
+}
+
+sites_LRTs_SA_tidy_aicbic_Philips$LRT_p05 <- ifelse(sites_LRTs_SA_tidy_aicbic_Philips$`Pr(>Chisq)` < .05, "sig", "nonsig")
+
+sites_LRTs_SA_tidy_aicbic_Philips %>%
+  group_by(comparison) %>%
+  summarise(n = sum(LRT_p05 == "sig"))
+
+
+# save LRT data
+if(use_sim == FALSE) {
+write.csv(sites_LRTs_SA_tidy_aicbic_Philips, "2_analysis_output/sites_LRTs_SA_tidy_aicbic_Philips.csv")
+}
+if(use_sim == TRUE) {
+write.csv(sites_LRTs_SA_tidy_aicbic_Philips, "5_simulated_analyses_output/sites_LRTs_SA_tidy_aicbic_sim_Philips.csv")
+}
+
+
+# extract model CIFs
+
+multigroup_CFIs_SA_Philips <- data.frame(region = variables_SA,
+                   m_constrained = NA,
+                   m_e_constrained = NA,
+                   m_time_constrained = NA,
+                   m_unconstrained = NA)
+
+count <- 1
+
+for(i in 1:length(variables_SA)) {
+
+multigroup_CFIs_SA_Philips$region[count] <- sites_LRTs_SA_Philips[[i]]$ROI
+
+multigroup_CFIs_SA_Philips$m_constrained[count] <- sites_LRTs_SA_Philips[[i]]$fits[[1]][["cfi"]]
+multigroup_CFIs_SA_Philips$m_e_constrained[count] <- sites_LRTs_SA_Philips[[i]]$fits[[2]][["cfi"]]
+multigroup_CFIs_SA_Philips$m_time_constrained[count] <- sites_LRTs_SA_Philips[[i]]$fits[[3]][["cfi"]]
+multigroup_CFIs_SA_Philips$m_unconstrained[count] <- sites_LRTs_SA_Philips[[i]]$fits[[4]][["cfi"]]
+  
+count <- count + 1
+}  
+  
+if(use_sim == FALSE) {
+write.csv(multigroup_CFIs_SA_Philips, "2_analysis_output/multigroup_CFIs_SA_Philips.csv")
+}
+if(use_sim == TRUE) {
+write.csv(multigroup_CFIs_SA_Philips, "5_simulated_analyses_output/multigroup_CFIs_SA_sim_Philips.csv")
+}
+
+
+```
+
+```{r ICED_many_sites_multigroup_SA_parallel_GE}
+
+Surface_area_GE <- Surface_area %>%
+  filter(mri_info_manufacturer == "GE MEDICAL SYSTEMS")
+
+#sites list
+sites <- unique(Surface_area_GE$site_id_l)
+
+structure <- data.frame(time = c("T1",
+                                 "T2"))
+
+# model structure - fully constrained
+syn <- iced_syntax(structure,
+                   fix_lower_bounds = TRUE)
+cat(syn)
+
+# fully unconstrained
+syn_group <- iced_syntax(structure,
+                   fix_lower_bounds = TRUE,
+                   groups = sites)
+cat(syn_group)
+
+# fixing error aka alowing between subjects variance to be free between groups
+syn_group_fix_error <- iced_syntax(structure,
+                   fix_lower_bounds = TRUE,
+                   groups = sites,
+                   groups_inequality = c("time"))
+cat(syn_group_fix_error)
+
+# fixing between subjects variance aka alowing error variance to be free between groups
+syn_group_fix_time <- iced_syntax(structure,
+                   fix_lower_bounds = TRUE,
+                   groups = sites,
+                   groups_inequality = c("e"))
+cat(syn_group_fix_time)
+
+# look across each brain region, run each umitigroup model and extract Likelihood ratio tests and model fit estimates
+time_sites_LRTs_SA_GE <- system.time({
+
+g_tmp_SA <- Surface_area_GE %>%
+  filter(site_id_l %in% sites)
+
+sites_LRTs_SA_GE <- foreach(i = variables_SA, 
+        .packages=c("dplyr", "tidyr", "lavaan", "ICED")) %dopar% {
+
+g_tmp1 <- g_tmp_SA %>%
+  select("subjectkey","eventname", i, "site_id_l") %>%
+  pivot_wider(names_from = eventname,
+              values_from = i)
+
+if(use_sim == FALSE) {
+  g_tmp1$T1 <- g_tmp1$T1 / 1000
+  g_tmp1$T2 <- g_tmp1$T2 / 1000
+  }
+
+# run models
+m_constrained <- lavaan(data = g_tmp1,
+       model = syn,
+       group = "site_id_l")
+
+m_e_constrained <- lavaan(data = g_tmp1,
+       model = syn_group_fix_error,
+       group = "site_id_l")
+
+m_time_constrained <- lavaan(data = g_tmp1,
+       model = syn_group_fix_time,
+       group = "site_id_l")
+
+m_unconstrained <- lavaan(data = g_tmp1,
+       model = syn_group,
+       group = "site_id_l")
+
+
+# extract LRT results
+LRT_time <- lavTestLRT(m_constrained, 
+                  m_time_constrained,
+                  m_unconstrained)
+
+LRT_e <- lavTestLRT(m_constrained, 
+                  m_e_constrained,
+                  m_unconstrained)
+
+LRT <- lavTestLRT(m_constrained, 
+                  m_unconstrained)
+
+# save final list, including all model fits
+list(ROI = i,
+     LRT_time = lavTestLRT(m_constrained, 
+                  m_time_constrained,
+                  m_unconstrained),
+     LRT_e = lavTestLRT(m_constrained, 
+                  m_e_constrained,
+                  m_unconstrained),
+     LRT = lavTestLRT(m_constrained, 
+                  m_unconstrained),
+     fits = list(fitmeasures(m_constrained),
+             fitmeasures(m_e_constrained),
+             fitmeasures(m_time_constrained),
+             fitmeasures(m_unconstrained)))
+
+    }
+
+}) # aprox time = 4000s
+
+
+# save LRT Rdata file
+if(use_sim == FALSE) {
+save(sites_LRTs_SA_GE, file = "2_analysis_output/sites_LRTs_and_fit_SA_GE.Rdata")
+}
+if(use_sim == TRUE) {
+save(sites_LRTs_SA_GE, file = "5_simulated_analyses_output/sites_LRTs_and_fit_SA_sim_GE.Rdata")
+}
+
+
+### Extract AIC, BIC, and Chi squared values from the LRTs
+
+sites_LRTs_SA_tidy_aicbic_GE <- NULL
+
+for(i in 1:length(variables_SA)) {
+  
+LRT1 <- as.data.frame(sites_LRTs_SA_GE[[i]]$LRT_time)
+LRT1 <- LRT1 %>%
+  mutate(AICdiff = AIC - lag(AIC, 1),
+         BICdiff = BIC - lag(BIC, 1))
+LRT1$comparison <- c("uncon", "uncon_v_timecon", "timecon_v_con")
+LRT2 <- as.data.frame(sites_LRTs_SA_GE[[i]]$LRT_e)
+LRT2 <- LRT2 %>%
+  mutate(AICdiff = AIC - lag(AIC, 1),
+         BICdiff = BIC - lag(BIC, 1))
+LRT2$comparison <- c("uncon", "uncon_v_errcon", "errcon_v_con")
+LRT3 <- as.data.frame(sites_LRTs_SA_GE[[i]]$LRT)
+LRT3 <- LRT3 %>%
+  mutate(AICdiff = AIC - lag(AIC, 1),
+         BICdiff = BIC - lag(BIC, 1))
+LRT3$comparison <- c("uncon", "uncon_v_con")
+
+LRT123 <- rbind(LRT1, LRT2, LRT3) %>%
+  mutate(ROI = i) %>%
+  select(comparison, ROI, AIC, AICdiff, BIC, BICdiff, Chisq, "Chisq diff", "Pr(>Chisq)")
+LRT123
+
+
+rownames(LRT123) <- 1:nrow(LRT123)
+LRT123 <- LRT123[c(1,2,3,5,6,8),]
+LRT123$ROI <- variables_SA[i]
+
+sites_LRTs_SA_tidy_aicbic_GE <- rbind(sites_LRTs_SA_tidy_aicbic_GE, LRT123)
+  
+}
+
+sites_LRTs_SA_tidy_aicbic_GE$LRT_p05 <- ifelse(sites_LRTs_SA_tidy_aicbic_GE$`Pr(>Chisq)` < .05, "sig", "nonsig")
+
+sites_LRTs_SA_tidy_aicbic_GE %>%
+  group_by(comparison) %>%
+  summarise(n = sum(LRT_p05 == "sig"))
+
+
+# save LRT data
+if(use_sim == FALSE) {
+write.csv(sites_LRTs_SA_tidy_aicbic_GE, "2_analysis_output/sites_LRTs_SA_tidy_aicbic_GE.csv")
+}
+if(use_sim == TRUE) {
+write.csv(sites_LRTs_SA_tidy_aicbic_GE, "5_simulated_analyses_output/sites_LRTs_SA_tidy_aicbic_sim_GE.csv")
+}
+
+
+# extract model CIFs
+
+multigroup_CFIs_SA_GE <- data.frame(region = variables_SA,
+                   m_constrained = NA,
+                   m_e_constrained = NA,
+                   m_time_constrained = NA,
+                   m_unconstrained = NA)
+
+count <- 1
+
+for(i in 1:length(variables_SA)) {
+
+multigroup_CFIs_SA_GE$region[count] <- sites_LRTs_SA_GE[[i]]$ROI
+
+multigroup_CFIs_SA_GE$m_constrained[count] <- sites_LRTs_SA_GE[[i]]$fits[[1]][["cfi"]]
+multigroup_CFIs_SA_GE$m_e_constrained[count] <- sites_LRTs_SA_GE[[i]]$fits[[2]][["cfi"]]
+multigroup_CFIs_SA_GE$m_time_constrained[count] <- sites_LRTs_SA_GE[[i]]$fits[[3]][["cfi"]]
+multigroup_CFIs_SA_GE$m_unconstrained[count] <- sites_LRTs_SA_GE[[i]]$fits[[4]][["cfi"]]
+  
+count <- count + 1
+}  
+  
+if(use_sim == FALSE) {
+write.csv(multigroup_CFIs_SA_GE, "2_analysis_output/multigroup_CFIs_SA_GE.csv")
+}
+if(use_sim == TRUE) {
+write.csv(multigroup_CFIs_SA_GE, "5_simulated_analyses_output/multigroup_CFIs_SA_sim_GE.csv")
+}
+
+
+```
+
+```{r ICED_many_sites_multigroup_SA_parallel_Siemens}
+
+Surface_area_Siemens <- Surface_area %>%
+  filter(mri_info_manufacturer == "SIEMENS")
+
+#sites list
+sites <- unique(Surface_area_Siemens$site_id_l)
+
+structure <- data.frame(time = c("T1",
+                                 "T2"))
+
+# model structure - fully constrained
+syn <- iced_syntax(structure,
+                   fix_lower_bounds = TRUE)
+cat(syn)
+
+# fully unconstrained
+syn_group <- iced_syntax(structure,
+                   fix_lower_bounds = TRUE,
+                   groups = sites)
+cat(syn_group)
+
+# fixing error aka alowing between subjects variance to be free between groups
+syn_group_fix_error <- iced_syntax(structure,
+                   fix_lower_bounds = TRUE,
+                   groups = sites,
+                   groups_inequality = c("time"))
+cat(syn_group_fix_error)
+
+# fixing between subjects variance aka alowing error variance to be free between groups
+syn_group_fix_time <- iced_syntax(structure,
+                   fix_lower_bounds = TRUE,
+                   groups = sites,
+                   groups_inequality = c("e"))
+cat(syn_group_fix_time)
+
+# look across each brain region, run each umitigroup model and extract Likelihood ratio tests and model fit estimates
+time_sites_LRTs_SA_Siemens <- system.time({
+
+g_tmp_SA <- Surface_area_Siemens %>%
+  filter(site_id_l %in% sites)
+
+sites_LRTs_SA_Siemens <- foreach(i = variables_SA, 
+        .packages=c("dplyr", "tidyr", "lavaan", "ICED")) %dopar% {
+
+g_tmp1 <- g_tmp_SA %>%
+  select("subjectkey","eventname", i, "site_id_l") %>%
+  pivot_wider(names_from = eventname,
+              values_from = i)
+
+if(use_sim == FALSE) {
+  g_tmp1$T1 <- g_tmp1$T1 / 1000
+  g_tmp1$T2 <- g_tmp1$T2 / 1000
+  }
+
+# run models
+m_constrained <- lavaan(data = g_tmp1,
+       model = syn,
+       group = "site_id_l")
+
+m_e_constrained <- lavaan(data = g_tmp1,
+       model = syn_group_fix_error,
+       group = "site_id_l")
+
+m_time_constrained <- lavaan(data = g_tmp1,
+       model = syn_group_fix_time,
+       group = "site_id_l")
+
+m_unconstrained <- lavaan(data = g_tmp1,
+       model = syn_group,
+       group = "site_id_l")
+
+
+# extract LRT results
+LRT_time <- lavTestLRT(m_constrained, 
+                  m_time_constrained,
+                  m_unconstrained)
+
+LRT_e <- lavTestLRT(m_constrained, 
+                  m_e_constrained,
+                  m_unconstrained)
+
+LRT <- lavTestLRT(m_constrained, 
+                  m_unconstrained)
+
+# save final list, including all model fits
+list(ROI = i,
+     LRT_time = lavTestLRT(m_constrained, 
+                  m_time_constrained,
+                  m_unconstrained),
+     LRT_e = lavTestLRT(m_constrained, 
+                  m_e_constrained,
+                  m_unconstrained),
+     LRT = lavTestLRT(m_constrained, 
+                  m_unconstrained),
+     fits = list(fitmeasures(m_constrained),
+             fitmeasures(m_e_constrained),
+             fitmeasures(m_time_constrained),
+             fitmeasures(m_unconstrained)))
+
+    }
+
+}) # aprox time = 4000s
+
+
+# save LRT Rdata file
+if(use_sim == FALSE) {
+save(sites_LRTs_SA_Siemens, file = "2_analysis_output/sites_LRTs_and_fit_SA_Siemens.Rdata")
+}
+if(use_sim == TRUE) {
+save(sites_LRTs_SA_Siemens, file = "5_simulated_analyses_output/sites_LRTs_and_fit_SA_sim_Siemens.Rdata")
+}
+
+
+### Extract AIC, BIC, and Chi squared values from the LRTs
+
+sites_LRTs_SA_tidy_aicbic_Siemens <- NULL
+
+for(i in 1:length(variables_SA)) {
+  
+LRT1 <- as.data.frame(sites_LRTs_SA_Siemens[[i]]$LRT_time)
+LRT1 <- LRT1 %>%
+  mutate(AICdiff = AIC - lag(AIC, 1),
+         BICdiff = BIC - lag(BIC, 1))
+LRT1$comparison <- c("uncon", "uncon_v_timecon", "timecon_v_con")
+LRT2 <- as.data.frame(sites_LRTs_SA_Siemens[[i]]$LRT_e)
+LRT2 <- LRT2 %>%
+  mutate(AICdiff = AIC - lag(AIC, 1),
+         BICdiff = BIC - lag(BIC, 1))
+LRT2$comparison <- c("uncon", "uncon_v_errcon", "errcon_v_con")
+LRT3 <- as.data.frame(sites_LRTs_SA_Siemens[[i]]$LRT)
+LRT3 <- LRT3 %>%
+  mutate(AICdiff = AIC - lag(AIC, 1),
+         BICdiff = BIC - lag(BIC, 1))
+LRT3$comparison <- c("uncon", "uncon_v_con")
+
+LRT123 <- rbind(LRT1, LRT2, LRT3) %>%
+  mutate(ROI = i) %>%
+  select(comparison, ROI, AIC, AICdiff, BIC, BICdiff, Chisq, "Chisq diff", "Pr(>Chisq)")
+LRT123
+
+
+rownames(LRT123) <- 1:nrow(LRT123)
+LRT123 <- LRT123[c(1,2,3,5,6,8),]
+LRT123$ROI <- variables_SA[i]
+
+sites_LRTs_SA_tidy_aicbic_Siemens <- rbind(sites_LRTs_SA_tidy_aicbic_Siemens, LRT123)
+  
+}
+
+sites_LRTs_SA_tidy_aicbic_Siemens$LRT_p05 <- ifelse(sites_LRTs_SA_tidy_aicbic_Siemens$`Pr(>Chisq)` < .05, "sig", "nonsig")
+
+sites_LRTs_SA_tidy_aicbic_Siemens %>%
+  group_by(comparison) %>%
+  summarise(n = sum(LRT_p05 == "sig"))
+
+
+# save LRT data
+if(use_sim == FALSE) {
+write.csv(sites_LRTs_SA_tidy_aicbic_Siemens, "2_analysis_output/sites_LRTs_SA_tidy_aicbic_Siemens.csv")
+}
+if(use_sim == TRUE) {
+write.csv(sites_LRTs_SA_tidy_aicbic_Siemens, "5_simulated_analyses_output/sites_LRTs_SA_tidy_aicbic_sim_Siemens.csv")
+}
+
+
+# extract model CIFs
+
+multigroup_CFIs_SA_Siemens <- data.frame(region = variables_SA,
+                   m_constrained = NA,
+                   m_e_constrained = NA,
+                   m_time_constrained = NA,
+                   m_unconstrained = NA)
+
+count <- 1
+
+for(i in 1:length(variables_SA)) {
+
+multigroup_CFIs_SA_Siemens$region[count] <- sites_LRTs_SA_Siemens[[i]]$ROI
+
+multigroup_CFIs_SA_Siemens$m_constrained[count] <- sites_LRTs_SA_Siemens[[i]]$fits[[1]][["cfi"]]
+multigroup_CFIs_SA_Siemens$m_e_constrained[count] <- sites_LRTs_SA_Siemens[[i]]$fits[[2]][["cfi"]]
+multigroup_CFIs_SA_Siemens$m_time_constrained[count] <- sites_LRTs_SA_Siemens[[i]]$fits[[3]][["cfi"]]
+multigroup_CFIs_SA_Siemens$m_unconstrained[count] <- sites_LRTs_SA_Siemens[[i]]$fits[[4]][["cfi"]]
+  
+count <- count + 1
+}  
+  
+if(use_sim == FALSE) {
+write.csv(multigroup_CFIs_SA_Siemens, "2_analysis_output/multigroup_CFIs_SA_Siemens.csv")
+}
+if(use_sim == TRUE) {
+write.csv(multigroup_CFIs_SA_Siemens, "5_simulated_analyses_output/multigroup_CFIs_SA_sim_Siemens.csv")
+}
+
+
+```
+
+
+# multigroup by scanner - GM
+
+```{r ICED_many_sites_multigroup_GM_parallel_scanner}
+
+
+
+
+# GM_volume %>%
+#   select(mri_info_manufacturer, site_id_l) %>%
+#   group_by(site_id_l, mri_info_manufacturer)%>%
+#   summarise(n = n()) %>%
+#   View()
+# 
+# info_mri %>%
+#   select(subjectkey, site_id_l, eventname) %>%
+#   pivot_wider(names_from = eventname, values_from = site_id_l, id_cols = subjectkey)
+
+#sites list
+scanners <- unique(GM_volume$mri_info_manufacturer)
+
+structure <- data.frame(time = c("T1",
+                                 "T2"))
+
+# model structure - fully constrained
+syn <- iced_syntax(structure,
+                   fix_lower_bounds = TRUE)
+cat(syn)
+
+# fully unconstrained
+syn_group <- iced_syntax(structure,
+                   fix_lower_bounds = TRUE,
+                   groups = scanners)
+cat(syn_group)
+
+# fixing error aka alowing between subjects variance to be free between groups
+syn_group_fix_error <- iced_syntax(structure,
+                   fix_lower_bounds = TRUE,
+                   groups = scanners,
+                   groups_inequality = c("time"))
+cat(syn_group_fix_error)
+
+# fixing between subjects variance aka alowing error variance to be free between groups
+syn_group_fix_time <- iced_syntax(structure,
+                   fix_lower_bounds = TRUE,
+                   groups = scanners,
+                   groups_inequality = c("e"))
+cat(syn_group_fix_time)
+
+# look across each brain region, run each umitigroup model and extract Likelihood ratio tests and model fit estimates
+time_scanners_LRTs_GM <- system.time({
+
+g_tmp_GM_scanners <- GM_volume %>%
+  filter(mri_info_manufacturer %in% scanners)
+
+scanners_LRTs_GM <- foreach(i = variables_GM, 
+        .packages=c("dplyr", "tidyr", "lavaan", "ICED")) %dopar% {
+
+g_tmp1 <- g_tmp_GM_scanners %>%
+  select("subjectkey","eventname", i, "mri_info_manufacturer") %>%
+  pivot_wider(names_from = eventname,
+              values_from = i)
+
+if(use_sim == FALSE) {
+  g_tmp1$T1 <- g_tmp1$T1 / 1000
+  g_tmp1$T2 <- g_tmp1$T2 / 1000
+  }
+
+# run models
+m_constrained <- lavaan(data = g_tmp1,
+       model = syn,
+       group = "mri_info_manufacturer")
+
+m_e_constrained <- lavaan(data = g_tmp1,
+       model = syn_group_fix_error,
+       group = "mri_info_manufacturer")
+
+m_time_constrained <- lavaan(data = g_tmp1,
+       model = syn_group_fix_time,
+       group = "mri_info_manufacturer")
+
+m_unconstrained <- lavaan(data = g_tmp1,
+       model = syn_group,
+       group = "mri_info_manufacturer")
+
+
+# extract LRT results
+LRT_time <- lavTestLRT(m_constrained, 
+                  m_time_constrained,
+                  m_unconstrained)
+
+LRT_e <- lavTestLRT(m_constrained, 
+                  m_e_constrained,
+                  m_unconstrained)
+
+LRT <- lavTestLRT(m_constrained, 
+                  m_unconstrained)
+
+# save final list, including all model fits
+list(ROI = i,
+     LRT_time = lavTestLRT(m_constrained, 
+                  m_time_constrained,
+                  m_unconstrained),
+     LRT_e = lavTestLRT(m_constrained, 
+                  m_e_constrained,
+                  m_unconstrained),
+     LRT = lavTestLRT(m_constrained, 
+                  m_unconstrained),
+     fits = list(fitmeasures(m_constrained),
+             fitmeasures(m_e_constrained),
+             fitmeasures(m_time_constrained),
+             fitmeasures(m_unconstrained)))
+
+    }
+
+}) # aprox time = 4000s
+
+ 
+ # save LRT Rdata file
+ if(use_sim == FALSE) {
+ save(scanners_LRTs_GM, file = "2_analysis_output/scanners_LRTs_and_fit_GM.Rdata")
+ }
+ if(use_sim == TRUE) {
+ save(sites_LRTs_GM, file = "5_simulated_analyses_output/scanners_LRTs_and_fit_GM_sim.Rdata")
+ }
+
+
+### Extract AIC, BIC, and Chi squared values from the LRTs
+
+scanners_LRTs_GM_tidy_aicbic <- NULL
+
+for(i in 1:length(variables_GM)) {
+  
+LRT1 <- as.data.frame(scanners_LRTs_GM[[i]]$LRT_time)
+LRT1 <- LRT1 %>%
+  mutate(AICdiff = AIC - lag(AIC, 1),
+         BICdiff = BIC - lag(BIC, 1))
+LRT1$comparison <- c("uncon", "uncon_v_timecon", "timecon_v_con")
+LRT2 <- as.data.frame(scanners_LRTs_GM[[i]]$LRT_e)
+LRT2 <- LRT2 %>%
+  mutate(AICdiff = AIC - lag(AIC, 1),
+         BICdiff = BIC - lag(BIC, 1))
+LRT2$comparison <- c("uncon", "uncon_v_errcon", "errcon_v_con")
+LRT3 <- as.data.frame(scanners_LRTs_GM[[i]]$LRT)
 LRT3 <- LRT3 %>%
   mutate(AICdiff = AIC - lag(AIC, 1),
          BICdiff = BIC - lag(BIC, 1))
@@ -1076,27 +3049,29 @@ rownames(LRT123) <- 1:nrow(LRT123)
 LRT123 <- LRT123[c(1,2,3,5,6,8),]
 LRT123$ROI <- variables_GM[i]
 
-sites_LRTs_GM_tidy_aicbic <- rbind(sites_LRTs_GM_tidy_aicbic, LRT123)
+scanners_LRTs_GM_tidy_aicbic <- rbind(scanners_LRTs_GM_tidy_aicbic, LRT123)
   
 }
 
-sites_LRTs_GM_tidy_aicbic$LRT_p05 <- ifelse(sites_LRTs_GM_tidy_aicbic$`Pr(>Chisq)` < .05, "sig", "nonsig")
+scanners_LRTs_GM_tidy_aicbic$LRT_p05 <- ifelse(scanners_LRTs_GM_tidy_aicbic$`Pr(>Chisq)` < .05, "sig", "nonsig")
 
-sites_LRTs_GM_tidy_aicbic %>%
+scanners_LRTs_GM_tidy_aicbic %>%
   group_by(comparison) %>%
   summarise(n = sum(LRT_p05 == "sig"))
 
-
-if(use_sim == FALSE) {
-write.csv(sites_LRTs_GM_tidy_aicbic, "2_analysis_output/sites_LRTs_GM_tidy_aicbic.csv")
-}
-if(use_sim == TRUE) {
-write.csv(sites_LRTs_GM_tidy_aicbic, "2_analysis_output/sites_LRTs_GM_tidy_aicbic_sim.csv")
-}
+# 
+# # save LRT data
+ if(use_sim == FALSE) {
+ write.csv(scanners_LRTs_GM_tidy_aicbic, "2_analysis_output/scanners_LRTs_GM_tidy_aicbic.csv")
+ }
+ if(use_sim == TRUE) {
+ write.csv(scanners_LRTs_GM_tidy_aicbic, "5_simulated_analyses_output/sites_LRTs_GM_tidy_aicbic_sim.csv")
+ }
+ 
 
 # extract model CIFs
 
-multigroup_CFIs_GM <- data.frame(region = variables_GM,
+multigroup_CFIs_GM_scanners <- data.frame(region = variables_GM,
                    m_constrained = NA,
                    m_e_constrained = NA,
                    m_time_constrained = NA,
@@ -1106,27 +3081,685 @@ count <- 1
 
 for(i in 1:length(variables_GM)) {
 
-multigroup_CFIs_GM$region[count] <- sites_LRTs_GM[[i]]$ROI
+multigroup_CFIs_GM_scanners$region[count] <- scanners_LRTs_GM[[i]]$ROI
 
-multigroup_CFIs_GM$m_constrained[count] <- sites_LRTs_GM[[i]]$fits[[1]][["cfi"]]
-multigroup_CFIs_GM$m_e_constrained[count] <- sites_LRTs_GM[[i]]$fits[[2]][["cfi"]]
-multigroup_CFIs_GM$m_time_constrained[count] <- sites_LRTs_GM[[i]]$fits[[3]][["cfi"]]
-multigroup_CFIs_GM$m_unconstrained[count] <- sites_LRTs_GM[[i]]$fits[[4]][["cfi"]]
+multigroup_CFIs_GM_scanners$m_constrained[count] <- scanners_LRTs_GM[[i]]$fits[[1]][["cfi"]]
+multigroup_CFIs_GM_scanners$m_e_constrained[count] <- scanners_LRTs_GM[[i]]$fits[[2]][["cfi"]]
+multigroup_CFIs_GM_scanners$m_time_constrained[count] <- scanners_LRTs_GM[[i]]$fits[[3]][["cfi"]]
+multigroup_CFIs_GM_scanners$m_unconstrained[count] <- scanners_LRTs_GM[[i]]$fits[[4]][["cfi"]]
+  
+count <- count + 1
+}  
+#   
+ if(use_sim == FALSE) {
+ write.csv(multigroup_CFIs_GM_scanners, "2_analysis_output/multigroup_CFIs_GM_scanners.csv")
+ }
+ if(use_sim == TRUE) {
+ write.csv(multigroup_CFIs_GM, "5_simulated_analyses_output/multigroup_CFIs_GM_scanners_sim.csv")
+ }
+
+
+```
+
+```{r ICED_scanner_compare_GM_between_vs_error_parallel}
+
+# ICED model structure - two timepoints
+structure <- data.frame(time = c("T1",
+                                 "T2"))
+# ICED syntax for lavaan
+syn <- iced_syntax(structure,
+                   fix_lower_bounds = TRUE)
+cat(syn)
+
+# list of sites
+scanner <- unique(GM_volume$mri_info_manufacturer)
+
+# nested for loop: for each site for each brain region run the ICED models
+time_between_error_GM_scanner <- system.time({
+between_error_GM_scanner <- foreach(j = scanner,
+               .combine = 'rbind') %:%
+
+foreach(i = variables_GM, 
+                  .packages=c("dplyr", "tidyr", "lavaan", "ICED"),
+                  .combine = 'rbind') %dopar% {
+  
+                    
+  tmp_data <- GM_volume %>%
+    filter(mri_info_manufacturer == j)
+
+  tmp <- select(tmp_data,
+                subjectkey,
+                eventname, contains(i)) %>%
+    pivot_wider(names_from = "eventname",
+                values_from = i,
+                id_cols = "subjectkey") %>%
+    select(-subjectkey)
+  
+  if(use_sim == FALSE) {tmp <- tmp / 1000}
+
+
+capture.output({
+  tmp_res <- run_ICED(data = tmp, 
+                      model = syn)
+})
+  
+data.frame(site = j,
+ROI = i,
+time_var = tmp_res$timeest,
+error_var = tmp_res$eest,
+ICC = tmp_res$ICC,
+ICC2 = tmp_res$ICC2)
+  
+  }
+})
+ 
+if(use_sim == FALSE) {
+ write.csv(between_error_GM_scanner, "2_analysis_output/between_error_GM_scanner.csv")
+ }
+ if(use_sim == TRUE) {
+ write.csv(between_error_GM_scanner, "5_simulated_analyses_output/between_error_GM_scanner_sim.csv")
+ }
+
+```
+
+# multigroup by site, within each scanner - GM
+
+```{r ICED_many_sites_multigroup_GM_parallel_Philips}
+
+GM_volume_Philips <- GM_volume %>%
+  filter(mri_info_manufacturer == "Philips Medical Systems")
+
+#sites list
+sites <- unique(GM_volume_Philips$site_id_l)
+
+structure <- data.frame(time = c("T1",
+                                 "T2"))
+
+# model structure - fully constrained
+syn <- iced_syntax(structure,
+                   fix_lower_bounds = TRUE)
+cat(syn)
+
+# fully unconstrained
+syn_group <- iced_syntax(structure,
+                   fix_lower_bounds = TRUE,
+                   groups = sites)
+cat(syn_group)
+
+# fixing error aka alowing between subjects variance to be free between groups
+syn_group_fix_error <- iced_syntax(structure,
+                   fix_lower_bounds = TRUE,
+                   groups = sites,
+                   groups_inequality = c("time"))
+cat(syn_group_fix_error)
+
+# fixing between subjects variance aka alowing error variance to be free between groups
+syn_group_fix_time <- iced_syntax(structure,
+                   fix_lower_bounds = TRUE,
+                   groups = sites,
+                   groups_inequality = c("e"))
+cat(syn_group_fix_time)
+
+# look across each brain region, run each umitigroup model and extract Likelihood ratio tests and model fit estimates
+time_sites_LRTs_GM_Philips <- system.time({
+
+g_tmp_GM <- GM_volume_Philips %>%
+  filter(site_id_l %in% sites)
+
+sites_LRTs_GM_Philips <- foreach(i = variables_GM, 
+        .packages=c("dplyr", "tidyr", "lavaan", "ICED")) %dopar% {
+
+g_tmp1 <- g_tmp_GM %>%
+  select("subjectkey","eventname", i, "site_id_l") %>%
+  pivot_wider(names_from = eventname,
+              values_from = i)
+
+if(use_sim == FALSE) {
+  g_tmp1$T1 <- g_tmp1$T1 / 1000
+  g_tmp1$T2 <- g_tmp1$T2 / 1000
+  }
+
+# run models
+m_constrained <- lavaan(data = g_tmp1,
+       model = syn,
+       group = "site_id_l")
+
+m_e_constrained <- lavaan(data = g_tmp1,
+       model = syn_group_fix_error,
+       group = "site_id_l")
+
+m_time_constrained <- lavaan(data = g_tmp1,
+       model = syn_group_fix_time,
+       group = "site_id_l")
+
+m_unconstrained <- lavaan(data = g_tmp1,
+       model = syn_group,
+       group = "site_id_l")
+
+
+# extract LRT results
+LRT_time <- lavTestLRT(m_constrained, 
+                  m_time_constrained,
+                  m_unconstrained)
+
+LRT_e <- lavTestLRT(m_constrained, 
+                  m_e_constrained,
+                  m_unconstrained)
+
+LRT <- lavTestLRT(m_constrained, 
+                  m_unconstrained)
+
+# save final list, including all model fits
+list(ROI = i,
+     LRT_time = lavTestLRT(m_constrained, 
+                  m_time_constrained,
+                  m_unconstrained),
+     LRT_e = lavTestLRT(m_constrained, 
+                  m_e_constrained,
+                  m_unconstrained),
+     LRT = lavTestLRT(m_constrained, 
+                  m_unconstrained),
+     fits = list(fitmeasures(m_constrained),
+             fitmeasures(m_e_constrained),
+             fitmeasures(m_time_constrained),
+             fitmeasures(m_unconstrained)))
+
+    }
+
+}) # aprox time = 4000s
+
+
+# save LRT Rdata file
+if(use_sim == FALSE) {
+save(sites_LRTs_GM_Philips, file = "2_analysis_output/sites_LRTs_and_fit_GM_Philips.Rdata")
+}
+if(use_sim == TRUE) {
+save(sites_LRTs_GM_Philips, file = "5_simulated_analyses_output/sites_LRTs_and_fit_GM_sim_Philips.Rdata")
+}
+
+
+### Extract AIC, BIC, and Chi squared values from the LRTs
+
+sites_LRTs_GM_tidy_aicbic_Philips <- NULL
+
+for(i in 1:length(variables_GM)) {
+  
+LRT1 <- as.data.frame(sites_LRTs_GM_Philips[[i]]$LRT_time)
+LRT1 <- LRT1 %>%
+  mutate(AICdiff = AIC - lag(AIC, 1),
+         BICdiff = BIC - lag(BIC, 1))
+LRT1$comparison <- c("uncon", "uncon_v_timecon", "timecon_v_con")
+LRT2 <- as.data.frame(sites_LRTs_GM_Philips[[i]]$LRT_e)
+LRT2 <- LRT2 %>%
+  mutate(AICdiff = AIC - lag(AIC, 1),
+         BICdiff = BIC - lag(BIC, 1))
+LRT2$comparison <- c("uncon", "uncon_v_errcon", "errcon_v_con")
+LRT3 <- as.data.frame(sites_LRTs_GM_Philips[[i]]$LRT)
+LRT3 <- LRT3 %>%
+  mutate(AICdiff = AIC - lag(AIC, 1),
+         BICdiff = BIC - lag(BIC, 1))
+LRT3$comparison <- c("uncon", "uncon_v_con")
+
+LRT123 <- rbind(LRT1, LRT2, LRT3) %>%
+  mutate(ROI = i) %>%
+  select(comparison, ROI, AIC, AICdiff, BIC, BICdiff, Chisq, "Chisq diff", "Pr(>Chisq)")
+LRT123
+
+
+rownames(LRT123) <- 1:nrow(LRT123)
+LRT123 <- LRT123[c(1,2,3,5,6,8),]
+LRT123$ROI <- variables_GM[i]
+
+sites_LRTs_GM_tidy_aicbic_Philips <- rbind(sites_LRTs_GM_tidy_aicbic_Philips, LRT123)
+  
+}
+
+sites_LRTs_GM_tidy_aicbic_Philips$LRT_p05 <- ifelse(sites_LRTs_GM_tidy_aicbic_Philips$`Pr(>Chisq)` < .05, "sig", "nonsig")
+
+sites_LRTs_GM_tidy_aicbic_Philips %>%
+  group_by(comparison) %>%
+  summarise(n = sum(LRT_p05 == "sig"))
+
+
+# save LRT data
+if(use_sim == FALSE) {
+write.csv(sites_LRTs_GM_tidy_aicbic_Philips, "2_analysis_output/sites_LRTs_GM_tidy_aicbic_Philips.csv")
+}
+if(use_sim == TRUE) {
+write.csv(sites_LRTs_GM_tidy_aicbic_Philips, "5_simulated_analyses_output/sites_LRTs_GM_tidy_aicbic_sim_Philips.csv")
+}
+
+
+# extract model CIFs
+
+multigroup_CFIs_GM_Philips <- data.frame(region = variables_GM,
+                   m_constrained = NA,
+                   m_e_constrained = NA,
+                   m_time_constrained = NA,
+                   m_unconstrained = NA)
+
+count <- 1
+
+for(i in 1:length(variables_GM)) {
+
+multigroup_CFIs_GM_Philips$region[count] <- sites_LRTs_GM_Philips[[i]]$ROI
+
+multigroup_CFIs_GM_Philips$m_constrained[count] <- sites_LRTs_GM_Philips[[i]]$fits[[1]][["cfi"]]
+multigroup_CFIs_GM_Philips$m_e_constrained[count] <- sites_LRTs_GM_Philips[[i]]$fits[[2]][["cfi"]]
+multigroup_CFIs_GM_Philips$m_time_constrained[count] <- sites_LRTs_GM_Philips[[i]]$fits[[3]][["cfi"]]
+multigroup_CFIs_GM_Philips$m_unconstrained[count] <- sites_LRTs_GM_Philips[[i]]$fits[[4]][["cfi"]]
   
 count <- count + 1
 }  
   
 if(use_sim == FALSE) {
-write.csv(multigroup_CFIs_GM, "2_analysis_output/multigroup_CFIs_GM.csv")
+write.csv(multigroup_CFIs_GM_Philips, "2_analysis_output/multigroup_CFIs_GM_Philips.csv")
 }
 if(use_sim == TRUE) {
-write.csv(multigroup_CFIs_GM, "2_analysis_output/multigroup_CFIs_GM_sim.csv")
+write.csv(multigroup_CFIs_GM_Philips, "5_simulated_analyses_output/multigroup_CFIs_GM_sim_Philips.csv")
 }
+
+
+```
+
+```{r ICED_many_sites_multigroup_GM_parallel_GE}
+
+GM_volume_GE <- GM_volume %>%
+  filter(mri_info_manufacturer == "GE MEDICAL SYSTEMS")
+
+#sites list
+sites <- unique(GM_volume_GE$site_id_l)
+
+structure <- data.frame(time = c("T1",
+                                 "T2"))
+
+# model structure - fully constrained
+syn <- iced_syntax(structure,
+                   fix_lower_bounds = TRUE)
+cat(syn)
+
+# fully unconstrained
+syn_group <- iced_syntax(structure,
+                   fix_lower_bounds = TRUE,
+                   groups = sites)
+cat(syn_group)
+
+# fixing error aka alowing between subjects variance to be free between groups
+syn_group_fix_error <- iced_syntax(structure,
+                   fix_lower_bounds = TRUE,
+                   groups = sites,
+                   groups_inequality = c("time"))
+cat(syn_group_fix_error)
+
+# fixing between subjects variance aka alowing error variance to be free between groups
+syn_group_fix_time <- iced_syntax(structure,
+                   fix_lower_bounds = TRUE,
+                   groups = sites,
+                   groups_inequality = c("e"))
+cat(syn_group_fix_time)
+
+# look across each brain region, run each umitigroup model and extract Likelihood ratio tests and model fit estimates
+time_sites_LRTs_GM_GE <- system.time({
+
+g_tmp_GM <- GM_volume_GE %>%
+  filter(site_id_l %in% sites)
+
+sites_LRTs_GM_GE <- foreach(i = variables_GM, 
+        .packages=c("dplyr", "tidyr", "lavaan", "ICED")) %dopar% {
+
+g_tmp1 <- g_tmp_GM %>%
+  select("subjectkey","eventname", i, "site_id_l") %>%
+  pivot_wider(names_from = eventname,
+              values_from = i)
+
+if(use_sim == FALSE) {
+  g_tmp1$T1 <- g_tmp1$T1 / 1000
+  g_tmp1$T2 <- g_tmp1$T2 / 1000
+  }
+
+# run models
+m_constrained <- lavaan(data = g_tmp1,
+       model = syn,
+       group = "site_id_l")
+
+m_e_constrained <- lavaan(data = g_tmp1,
+       model = syn_group_fix_error,
+       group = "site_id_l")
+
+m_time_constrained <- lavaan(data = g_tmp1,
+       model = syn_group_fix_time,
+       group = "site_id_l")
+
+m_unconstrained <- lavaan(data = g_tmp1,
+       model = syn_group,
+       group = "site_id_l")
+
+
+# extract LRT results
+LRT_time <- lavTestLRT(m_constrained, 
+                  m_time_constrained,
+                  m_unconstrained)
+
+LRT_e <- lavTestLRT(m_constrained, 
+                  m_e_constrained,
+                  m_unconstrained)
+
+LRT <- lavTestLRT(m_constrained, 
+                  m_unconstrained)
+
+# save final list, including all model fits
+list(ROI = i,
+     LRT_time = lavTestLRT(m_constrained, 
+                  m_time_constrained,
+                  m_unconstrained),
+     LRT_e = lavTestLRT(m_constrained, 
+                  m_e_constrained,
+                  m_unconstrained),
+     LRT = lavTestLRT(m_constrained, 
+                  m_unconstrained),
+     fits = list(fitmeasures(m_constrained),
+             fitmeasures(m_e_constrained),
+             fitmeasures(m_time_constrained),
+             fitmeasures(m_unconstrained)))
+
+    }
+
+}) # aprox time = 4000s
+
+
+# save LRT Rdata file
+if(use_sim == FALSE) {
+save(sites_LRTs_GM_GE, file = "2_analysis_output/sites_LRTs_and_fit_GM_GE.Rdata")
+}
+if(use_sim == TRUE) {
+save(sites_LRTs_GM_GE, file = "5_simulated_analyses_output/sites_LRTs_and_fit_GM_sim_GE.Rdata")
+}
+
+
+### Extract AIC, BIC, and Chi squared values from the LRTs
+
+sites_LRTs_GM_tidy_aicbic_GE <- NULL
+
+for(i in 1:length(variables_GM)) {
+  
+LRT1 <- as.data.frame(sites_LRTs_GM_GE[[i]]$LRT_time)
+LRT1 <- LRT1 %>%
+  mutate(AICdiff = AIC - lag(AIC, 1),
+         BICdiff = BIC - lag(BIC, 1))
+LRT1$comparison <- c("uncon", "uncon_v_timecon", "timecon_v_con")
+LRT2 <- as.data.frame(sites_LRTs_GM_GE[[i]]$LRT_e)
+LRT2 <- LRT2 %>%
+  mutate(AICdiff = AIC - lag(AIC, 1),
+         BICdiff = BIC - lag(BIC, 1))
+LRT2$comparison <- c("uncon", "uncon_v_errcon", "errcon_v_con")
+LRT3 <- as.data.frame(sites_LRTs_GM_GE[[i]]$LRT)
+LRT3 <- LRT3 %>%
+  mutate(AICdiff = AIC - lag(AIC, 1),
+         BICdiff = BIC - lag(BIC, 1))
+LRT3$comparison <- c("uncon", "uncon_v_con")
+
+LRT123 <- rbind(LRT1, LRT2, LRT3) %>%
+  mutate(ROI = i) %>%
+  select(comparison, ROI, AIC, AICdiff, BIC, BICdiff, Chisq, "Chisq diff", "Pr(>Chisq)")
+LRT123
+
+
+rownames(LRT123) <- 1:nrow(LRT123)
+LRT123 <- LRT123[c(1,2,3,5,6,8),]
+LRT123$ROI <- variables_GM[i]
+
+sites_LRTs_GM_tidy_aicbic_GE <- rbind(sites_LRTs_GM_tidy_aicbic_GE, LRT123)
+  
+}
+
+sites_LRTs_GM_tidy_aicbic_GE$LRT_p05 <- ifelse(sites_LRTs_GM_tidy_aicbic_GE$`Pr(>Chisq)` < .05, "sig", "nonsig")
+
+sites_LRTs_GM_tidy_aicbic_GE %>%
+  group_by(comparison) %>%
+  summarise(n = sum(LRT_p05 == "sig"))
+
+
+# save LRT data
+if(use_sim == FALSE) {
+write.csv(sites_LRTs_GM_tidy_aicbic_GE, "2_analysis_output/sites_LRTs_GM_tidy_aicbic_GE.csv")
+}
+if(use_sim == TRUE) {
+write.csv(sites_LRTs_GM_tidy_aicbic_GE, "5_simulated_analyses_output/sites_LRTs_GM_tidy_aicbic_sim_GE.csv")
+}
+
+
+# extract model CIFs
+
+multigroup_CFIs_GM_GE <- data.frame(region = variables_GM,
+                   m_constrained = NA,
+                   m_e_constrained = NA,
+                   m_time_constrained = NA,
+                   m_unconstrained = NA)
+
+count <- 1
+
+for(i in 1:length(variables_GM)) {
+
+multigroup_CFIs_GM_GE$region[count] <- sites_LRTs_GM_GE[[i]]$ROI
+
+multigroup_CFIs_GM_GE$m_constrained[count] <- sites_LRTs_GM_GE[[i]]$fits[[1]][["cfi"]]
+multigroup_CFIs_GM_GE$m_e_constrained[count] <- sites_LRTs_GM_GE[[i]]$fits[[2]][["cfi"]]
+multigroup_CFIs_GM_GE$m_time_constrained[count] <- sites_LRTs_GM_GE[[i]]$fits[[3]][["cfi"]]
+multigroup_CFIs_GM_GE$m_unconstrained[count] <- sites_LRTs_GM_GE[[i]]$fits[[4]][["cfi"]]
+  
+count <- count + 1
+}  
+  
+if(use_sim == FALSE) {
+write.csv(multigroup_CFIs_GM_GE, "2_analysis_output/multigroup_CFIs_GM_GE.csv")
+}
+if(use_sim == TRUE) {
+write.csv(multigroup_CFIs_GM_GE, "5_simulated_analyses_output/multigroup_CFIs_GM_sim_GE.csv")
+}
+
+
+```
+
+```{r ICED_many_sites_multigroup_GM_parallel_Siemens}
+
+GM_volume_Siemens <- GM_volume %>%
+  filter(mri_info_manufacturer == "SIEMENS")
+
+#sites list
+sites <- unique(GM_volume_Siemens$site_id_l)
+
+structure <- data.frame(time = c("T1",
+                                 "T2"))
+
+# model structure - fully constrained
+syn <- iced_syntax(structure,
+                   fix_lower_bounds = TRUE)
+cat(syn)
+
+# fully unconstrained
+syn_group <- iced_syntax(structure,
+                   fix_lower_bounds = TRUE,
+                   groups = sites)
+cat(syn_group)
+
+# fixing error aka alowing between subjects variance to be free between groups
+syn_group_fix_error <- iced_syntax(structure,
+                   fix_lower_bounds = TRUE,
+                   groups = sites,
+                   groups_inequality = c("time"))
+cat(syn_group_fix_error)
+
+# fixing between subjects variance aka alowing error variance to be free between groups
+syn_group_fix_time <- iced_syntax(structure,
+                   fix_lower_bounds = TRUE,
+                   groups = sites,
+                   groups_inequality = c("e"))
+cat(syn_group_fix_time)
+
+# look across each brain region, run each umitigroup model and extract Likelihood ratio tests and model fit estimates
+time_sites_LRTs_GM_Siemens <- system.time({
+
+g_tmp_GM <- GM_volume_Siemens %>%
+  filter(site_id_l %in% sites)
+
+sites_LRTs_GM_Siemens <- foreach(i = variables_GM, 
+        .packages=c("dplyr", "tidyr", "lavaan", "ICED")) %dopar% {
+
+g_tmp1 <- g_tmp_GM %>%
+  select("subjectkey","eventname", i, "site_id_l") %>%
+  pivot_wider(names_from = eventname,
+              values_from = i)
+
+if(use_sim == FALSE) {
+  g_tmp1$T1 <- g_tmp1$T1 / 1000
+  g_tmp1$T2 <- g_tmp1$T2 / 1000
+  }
+
+# run models
+m_constrained <- lavaan(data = g_tmp1,
+       model = syn,
+       group = "site_id_l")
+
+m_e_constrained <- lavaan(data = g_tmp1,
+       model = syn_group_fix_error,
+       group = "site_id_l")
+
+m_time_constrained <- lavaan(data = g_tmp1,
+       model = syn_group_fix_time,
+       group = "site_id_l")
+
+m_unconstrained <- lavaan(data = g_tmp1,
+       model = syn_group,
+       group = "site_id_l")
+
+
+# extract LRT results
+LRT_time <- lavTestLRT(m_constrained, 
+                  m_time_constrained,
+                  m_unconstrained)
+
+LRT_e <- lavTestLRT(m_constrained, 
+                  m_e_constrained,
+                  m_unconstrained)
+
+LRT <- lavTestLRT(m_constrained, 
+                  m_unconstrained)
+
+# save final list, including all model fits
+list(ROI = i,
+     LRT_time = lavTestLRT(m_constrained, 
+                  m_time_constrained,
+                  m_unconstrained),
+     LRT_e = lavTestLRT(m_constrained, 
+                  m_e_constrained,
+                  m_unconstrained),
+     LRT = lavTestLRT(m_constrained, 
+                  m_unconstrained),
+     fits = list(fitmeasures(m_constrained),
+             fitmeasures(m_e_constrained),
+             fitmeasures(m_time_constrained),
+             fitmeasures(m_unconstrained)))
+
+    }
+
+}) # aprox time = 4000s
+
+
+# save LRT Rdata file
+if(use_sim == FALSE) {
+save(sites_LRTs_GM_Siemens, file = "2_analysis_output/sites_LRTs_and_fit_GM_Siemens.Rdata")
+}
+if(use_sim == TRUE) {
+save(sites_LRTs_GM_Siemens, file = "5_simulated_analyses_output/sites_LRTs_and_fit_GM_sim_Siemens.Rdata")
+}
+
+
+### Extract AIC, BIC, and Chi squared values from the LRTs
+
+sites_LRTs_GM_tidy_aicbic_Siemens <- NULL
+
+for(i in 1:length(variables_GM)) {
+  
+LRT1 <- as.data.frame(sites_LRTs_GM_Siemens[[i]]$LRT_time)
+LRT1 <- LRT1 %>%
+  mutate(AICdiff = AIC - lag(AIC, 1),
+         BICdiff = BIC - lag(BIC, 1))
+LRT1$comparison <- c("uncon", "uncon_v_timecon", "timecon_v_con")
+LRT2 <- as.data.frame(sites_LRTs_GM_Siemens[[i]]$LRT_e)
+LRT2 <- LRT2 %>%
+  mutate(AICdiff = AIC - lag(AIC, 1),
+         BICdiff = BIC - lag(BIC, 1))
+LRT2$comparison <- c("uncon", "uncon_v_errcon", "errcon_v_con")
+LRT3 <- as.data.frame(sites_LRTs_GM_Siemens[[i]]$LRT)
+LRT3 <- LRT3 %>%
+  mutate(AICdiff = AIC - lag(AIC, 1),
+         BICdiff = BIC - lag(BIC, 1))
+LRT3$comparison <- c("uncon", "uncon_v_con")
+
+LRT123 <- rbind(LRT1, LRT2, LRT3) %>%
+  mutate(ROI = i) %>%
+  select(comparison, ROI, AIC, AICdiff, BIC, BICdiff, Chisq, "Chisq diff", "Pr(>Chisq)")
+LRT123
+
+
+rownames(LRT123) <- 1:nrow(LRT123)
+LRT123 <- LRT123[c(1,2,3,5,6,8),]
+LRT123$ROI <- variables_GM[i]
+
+sites_LRTs_GM_tidy_aicbic_Siemens <- rbind(sites_LRTs_GM_tidy_aicbic_Siemens, LRT123)
+  
+}
+
+sites_LRTs_GM_tidy_aicbic_Siemens$LRT_p05 <- ifelse(sites_LRTs_GM_tidy_aicbic_Siemens$`Pr(>Chisq)` < .05, "sig", "nonsig")
+
+sites_LRTs_GM_tidy_aicbic_Siemens %>%
+  group_by(comparison) %>%
+  summarise(n = sum(LRT_p05 == "sig"))
+
+
+# save LRT data
+if(use_sim == FALSE) {
+write.csv(sites_LRTs_GM_tidy_aicbic_Siemens, "2_analysis_output/sites_LRTs_GM_tidy_aicbic_Siemens.csv")
+}
+if(use_sim == TRUE) {
+write.csv(sites_LRTs_GM_tidy_aicbic_Siemens, "5_simulated_analyses_output/sites_LRTs_GM_tidy_aicbic_sim_Siemens.csv")
+}
+
+
+# extract model CIFs
+
+multigroup_CFIs_GM_Siemens <- data.frame(region = variables_GM,
+                   m_constrained = NA,
+                   m_e_constrained = NA,
+                   m_time_constrained = NA,
+                   m_unconstrained = NA)
+
+count <- 1
+
+for(i in 1:length(variables_GM)) {
+
+multigroup_CFIs_GM_Siemens$region[count] <- sites_LRTs_GM_Siemens[[i]]$ROI
+
+multigroup_CFIs_GM_Siemens$m_constrained[count] <- sites_LRTs_GM_Siemens[[i]]$fits[[1]][["cfi"]]
+multigroup_CFIs_GM_Siemens$m_e_constrained[count] <- sites_LRTs_GM_Siemens[[i]]$fits[[2]][["cfi"]]
+multigroup_CFIs_GM_Siemens$m_time_constrained[count] <- sites_LRTs_GM_Siemens[[i]]$fits[[3]][["cfi"]]
+multigroup_CFIs_GM_Siemens$m_unconstrained[count] <- sites_LRTs_GM_Siemens[[i]]$fits[[4]][["cfi"]]
+  
+count <- count + 1
+}  
+  
+if(use_sim == FALSE) {
+write.csv(multigroup_CFIs_GM_Siemens, "2_analysis_output/multigroup_CFIs_GM_Siemens.csv")
+}
+if(use_sim == TRUE) {
+write.csv(multigroup_CFIs_GM_Siemens, "5_simulated_analyses_output/multigroup_CFIs_GM_sim_Siemens.csv")
+}
+
 
 ```
 
 
-
+# save run times of models
 
 ```{r save_runtimes}
 
@@ -1140,7 +3773,17 @@ time_between_error_SA,
 time_between_error_GM,
 time_sites_LRTs_CT,
 time_sites_LRTs_SA,
-time_sites_LRTs_GM
+time_sites_LRTs_GM,
+time_scanners_LRTs_CT,
+time_between_error_CT_scanner,
+time_sites_LRTs_CT_Philips,
+time_sites_LRTs_CT_GE,
+time_sites_LRTs_CT_Siemens,
+time_scanners_LRTs_SA,
+time_between_error_SA_scanner,
+time_sites_LRTs_SA_Philips,
+time_sites_LRTs_SA_GE,
+time_sites_LRTs_SA_Siemens
 )
   
 
@@ -1148,10 +3791,7 @@ if(use_sim == FALSE) {
 write.csv(all_runtimes, "2_analysis_output/all_runtimes.csv")
 }
 if(use_sim == TRUE) {
-write.csv(all_runtimes, "2_analysis_output/all_runtimes_sim.csv")
+write.csv(all_runtimes, "5_simulated_analyses_output/all_runtimes_sim.csv")
 }
 
 ```
-
-
-

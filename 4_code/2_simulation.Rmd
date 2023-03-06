@@ -74,8 +74,29 @@ out2_CT2 <- out2_CT %>%
   mutate(eventname = paste("T", eventname, sep = "")) %>%
   mutate(interview_age = NA, sex = NA) %>%
   relocate(interview_age, .after = "subjectkey") %>%
-  relocate(sex, .after = "eventname")
-  
+  relocate(sex, .after = "eventname") %>%
+  mutate(mri_info_manufacturer = ifelse(site_id_l == "site01", "Philips Medical Systems",
+                                 ifelse(site_id_l == "site02", "SIEMENS",
+                                 ifelse(site_id_l == "site03", "SIEMENS",
+                                 ifelse(site_id_l == "site04", "GE MEDICAL SYSTEMS",
+                                 ifelse(site_id_l == "site05", "SIEMENS",
+                                 ifelse(site_id_l == "site06", "SIEMENS",
+                                 ifelse(site_id_l == "site07", "SIEMENS",
+                                 ifelse(site_id_l == "site08", "GE MEDICAL SYSTEMS",
+                                 ifelse(site_id_l == "site09", "SIEMENS",
+                                 ifelse(site_id_l == "site10", "GE MEDICAL SYSTEMS",
+                                 ifelse(site_id_l == "site11", "SIEMENS",
+                                 ifelse(site_id_l == "site12", "SIEMENS",
+                                 ifelse(site_id_l == "site13", "GE MEDICAL SYSTEMS",
+                                 ifelse(site_id_l == "site14", "SIEMENS",
+                                 ifelse(site_id_l == "site15", "SIEMENS",
+                                 ifelse(site_id_l == "site16", "SIEMENS",
+                                 ifelse(site_id_l == "site17", "Philips Medical Systems",
+                                 ifelse(site_id_l == "site18", "GE MEDICAL SYSTEMS",
+                                 ifelse(site_id_l == "site19", "Philips Medical Systems",
+                                 ifelse(site_id_l == "site20", "SIEMENS",
+                                 ifelse(site_id_l == "site21", "SIEMENS", NA))))))))))))))))))))))
+
 
 write.csv(out2_CT2, "3_simulated_data/CT_sim.csv",
           row.names = FALSE)
@@ -125,7 +146,28 @@ out2_SA2 <- out2_SA %>%
   mutate(eventname = paste("T", eventname, sep = "")) %>%
   mutate(interview_age = NA, sex = NA) %>%
   relocate(interview_age, .after = "subjectkey") %>%
-  relocate(sex, .after = "eventname")
+  relocate(sex, .after = "eventname") %>%
+  mutate(mri_info_manufacturer = ifelse(site_id_l == "site01", "Philips Medical Systems",
+                                 ifelse(site_id_l == "site02", "SIEMENS",
+                                 ifelse(site_id_l == "site03", "SIEMENS",
+                                 ifelse(site_id_l == "site04", "GE MEDICAL SYSTEMS",
+                                 ifelse(site_id_l == "site05", "SIEMENS",
+                                 ifelse(site_id_l == "site06", "SIEMENS",
+                                 ifelse(site_id_l == "site07", "SIEMENS",
+                                 ifelse(site_id_l == "site08", "GE MEDICAL SYSTEMS",
+                                 ifelse(site_id_l == "site09", "SIEMENS",
+                                 ifelse(site_id_l == "site10", "GE MEDICAL SYSTEMS",
+                                 ifelse(site_id_l == "site11", "SIEMENS",
+                                 ifelse(site_id_l == "site12", "SIEMENS",
+                                 ifelse(site_id_l == "site13", "GE MEDICAL SYSTEMS",
+                                 ifelse(site_id_l == "site14", "SIEMENS",
+                                 ifelse(site_id_l == "site15", "SIEMENS",
+                                 ifelse(site_id_l == "site16", "SIEMENS",
+                                 ifelse(site_id_l == "site17", "Philips Medical Systems",
+                                 ifelse(site_id_l == "site18", "GE MEDICAL SYSTEMS",
+                                 ifelse(site_id_l == "site19", "Philips Medical Systems",
+                                 ifelse(site_id_l == "site20", "SIEMENS",
+                                 ifelse(site_id_l == "site21", "SIEMENS", NA))))))))))))))))))))))
 
 write.csv(out2_SA2, "3_simulated_data/SA_sim.csv",
           row.names = FALSE)
@@ -175,7 +217,28 @@ out2_GM2 <- out2_GM %>%
   mutate(eventname = paste("T", eventname, sep = "")) %>%
   mutate(interview_age = NA, sex = NA) %>%
   relocate(interview_age, .after = "subjectkey") %>%
-  relocate(sex, .after = "eventname")
+  relocate(sex, .after = "eventname") %>%
+  mutate(mri_info_manufacturer = ifelse(site_id_l == "site01", "Philips Medical Systems",
+                                 ifelse(site_id_l == "site02", "SIEMENS",
+                                 ifelse(site_id_l == "site03", "SIEMENS",
+                                 ifelse(site_id_l == "site04", "GE MEDICAL SYSTEMS",
+                                 ifelse(site_id_l == "site05", "SIEMENS",
+                                 ifelse(site_id_l == "site06", "SIEMENS",
+                                 ifelse(site_id_l == "site07", "SIEMENS",
+                                 ifelse(site_id_l == "site08", "GE MEDICAL SYSTEMS",
+                                 ifelse(site_id_l == "site09", "SIEMENS",
+                                 ifelse(site_id_l == "site10", "GE MEDICAL SYSTEMS",
+                                 ifelse(site_id_l == "site11", "SIEMENS",
+                                 ifelse(site_id_l == "site12", "SIEMENS",
+                                 ifelse(site_id_l == "site13", "GE MEDICAL SYSTEMS",
+                                 ifelse(site_id_l == "site14", "SIEMENS",
+                                 ifelse(site_id_l == "site15", "SIEMENS",
+                                 ifelse(site_id_l == "site16", "SIEMENS",
+                                 ifelse(site_id_l == "site17", "Philips Medical Systems",
+                                 ifelse(site_id_l == "site18", "GE MEDICAL SYSTEMS",
+                                 ifelse(site_id_l == "site19", "Philips Medical Systems",
+                                 ifelse(site_id_l == "site20", "SIEMENS",
+                                 ifelse(site_id_l == "site21", "SIEMENS", NA))))))))))))))))))))))
 
 write.csv(out2_GM2, "3_simulated_data/GM_sim.csv",
           row.names = FALSE)

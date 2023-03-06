@@ -23,7 +23,7 @@ library("pwr")
 ```{r read_data}
 
 # use simulated data? if set to TRUE then the simulated data will be used and results saved under different file names
-use_sim = FALSE
+use_sim = TRUE
 
 if(use_sim == FALSE) {
 
@@ -50,35 +50,73 @@ multigroup_CFIs_SA <- read.csv("2_analysis_output/multigroup_CFIs_SA.csv")
 sites_LRTs_GM_tidy_aicbic <- read.csv("2_analysis_output/sites_LRTs_GM_tidy_aicbic.csv")
 multigroup_CFIs_GM <- read.csv("2_analysis_output/multigroup_CFIs_GM.csv")
 
+# scanner multigroup results
+multigroup_CFIs_CT_scanners <- read.csv("2_analysis_output/multigroup_CFIs_CT_scanners.csv")
+multigroup_CFIs_SA_scanners <- read.csv("2_analysis_output/multigroup_CFIs_SA_scanners.csv")
+multigroup_CFIs_GM_scanners <- read.csv("2_analysis_output/multigroup_CFIs_GM_scanners.csv")
+
+between_error_CT_scanner <- read.csv("2_analysis_output/between_error_CT_scanner.csv")
+between_error_SA_scanner <- read.csv("2_analysis_output/between_error_SA_scanner.csv")
+between_error_GM_scanner <- read.csv("2_analysis_output/between_error_GM_scanner.csv")
+
+# sites within scanners
+multigroup_CFIs_CT_GE <- read.csv("2_analysis_output/multigroup_CFIs_CT_GE.csv")
+multigroup_CFIs_CT_Philips <- read.csv("2_analysis_output/multigroup_CFIs_CT_Philips.csv")
+multigroup_CFIs_CT_Siemens <- read.csv("2_analysis_output/multigroup_CFIs_CT_Siemens.csv")
+multigroup_CFIs_SA_GE <- read.csv("2_analysis_output/multigroup_CFIs_SA_GE.csv")
+multigroup_CFIs_SA_Philips <- read.csv("2_analysis_output/multigroup_CFIs_SA_Philips.csv")
+multigroup_CFIs_SA_Siemens <- read.csv("2_analysis_output/multigroup_CFIs_SA_Siemens.csv")
+multigroup_CFIs_GM_GE <- read.csv("2_analysis_output/multigroup_CFIs_GM_GE.csv")
+multigroup_CFIs_GM_Philips <- read.csv("2_analysis_output/multigroup_CFIs_GM_Philips.csv")
+multigroup_CFIs_GM_Siemens <- read.csv("2_analysis_output/multigroup_CFIs_GM_Siemens.csv")
+
 
 }
 
 if(use_sim == TRUE) {
 
 # ICC and ICC2 results
-out_CT <- read.csv("2_analysis_output/out_CT_sim.csv")
-out_SA <- read.csv("2_analysis_output/out_SA_sim.csv")
-out_GM <- read.csv("2_analysis_output/out_GM_sim.csv")
+out_CT <- read.csv("5_simulated_analyses_output/out_CT_sim.csv")
+out_SA <- read.csv("5_simulated_analyses_output/out_SA_sim.csv")
+out_GM <- read.csv("5_simulated_analyses_output/out_GM_sim.csv")
 
 #between and within variance estimates (per site) results
-between_error_CT <- read.csv("2_analysis_output/between_error_CT_sim.csv")
-between_error_SA <- read.csv("2_analysis_output/between_error_SA_sim.csv")
-between_error_GM <- read.csv("2_analysis_output/between_error_GM_sim.csv")
+between_error_CT <- read.csv("5_simulated_analyses_output/between_error_CT_sim.csv")
+between_error_SA <- read.csv("5_simulated_analyses_output/between_error_SA_sim.csv")
+between_error_GM <- read.csv("5_simulated_analyses_output/between_error_GM_sim.csv")
 
 # LRT results from multisite
-sites_LRTs_CT_tidy <- read.csv("2_analysis_output/sites_LRTs_CT_tidy_aicbic_sim.csv")
-sites_LRTs_SA_tidy <- read.csv("2_analysis_output/sites_LRTs_SA_tidy_aicbic_sim.csv")
-sites_LRTs_GM_tidy <- read.csv("2_analysis_output/sites_LRTs_GM_tidy_aicbic_sim.csv")
+sites_LRTs_CT_tidy <- read.csv("5_simulated_analyses_output/sites_LRTs_CT_tidy_aicbic_sim.csv")
+sites_LRTs_SA_tidy <- read.csv("5_simulated_analyses_output/sites_LRTs_SA_tidy_aicbic_sim.csv")
+sites_LRTs_GM_tidy <- read.csv("5_simulated_analyses_output/sites_LRTs_GM_tidy_aicbic_sim.csv")
 
 # improved LRT results and CFIS
-sites_LRTs_CT_tidy_aicbic <- read.csv("2_analysis_output/sites_LRTs_CT_tidy_aicbic_sim.csv")
-multigroup_CFIs_CT <- read.csv("2_analysis_output/multigroup_CFIs_CT_sim.csv")
-sites_LRTs_SA_tidy_aicbic <- read.csv("2_analysis_output/sites_LRTs_SA_tidy_aicbic_sim.csv")
-multigroup_CFIs_SA <- read.csv("2_analysis_output/multigroup_CFIs_SA_sim.csv")
-sites_LRTs_GM_tidy_aicbic <- read.csv("2_analysis_output/sites_LRTs_GM_tidy_aicbic_sim.csv")
-multigroup_CFIs_GM <- read.csv("2_analysis_output/multigroup_CFIs_GM_sim.csv")
+sites_LRTs_CT_tidy_aicbic <- read.csv("5_simulated_analyses_output/sites_LRTs_CT_tidy_aicbic_sim.csv")
+multigroup_CFIs_CT <- read.csv("5_simulated_analyses_output/multigroup_CFIs_CT_sim.csv")
+sites_LRTs_SA_tidy_aicbic <- read.csv("5_simulated_analyses_output/sites_LRTs_SA_tidy_aicbic_sim.csv")
+multigroup_CFIs_SA <- read.csv("5_simulated_analyses_output/multigroup_CFIs_SA_sim.csv")
+sites_LRTs_GM_tidy_aicbic <- read.csv("5_simulated_analyses_output/sites_LRTs_GM_tidy_aicbic_sim.csv")
+multigroup_CFIs_GM <- read.csv("5_simulated_analyses_output/multigroup_CFIs_GM_sim.csv")
 
+# scanner multigroup results
+multigroup_CFIs_CT_scanners <- read.csv("5_simulated_analyses_output/multigroup_CFIs_CT_scanners_sim.csv")
+multigroup_CFIs_SA_scanners <- read.csv("5_simulated_analyses_output/multigroup_CFIs_SA_scanners_sim.csv")
+multigroup_CFIs_GM_scanners <- read.csv("5_simulated_analyses_output/multigroup_CFIs_GM_scanners_sim.csv")
 
+between_error_CT_scanner <- read.csv("5_simulated_analyses_output/between_error_CT_scanner_sim.csv")
+between_error_SA_scanner <- read.csv("5_simulated_analyses_output/between_error_SA_scanner_sim.csv")
+between_error_GM_scanner <- read.csv("5_simulated_analyses_output/between_error_GM_scanner_sim.csv")
+
+# sites within scanners
+multigroup_CFIs_CT_GE <- read.csv("5_simulated_analyses_output/multigroup_CFIs_CT_sim_GE.csv")
+multigroup_CFIs_CT_Philips <- read.csv("5_simulated_analyses_output/multigroup_CFIs_CT_sim_Philips.csv")
+multigroup_CFIs_CT_Siemens <- read.csv("5_simulated_analyses_output/multigroup_CFIs_CT_sim_Siemens.csv")
+multigroup_CFIs_SA_GE <- read.csv("5_simulated_analyses_output/multigroup_CFIs_SA_sim_GE.csv")
+multigroup_CFIs_SA_Philips <- read.csv("5_simulated_analyses_output/multigroup_CFIs_SA_sim_Philips.csv")
+multigroup_CFIs_SA_Siemens <- read.csv("5_simulated_analyses_output/multigroup_CFIs_SA_sim_Siemens.csv")
+multigroup_CFIs_GM_GE <- read.csv("5_simulated_analyses_output/multigroup_CFIs_GM_sim_GE.csv")
+multigroup_CFIs_GM_Philips <- read.csv("5_simulated_analyses_output/multigroup_CFIs_GM_sim_Philips.csv")
+multigroup_CFIs_GM_Siemens <- read.csv("5_simulated_analyses_output/multigroup_CFIs_GM_sim_Siemens.csv")
 }
 
 
@@ -246,7 +284,7 @@ dev.off()
 }
 
 if(use_sim == TRUE) {
-Cairo(file = "8_supplement/Figure2_sim.png",
+Cairo(file = "9_supplement_simulated/Figure2_sim.png",
       type = "png",
       units="in", 
       width=6, 
@@ -289,7 +327,7 @@ dev.off()
 
 
 if(use_sim == TRUE){
-Cairo(file = "8_supplement/Figure3_sim.png",
+Cairo(file = "9_supplement_simulated/Figure3_sim.png",
       type = "png",
       units="in", 
       width=6, 
@@ -481,7 +519,7 @@ dev.off()
 }
 
 if(use_sim == TRUE){
-Cairo(file = "8_supplement/Figure4_sim.png",
+Cairo(file = "9_supplement_simulated/Figure4_sim.png",
       type = "png",
       units="in", 
       width=8, 
@@ -596,7 +634,7 @@ dev.off()
 
 
 if(use_sim == TRUE){
-Cairo(file = "8_supplement/Figure5_sim.png",
+Cairo(file = "9_supplement_simulated/Figure5_sim.png",
       type = "png",
       units="in", 
       width=6, 
@@ -615,7 +653,7 @@ dev.off()
 
 ## look at rank stability (Table 1) - Figures not included in paper
 
-```{r rank_order_stability_CT}
+```{r rank_order_stability_CT, eval=FALSE}
 
 #### by ROI
 between_error_CT %>%
@@ -810,7 +848,7 @@ dev.off()
 }
 
 if(use_sim == TRUE){
-Cairo(file = "8_supplement/Figure4_SA_sim.png",
+Cairo(file = "9_supplement_simulated/Figure4_SA_sim.png",
       type = "png",
       units="in", 
       width=8, 
@@ -923,7 +961,7 @@ dev.off()
 }
 
 if(use_sim == TRUE){
-Cairo(file = "8_supplement/Figure5_SA_sim.png",
+Cairo(file = "9_supplement_simulated/Figure5_SA_sim.png",
       type = "png",
       units="in", 
       width=6, 
@@ -941,7 +979,7 @@ dev.off()
 
 ## look at rank stability
 
-```{r rank_order_stability_SA}
+```{r rank_order_stability_SA, eval=FALSE}
 
 #### by ROI
 between_error_SA %>%
@@ -1136,7 +1174,7 @@ dev.off()
 }
 
 if(use_sim == TRUE){
-Cairo(file = "8_supplement/Figure4_GM_sim.png",
+Cairo(file = "9_supplement_simulated/Figure4_GM_sim.png",
       type = "png",
       units="in", 
       width=8, 
@@ -1249,7 +1287,7 @@ dev.off()
 }
 
 if(use_sim == TRUE){
-Cairo(file = "8_supplement/Figure5_GM_sim.png",
+Cairo(file = "9_supplement_simulated/Figure5_GM_sim.png",
       type = "png",
       units="in", 
       width=6, 
@@ -1267,7 +1305,7 @@ dev.off()
 
 ## look at rank stability
 
-```{r rank_order_stability_GM}
+```{r rank_order_stability_GM, eval=FALSE}
 
 #### by ROI
 between_error_GM %>%
@@ -1466,7 +1504,7 @@ dev.off()
 }
 
 if(use_sim == TRUE) {
-Cairo(file = "8_supplement/Figure7_CT_ChisquaredLRT_sim.png",
+Cairo(file = "9_supplement_simulated/Figure7_CT_ChisquaredLRT_sim.png",
       type = "png",
       units="in", 
       width=6, 
@@ -1569,7 +1607,7 @@ dev.off()
 
 
 if(use_sim == TRUE){
-Cairo(file = "8_supplement/Figure7_SA_ChisquaredLRT_sim.png",
+Cairo(file = "9_supplement_simulated/Figure7_SA_ChisquaredLRT_sim.png",
       type = "png",
       units="in", 
       width=6, 
@@ -1672,7 +1710,7 @@ dev.off()
 
 
 if(use_sim == TRUE){
-Cairo(file = "8_supplement/Figure7_GM_ChisquaredLRT_sim.png",
+Cairo(file = "9_supplement_simulated/Figure7_GM_ChisquaredLRT_sim.png",
       type = "png",
       units="in", 
       width=6, 
@@ -1777,7 +1815,7 @@ dev.off()
 
 
 if(use_sim == TRUE){
-Cairo(file = "8_supplement/Figure7_CT_deltaAIC_sim.png",
+Cairo(file = "9_supplement_simulated/Figure7_CT_deltaAIC_sim.png",
       type = "png",
       units="in", 
       width=6, 
@@ -1881,7 +1919,7 @@ dev.off()
 
 
 if(use_sim == TRUE){
-Cairo(file = "8_supplement/Figure7_SA_deltaAIC_sim.png",
+Cairo(file = "9_supplement_simulated/Figure7_SA_deltaAIC_sim.png",
       type = "png",
       units="in", 
       width=6, 
@@ -1984,7 +2022,7 @@ dev.off()
 
 
 if(use_sim == TRUE){
-Cairo(file = "8_supplement/Figure7_GM_deltaAIC_sim.png",
+Cairo(file = "9_supplement_simulated/Figure7_GM_deltaAIC_sim.png",
       type = "png",
       units="in", 
       width=6, 
@@ -2089,7 +2127,7 @@ dev.off()
 }
 
 if(use_sim == TRUE){
-Cairo(file = "8_supplement/Figure7_CT_deltaBIC_sim.png",
+Cairo(file = "9_supplement_simulated/Figure7_CT_deltaBIC_sim.png",
       type = "png",
       units="in", 
       width=6, 
@@ -2192,7 +2230,7 @@ dev.off()
 
 
 if(use_sim == TRUE){
-Cairo(file = "8_supplement/Figure7_SA_deltaBIC_sim.png",
+Cairo(file = "9_supplement_simulated/Figure7_SA_deltaBIC_sim.png",
       type = "png",
       units="in", 
       width=6, 
@@ -2295,7 +2333,7 @@ dev.off()
 
 
 if(use_sim == TRUE){
-Cairo(file = "8_supplement/Figure7_GM_deltaBIC_sim.png",
+Cairo(file = "9_supplement_simulated/Figure7_GM_deltaBIC_sim.png",
       type = "png",
       units="in", 
       width=6, 
@@ -2445,7 +2483,7 @@ dev.off()
 
 
 if(use_sim == TRUE){
-Cairo(file = "8_supplement/Figure7_sim.png",
+Cairo(file = "9_supplement_simulated/Figure7_sim.png",
       type = "png",
       units="in", 
       width=6, 
@@ -2593,7 +2631,7 @@ dev.off()
 
 
 if(use_sim == TRUE){
-Cairo(file = "8_supplement/Figure7_SA_deltaCFI_sim.png",
+Cairo(file = "9_supplement_simulated/Figure7_SA_deltaCFI_sim.png",
       type = "png",
       units="in", 
       width=6, 
@@ -2740,7 +2778,7 @@ dev.off()
 }
 
 if(use_sim == TRUE){
-Cairo(file = "8_supplement/Figure7_GM_deltaCFI_sim.png",
+Cairo(file = "9_supplement_simulated/Figure7_GM_deltaCFI_sim.png",
       type = "png",
       units="in", 
       width=6, 
@@ -2755,6 +2793,2462 @@ print(Figure7_GM_deltaCFI_sim)
 dev.off()
 }
 ```
+
+
+
+# by scanners - CT
+
+```{r multigroup_CFIs_CT_scanners}
+#multigroup_CFIs_CT_scanners <- read.csv("2_analysis_output/multigroup_CFIs_CT_scanners.csv")
+
+multigroup_CFIs_CT_scanners <- multigroup_CFIs_CT_scanners %>%
+  mutate(errcon_v_con = m_e_constrained - m_constrained,
+         uncon_v_errcon = m_unconstrained - m_e_constrained,
+         timecon_v_con = m_time_constrained - m_constrained,
+         uncon_v_timecon = m_unconstrained - m_time_constrained,
+         uncon_v_con = m_unconstrained - m_constrained)
+
+min_deltaCFI_CT_scanners <- multigroup_CFIs_CT_scanners %>%
+  select(errcon_v_con, uncon_v_errcon, timecon_v_con, uncon_v_timecon, uncon_v_con) %>%
+  min(na.rm = TRUE)
+
+max_deltaCFI_CT_scanners <- multigroup_CFIs_CT_scanners %>%
+  select(errcon_v_con, uncon_v_errcon, timecon_v_con, uncon_v_timecon, uncon_v_con) %>%
+  max(na.rm = TRUE)
+
+# for added info
+
+multigroup_CFIs_CT_scanners %>%
+  pivot_longer(cols = c(errcon_v_con,
+uncon_v_errcon,
+timecon_v_con,
+uncon_v_timecon,
+uncon_v_con),
+               names_to = "model",
+               values_to = "deltaCFI") %>%
+  group_by(model) %>%
+  summarise(n_01 = sum(deltaCFI > .01)/n(),
+            n_02 = sum(deltaCFI > .02)/n())
+# 1 errcon_v_con    0.324  0.191
+# 2 timecon_v_con   0.985  0.971
+# 3 uncon_v_con     0.985  0.985
+# 4 uncon_v_errcon  0.985  0.971
+# 5 uncon_v_timecon 0.0441 0 
+
+
+multigroup_CFIs_CT_scanners %>%
+  pivot_longer(cols = c(errcon_v_con,
+uncon_v_errcon,
+timecon_v_con,
+uncon_v_timecon,
+uncon_v_con),
+               names_to = "model",
+               values_to = "deltaCFI") %>%
+  group_by(model) %>%
+  summarise(n_0 = sum(deltaCFI < 0)/n())
+
+deltaCFI_errcon_v_con_CT_scanners <- dk %>% 
+  as_tibble() %>% 
+  left_join(multigroup_CFIs_CT_scanners, by = c("label" = "region")) %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = errcon_v_con)) +
+    theme_void() +
+  scale_fill_continuous(name = "delta CFI",
+                        limits = c(min_deltaCFI_CT_scanners, max_deltaCFI_CT_scanners),
+                        type = "viridis") +
+  ggtitle("A. Constrained vs Between-subjects varying")
+
+deltaCFI_uncon_v_errcon_CT_scanners <- dk %>% 
+  as_tibble() %>% 
+  left_join(multigroup_CFIs_CT_scanners, by = c("label" = "region")) %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = uncon_v_errcon)) +
+    theme_void() +
+  scale_fill_continuous(name = "delta CFI",
+                        limits = c(min_deltaCFI_CT_scanners, max_deltaCFI_CT_scanners),
+                        type = "viridis") +
+  ggtitle("B. Between-subjects varying vs Unconstrained")
+
+deltaCFI_timecon_v_con_CT_scanners <- dk %>% 
+  as_tibble() %>% 
+  left_join(multigroup_CFIs_CT_scanners, by = c("label" = "region")) %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = timecon_v_con)) +
+    theme_void() +
+  scale_fill_continuous(name = "delta CFI",
+                        limits = c(min_deltaCFI_CT_scanners, max_deltaCFI_CT_scanners),
+                        type = "viridis") +
+  ggtitle("C. Constrained vs Error varying")
+
+deltaCFI_uncon_v_timecon_CT_scanners <- dk %>% 
+  as_tibble() %>% 
+  left_join(multigroup_CFIs_CT_scanners, by = c("label" = "region")) %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = uncon_v_timecon)) +
+    theme_void() +
+  scale_fill_continuous(name = "delta CFI",
+                        limits = c(min_deltaCFI_CT_scanners, max_deltaCFI_CT_scanners),
+                        type = "viridis") +
+  ggtitle("D. Error varying vs Unconstrained")
+
+deltaCFI_uncon_v_con_CT_scanners <- dk %>% 
+  as_tibble() %>% 
+  left_join(multigroup_CFIs_CT_scanners, by = c("label" = "region")) %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = uncon_v_con)) +
+    theme_void() +
+  scale_fill_continuous(name = "delta CFI",
+                        limits = c(min_deltaCFI_CT_scanners, max_deltaCFI_CT_scanners),
+                        type = "viridis") +
+  ggtitle("E. Constrained vs Unconstrained")
+
+ if(use_sim == FALSE){
+ Cairo(file = "8_supplement/Figure7_CT_scanners.png",
+       type = "png",
+       units="in", 
+       width=6, 
+       height=6, 
+       pointsize=12, 
+       dpi=600)
+
+Figure7_scanners <- deltaCFI_errcon_v_con_CT_scanners / deltaCFI_uncon_v_errcon_CT_scanners / deltaCFI_timecon_v_con_CT_scanners / deltaCFI_uncon_v_timecon_CT_scanners / deltaCFI_uncon_v_con_CT_scanners + plot_layout(guides = "collect") & theme(legend.position = "bottom", legend.key.width = unit(1, "cm"), legend.title.align=0.5)
+
+print(Figure7_scanners)
+
+ dev.off()
+ }
+
+
+ if(use_sim == TRUE){
+ Cairo(file = "9_supplement_simulated/Figure7_CT_scanners_sim.png",
+       type = "png",
+       units="in", 
+       width=6, 
+       height=6, 
+       pointsize=12, 
+       dpi=600)
+ 
+Figure7_scanners_sim <- deltaCFI_errcon_v_con_CT_scanners / deltaCFI_uncon_v_errcon_CT_scanners / deltaCFI_timecon_v_con_CT_scanners / deltaCFI_uncon_v_timecon_CT_scanners / deltaCFI_uncon_v_con_CT_scanners + plot_layout(guides = "collect") & theme(legend.position = "bottom", legend.key.width = unit(1, "cm"), legend.title.align=0.5)
+
+ 
+ print(Figure7_scanners_sim)
+ 
+ dev.off()
+ }
+
+```
+
+```{r betweenanderrormain_CT_regions_scanners}
+
+by_ROI_CT_box_error_scanner <- between_error_CT_scanner %>%
+  filter(grepl("rh_", ROI)) %>%
+  mutate(ROI = str_replace(ROI, "rh_", "")) %>%
+  ggplot(aes(x = reorder(ROI, -time_var, FUN = median),
+             y = error_var)) +
+  geom_point(aes(colour = site),
+             position = position_jitter(width = .25),
+             size = 1.3) +
+      geom_boxplot(outlier.shape = NA, 
+                   width = .8, 
+                   colour = "BLACK",
+                   alpha = 0.2,
+                   size = .3) +
+  coord_flip() +
+  theme_minimal() +
+  theme(legend.position = "none",
+        axis.title.y = element_blank(),
+        axis.text.y = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(colour = "grey50"),
+        axis.title.x = element_text(size = 14)) +
+  ylab("Error variance")
+
+by_ROI_CT_box_time_scanner <- between_error_CT_scanner %>%
+    filter(grepl("rh_", ROI)) %>%
+    mutate(ROI = str_replace(ROI, "rh_", "")) %>%
+  ggplot(aes(x = reorder(ROI, -time_var, FUN = median),
+             y = time_var)) +
+  geom_point(aes(colour = site),
+             position = position_jitter(width = .25),
+             size = 1.3) +
+      geom_boxplot(outlier.shape = NA, 
+                   width = .8, 
+                   colour = "BLACK",
+                   alpha = 0.2,
+                   size = .3) +
+  coord_flip() +
+  theme_minimal() +
+  theme(legend.position = "none",
+        axis.title.y = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(colour = "grey50"),
+        axis.text.y = element_text(size = 12),
+        axis.title.x = element_text(size = 14)) +
+  ylab("Between-subjects variance")
+
+by_ROI_ICC_CT_scanner <- between_error_CT_scanner %>%
+  filter(grepl("rh_", ROI)) %>%
+  mutate(ROI = str_replace(ROI, "rh_", "")) %>%
+  group_by(ROI) %>%
+  summarise(m_ICC = median(ICC),
+            m_time = median(time_var)) %>%
+  ggplot(aes(x = reorder(ROI, -m_time),
+             y = "ICC")) +
+   geom_text(aes(label = round(m_ICC,2)),
+            size = 3.5) +
+   coord_flip() +
+  theme_minimal() +
+  theme(legend.position = "none",
+        axis.title.y = element_blank(),
+        axis.text = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_blank(),
+        axis.title.x = element_text(size = 14)) +
+  ylab("ICC")
+
+ if(use_sim == FALSE){
+ Cairo(file = "8_supplement/Figure4_CT_scanners.png",
+       type = "png",
+       units="in", 
+       width=8, 
+       height=8, 
+       pointsize=12, 
+       dpi=600)
+
+Figure_4_scanner <- by_ROI_CT_box_time_scanner + by_ROI_CT_box_error_scanner + by_ROI_ICC_CT_scanner + plot_layout(widths = c(4,4,1))
+
+print(Figure_4_scanner)
+
+ dev.off()
+ }
+ 
+ if(use_sim == TRUE){
+ Cairo(file = "9_supplement_simulated/Figure4_CT_scanner_sim.png",
+       type = "png",
+       units="in", 
+       width=8, 
+       height=8, 
+       pointsize=12, 
+       dpi=600)
+ 
+Figure_4_scanner_sim <- by_ROI_CT_box_time_scanner + by_ROI_CT_box_error_scanner + by_ROI_ICC_CT_scanner + plot_layout(widths = c(4,4,1))
+
+print(Figure_4_scanner_sim)
+ 
+ dev.off()
+ }
+
+
+```
+
+```{r betweenanderrormain_CT_sites_scanners}
+
+between_error_CT_scanner %>%
+  group_by(ROI, site) %>%
+  summarise(median_t = median(time_var),
+            median_e = median(error_var)) %>%
+  ungroup() %>%
+  summarise(median_t2 = median(median_t),
+            quantilet25 = quantile(median_t, .1),
+            quantilet75 = quantile(median_t, .9),
+
+            median_e2 = median(median_e),
+            quantilee25 = quantile(median_e, .1),
+            quantilee75 = quantile(median_e, .9))
+
+
+#################
+
+by_site_CT_box_error_scanner <- between_error_CT_scanner %>%
+  ggplot(aes(x = reorder(site, -error_var, FUN = median),
+             y = error_var)) +
+  geom_point(aes(colour = site),
+             position = position_jitter(width = .25),
+             size = 1.3) +
+      geom_boxplot(outlier.shape = NA, 
+                   width = .8, 
+                   colour = "BLACK",
+                   alpha = 0.2,
+                   size = .3) +
+  coord_flip() +
+  theme_minimal() +
+  theme(legend.position = "none",
+        axis.title.y = element_blank(),
+        axis.text.y = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(colour = "grey50")) +
+  ylab("Error variance")
+
+
+by_site_CT_box_true_scanner <- between_error_CT_scanner %>%
+  ggplot(aes(x = reorder(site, -error_var, FUN = median),
+             y = time_var)) +
+  geom_point(aes(colour = site),
+             position = position_jitter(width = .25),
+             size = 1.3) +
+      geom_boxplot(outlier.shape = NA, 
+                   width = .8, 
+                   colour = "BLACK",
+                   alpha = 0.2,
+                   size = .3) +
+  coord_flip() +
+  theme_minimal() +
+  theme(legend.position = "none",
+        axis.title.y = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(colour = "grey50"),
+        axis.text.y = element_text(size = 12)) +
+  ylab("Between-subjects variance")
+
+
+by_site_ICC_CT_scanner <- between_error_CT_scanner %>%
+  filter(grepl("rh_", ROI)) %>%
+  mutate(ROI = str_replace(ROI, "rh_", "")) %>%
+  group_by(site) %>%
+  summarise(m_ICC = median(ICC),
+            m_error = median(error_var)) %>%
+  ggplot(aes(x = reorder(site, -m_error),
+             y = "ICC")) +
+   geom_text(aes(label = round(m_ICC,2)),
+            size = 3.5) +
+   coord_flip() +
+  theme_minimal() +
+  theme(legend.position = "none",
+        axis.title.y = element_blank(),
+        axis.text = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_blank()) +
+  ylab("ICC")
+
+ if(use_sim == FALSE){
+ Cairo(file = "8_supplement/Figure5_CT_scanners.png",
+       type = "png",
+       units="in", 
+       width=6, 
+       height=6, 
+       pointsize=12, 
+       dpi=600)
+
+Figure_5_scanner <- by_site_CT_box_true_scanner + by_site_CT_box_error_scanner + by_site_ICC_CT_scanner + plot_layout(widths = c(4,4,1))
+
+print(Figure_5_scanner)
+
+ dev.off()
+ }
+
+
+ if(use_sim == TRUE){
+ Cairo(file = "9_supplement_simulated/Figure5_CT_scanner_sim.png",
+       type = "png",
+       units="in", 
+       width=6, 
+       height=6, 
+       pointsize=12, 
+       dpi=600)
+ 
+ Figure_5_CT_scanner_sim <- by_site_CT_box_true_scanner + by_site_CT_box_error_scanner + by_site_ICC_CT_scanner + plot_layout(widths = c(4,4,1))
+ 
+ print(Figure_5_CT_scanner_sim)
+ 
+ dev.off()
+ }
+
+```
+
+# by site within scanners - CT
+
+
+```{r multigroup_CFIs_CT_Philips}
+#multigroup_CFIs_CT_Philips <- read.csv("2_analysis_output/multigroup_CFIs_CT_Philips.csv")
+
+multigroup_CFIs_CT_Philips <- multigroup_CFIs_CT_Philips %>%
+  mutate(errcon_v_con = m_e_constrained - m_constrained,
+         uncon_v_errcon = m_unconstrained - m_e_constrained,
+         timecon_v_con = m_time_constrained - m_constrained,
+         uncon_v_timecon = m_unconstrained - m_time_constrained,
+         uncon_v_con = m_unconstrained - m_constrained)
+
+min_deltaCFI_CT_Philips <- multigroup_CFIs_CT_Philips %>%
+  select(errcon_v_con, uncon_v_errcon, timecon_v_con, uncon_v_timecon, uncon_v_con) %>%
+  min(na.rm = TRUE)
+
+max_deltaCFI_CT_Philips <- multigroup_CFIs_CT_Philips %>%
+  select(errcon_v_con, uncon_v_errcon, timecon_v_con, uncon_v_timecon, uncon_v_con) %>%
+  max(na.rm = TRUE)
+
+# for added info
+
+multigroup_CFIs_CT_Philips %>%
+  pivot_longer(cols = c(errcon_v_con,
+uncon_v_errcon,
+timecon_v_con,
+uncon_v_timecon,
+uncon_v_con),
+               names_to = "model",
+               values_to = "deltaCFI") %>%
+  group_by(model) %>%
+  summarise(n_01 = sum(deltaCFI > .01)/n(),
+            n_02 = sum(deltaCFI > .02)/n())
+# 1 errcon_v_con    0.324  0.191
+# 2 timecon_v_con   0.985  0.971
+# 3 uncon_v_con     0.985  0.985
+# 4 uncon_v_errcon  0.985  0.971
+# 5 uncon_v_timecon 0.0441 0 
+
+
+multigroup_CFIs_CT_Philips %>%
+  pivot_longer(cols = c(errcon_v_con,
+uncon_v_errcon,
+timecon_v_con,
+uncon_v_timecon,
+uncon_v_con),
+               names_to = "model",
+               values_to = "deltaCFI") %>%
+  group_by(model) %>%
+  summarise(n_0 = sum(deltaCFI < 0)/n())
+
+deltaCFI_errcon_v_con_CT_Philips <- dk %>% 
+  as_tibble() %>% 
+  left_join(multigroup_CFIs_CT_Philips, by = c("label" = "region")) %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = errcon_v_con)) +
+    theme_void() +
+  scale_fill_continuous(name = "delta CFI",
+                        limits = c(min_deltaCFI_CT_Philips, max_deltaCFI_CT_Philips),
+                        type = "viridis") +
+  ggtitle("A. Constrained vs Between-subjects varying")
+
+deltaCFI_uncon_v_errcon_CT_Philips <- dk %>% 
+  as_tibble() %>% 
+  left_join(multigroup_CFIs_CT_Philips, by = c("label" = "region")) %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = uncon_v_errcon)) +
+    theme_void() +
+  scale_fill_continuous(name = "delta CFI",
+                        limits = c(min_deltaCFI_CT_Philips, max_deltaCFI_CT_Philips),
+                        type = "viridis") +
+  ggtitle("B. Between-subjects varying vs Unconstrained")
+
+deltaCFI_timecon_v_con_CT_Philips <- dk %>% 
+  as_tibble() %>% 
+  left_join(multigroup_CFIs_CT_Philips, by = c("label" = "region")) %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = timecon_v_con)) +
+    theme_void() +
+  scale_fill_continuous(name = "delta CFI",
+                        limits = c(min_deltaCFI_CT_Philips, max_deltaCFI_CT_Philips),
+                        type = "viridis") +
+  ggtitle("C. Constrained vs Error varying")
+
+deltaCFI_uncon_v_timecon_CT_Philips <- dk %>% 
+  as_tibble() %>% 
+  left_join(multigroup_CFIs_CT_Philips, by = c("label" = "region")) %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = uncon_v_timecon)) +
+    theme_void() +
+  scale_fill_continuous(name = "delta CFI",
+                        limits = c(min_deltaCFI_CT_Philips, max_deltaCFI_CT_Philips),
+                        type = "viridis") +
+  ggtitle("D. Error varying vs Unconstrained")
+
+deltaCFI_uncon_v_con_CT_Philips <- dk %>% 
+  as_tibble() %>% 
+  left_join(multigroup_CFIs_CT_Philips, by = c("label" = "region")) %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = uncon_v_con)) +
+    theme_void() +
+  scale_fill_continuous(name = "delta CFI",
+                        limits = c(min_deltaCFI_CT_Philips, max_deltaCFI_CT_Philips),
+                        type = "viridis") +
+  ggtitle("E. Constrained vs Unconstrained")
+
+ if(use_sim == FALSE){
+ Cairo(file = "8_supplement/Figure7_CT_Philips.png",
+       type = "png",
+       units="in", 
+       width=6, 
+       height=6, 
+       pointsize=12, 
+       dpi=600)
+
+Figure7_CT_Philips <- deltaCFI_errcon_v_con_CT_Philips / deltaCFI_uncon_v_errcon_CT_Philips / deltaCFI_timecon_v_con_CT_Philips / deltaCFI_uncon_v_timecon_CT_Philips / deltaCFI_uncon_v_con_CT_Philips + plot_layout(guides = "collect") & theme(legend.position = "bottom", legend.key.width = unit(1, "cm"), legend.title.align=0.5)
+
+print(Figure7_CT_Philips)
+
+ dev.off()
+}
+
+
+ if(use_sim == TRUE){
+ Cairo(file = "9_supplement_simulated/Figure7_CT_Philips_sim.png",
+       type = "png",
+       units="in", 
+       width=6, 
+       height=6, 
+       pointsize=12, 
+       dpi=600)
+ 
+ Figure7_CT_Philips_sim <- deltaCFI_errcon_v_con_CT_Philips / deltaCFI_uncon_v_errcon_CT_Philips / deltaCFI_timecon_v_con_CT_Philips / deltaCFI_uncon_v_timecon_CT_Philips / deltaCFI_uncon_v_con_CT_Philips + plot_layout(guides = "collect") & theme(legend.position = "bottom", legend.key.width = unit(1, "cm"), legend.title.align=0.5)
+ 
+ print(Figure7_CT_Philips_sim)
+ 
+ dev.off()
+ }
+```
+
+```{r multigroup_CFIs_CT_GE}
+#multigroup_CFIs_CT_GE <- read.csv("2_analysis_output/multigroup_CFIs_CT_GE.csv")
+
+
+multigroup_CFIs_CT_GE <- multigroup_CFIs_CT_GE %>%
+  mutate(errcon_v_con = m_e_constrained - m_constrained,
+         uncon_v_errcon = m_unconstrained - m_e_constrained,
+         timecon_v_con = m_time_constrained - m_constrained,
+         uncon_v_timecon = m_unconstrained - m_time_constrained,
+         uncon_v_con = m_unconstrained - m_constrained)
+
+min_deltaCFI_CT_GE <- multigroup_CFIs_CT_GE %>%
+  select(errcon_v_con, uncon_v_errcon, timecon_v_con, uncon_v_timecon, uncon_v_con) %>%
+  min(na.rm = TRUE)
+
+max_deltaCFI_CT_GE <- multigroup_CFIs_CT_GE %>%
+  select(errcon_v_con, uncon_v_errcon, timecon_v_con, uncon_v_timecon, uncon_v_con) %>%
+  max(na.rm = TRUE)
+
+# for added info
+
+multigroup_CFIs_CT_GE %>%
+  pivot_longer(cols = c(errcon_v_con,
+uncon_v_errcon,
+timecon_v_con,
+uncon_v_timecon,
+uncon_v_con),
+               names_to = "model",
+               values_to = "deltaCFI") %>%
+  group_by(model) %>%
+  summarise(n_01 = sum(deltaCFI > .01)/n(),
+            n_02 = sum(deltaCFI > .02)/n())
+# 1 errcon_v_con    0.324  0.191
+# 2 timecon_v_con   0.985  0.971
+# 3 uncon_v_con     0.985  0.985
+# 4 uncon_v_errcon  0.985  0.971
+# 5 uncon_v_timecon 0.0441 0 
+
+
+multigroup_CFIs_CT_GE %>%
+  pivot_longer(cols = c(errcon_v_con,
+uncon_v_errcon,
+timecon_v_con,
+uncon_v_timecon,
+uncon_v_con),
+               names_to = "model",
+               values_to = "deltaCFI") %>%
+  group_by(model) %>%
+  summarise(n_0 = sum(deltaCFI < 0)/n())
+
+deltaCFI_errcon_v_con_CT_GE <- dk %>% 
+  as_tibble() %>% 
+  left_join(multigroup_CFIs_CT_GE, by = c("label" = "region")) %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = errcon_v_con)) +
+    theme_void() +
+  scale_fill_continuous(name = "delta CFI",
+                        limits = c(min_deltaCFI_CT_GE, max_deltaCFI_CT_GE),
+                        type = "viridis") +
+  ggtitle("A. Constrained vs Between-subjects varying")
+
+deltaCFI_uncon_v_errcon_CT_GE <- dk %>% 
+  as_tibble() %>% 
+  left_join(multigroup_CFIs_CT_GE, by = c("label" = "region")) %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = uncon_v_errcon)) +
+    theme_void() +
+  scale_fill_continuous(name = "delta CFI",
+                        limits = c(min_deltaCFI_CT_GE, max_deltaCFI_CT_GE),
+                        type = "viridis") +
+  ggtitle("B. Between-subjects varying vs Unconstrained")
+
+deltaCFI_timecon_v_con_CT_GE <- dk %>% 
+  as_tibble() %>% 
+  left_join(multigroup_CFIs_CT_GE, by = c("label" = "region")) %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = timecon_v_con)) +
+    theme_void() +
+  scale_fill_continuous(name = "delta CFI",
+                        limits = c(min_deltaCFI_CT_GE, max_deltaCFI_CT_GE),
+                        type = "viridis") +
+  ggtitle("C. Constrained vs Error varying")
+
+deltaCFI_uncon_v_timecon_CT_GE <- dk %>% 
+  as_tibble() %>% 
+  left_join(multigroup_CFIs_CT_GE, by = c("label" = "region")) %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = uncon_v_timecon)) +
+    theme_void() +
+  scale_fill_continuous(name = "delta CFI",
+                        limits = c(min_deltaCFI_CT_GE, max_deltaCFI_CT_GE),
+                        type = "viridis") +
+  ggtitle("D. Error varying vs Unconstrained")
+
+deltaCFI_uncon_v_con_CT_GE <- dk %>% 
+  as_tibble() %>% 
+  left_join(multigroup_CFIs_CT_GE, by = c("label" = "region")) %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = uncon_v_con)) +
+    theme_void() +
+  scale_fill_continuous(name = "delta CFI",
+                        limits = c(min_deltaCFI_CT_GE, max_deltaCFI_CT_GE),
+                        type = "viridis") +
+  ggtitle("E. Constrained vs Unconstrained")
+
+ if(use_sim == FALSE){
+ Cairo(file = "8_supplement/Figure7_CT_GE.png",
+       type = "png",
+       units="in", 
+       width=6, 
+       height=6, 
+       pointsize=12, 
+       dpi=600)
+
+Figure7_GE <- deltaCFI_errcon_v_con_CT_GE / deltaCFI_uncon_v_errcon_CT_GE / deltaCFI_timecon_v_con_CT_GE / deltaCFI_uncon_v_timecon_CT_GE / deltaCFI_uncon_v_con_CT_GE + plot_layout(guides = "collect") & theme(legend.position = "bottom", legend.key.width = unit(1, "cm"), legend.title.align=0.5)
+
+print(Figure7_GE)
+
+ dev.off()
+}
+
+
+ if(use_sim == TRUE){
+ Cairo(file = "9_supplement_simulated/Figure7_CT_GE_sim.png",
+       type = "png",
+       units="in", 
+       width=6, 
+       height=6, 
+       pointsize=12, 
+       dpi=600)
+ 
+Figure7_CT_GE_sim <- deltaCFI_errcon_v_con_CT_GE / deltaCFI_uncon_v_errcon_CT_GE / deltaCFI_timecon_v_con_CT_GE / deltaCFI_uncon_v_timecon_CT_GE / deltaCFI_uncon_v_con_CT_GE + plot_layout(guides = "collect") & theme(legend.position = "bottom", legend.key.width = unit(1, "cm"), legend.title.align=0.5)
+ 
+ print(Figure7_CT_GE_sim)
+ 
+ dev.off()
+ }
+```
+
+```{r multigroup_CFIs_CT_Siemens}
+
+#multigroup_CFIs_CT_Siemens <- read.csv("2_analysis_output/multigroup_CFIs_CT_Siemens.csv")
+multigroup_CFIs_CT_Siemens <- multigroup_CFIs_CT_Siemens %>%
+  mutate(errcon_v_con = m_e_constrained - m_constrained,
+         uncon_v_errcon = m_unconstrained - m_e_constrained,
+         timecon_v_con = m_time_constrained - m_constrained,
+         uncon_v_timecon = m_unconstrained - m_time_constrained,
+         uncon_v_con = m_unconstrained - m_constrained)
+
+min_deltaCFI_CT_Siemens <- multigroup_CFIs_CT_Siemens %>%
+  select(errcon_v_con, uncon_v_errcon, timecon_v_con, uncon_v_timecon, uncon_v_con) %>%
+  min(na.rm = TRUE)
+
+max_deltaCFI_CT_Siemens <- multigroup_CFIs_CT_Siemens %>%
+  select(errcon_v_con, uncon_v_errcon, timecon_v_con, uncon_v_timecon, uncon_v_con) %>%
+  max(na.rm = TRUE)
+
+# for added info
+
+multigroup_CFIs_CT_Siemens %>%
+  pivot_longer(cols = c(errcon_v_con,
+uncon_v_errcon,
+timecon_v_con,
+uncon_v_timecon,
+uncon_v_con),
+               names_to = "model",
+               values_to = "deltaCFI") %>%
+  group_by(model) %>%
+  summarise(n_01 = sum(deltaCFI > .01)/n(),
+            n_02 = sum(deltaCFI > .02)/n())
+# 1 errcon_v_con    0.324  0.191
+# 2 timecon_v_con   0.985  0.971
+# 3 uncon_v_con     0.985  0.985
+# 4 uncon_v_errcon  0.985  0.971
+# 5 uncon_v_timecon 0.0441 0 
+
+
+multigroup_CFIs_CT_Siemens %>%
+  pivot_longer(cols = c(errcon_v_con,
+uncon_v_errcon,
+timecon_v_con,
+uncon_v_timecon,
+uncon_v_con),
+               names_to = "model",
+               values_to = "deltaCFI") %>%
+  group_by(model) %>%
+  summarise(n_0 = sum(deltaCFI < 0)/n())
+
+deltaCFI_errcon_v_con_CT_Siemens <- dk %>% 
+  as_tibble() %>% 
+  left_join(multigroup_CFIs_CT_Siemens, by = c("label" = "region")) %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = errcon_v_con)) +
+    theme_void() +
+  scale_fill_continuous(name = "delta CFI",
+                        limits = c(min_deltaCFI_CT_Siemens, max_deltaCFI_CT_Siemens),
+                        type = "viridis") +
+  ggtitle("A. Constrained vs Between-subjects varying")
+
+deltaCFI_uncon_v_errcon_CT_Siemens <- dk %>% 
+  as_tibble() %>% 
+  left_join(multigroup_CFIs_CT_Siemens, by = c("label" = "region")) %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = uncon_v_errcon)) +
+    theme_void() +
+  scale_fill_continuous(name = "delta CFI",
+                        limits = c(min_deltaCFI_CT_Siemens, max_deltaCFI_CT_Siemens),
+                        type = "viridis") +
+  ggtitle("B. Between-subjects varying vs Unconstrained")
+
+deltaCFI_timecon_v_con_CT_Siemens <- dk %>% 
+  as_tibble() %>% 
+  left_join(multigroup_CFIs_CT_Siemens, by = c("label" = "region")) %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = timecon_v_con)) +
+    theme_void() +
+  scale_fill_continuous(name = "delta CFI",
+                        limits = c(min_deltaCFI_CT_Siemens, max_deltaCFI_CT_Siemens),
+                        type = "viridis") +
+  ggtitle("C. Constrained vs Error varying")
+
+deltaCFI_uncon_v_timecon_CT_Siemens <- dk %>% 
+  as_tibble() %>% 
+  left_join(multigroup_CFIs_CT_Siemens, by = c("label" = "region")) %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = uncon_v_timecon)) +
+    theme_void() +
+  scale_fill_continuous(name = "delta CFI",
+                        limits = c(min_deltaCFI_CT_Siemens, max_deltaCFI_CT_Siemens),
+                        type = "viridis") +
+  ggtitle("D. Error varying vs Unconstrained")
+
+deltaCFI_uncon_v_con_CT_Siemens <- dk %>% 
+  as_tibble() %>% 
+  left_join(multigroup_CFIs_CT_Siemens, by = c("label" = "region")) %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = uncon_v_con)) +
+    theme_void() +
+  scale_fill_continuous(name = "delta CFI",
+                        limits = c(min_deltaCFI_CT_Siemens, max_deltaCFI_CT_Siemens),
+                        type = "viridis") +
+  ggtitle("E. Constrained vs Unconstrained")
+
+ if(use_sim == FALSE){
+ Cairo(file = "8_supplement/Figure7_CT_Siemens.png",
+       type = "png",
+       units="in", 
+       width=6, 
+       height=6, 
+       pointsize=12, 
+       dpi=600)
+
+Figure7_CT_Siemens <- deltaCFI_errcon_v_con_CT_Siemens / deltaCFI_uncon_v_errcon_CT_Siemens / deltaCFI_timecon_v_con_CT_Siemens / deltaCFI_uncon_v_timecon_CT_Siemens / deltaCFI_uncon_v_con_CT_Siemens + plot_layout(guides = "collect") & theme(legend.position = "bottom", legend.key.width = unit(1, "cm"), legend.title.align=0.5)
+
+print(Figure7_CT_Siemens)
+
+ dev.off()
+}
+
+
+ if(use_sim == TRUE){
+ Cairo(file = "9_supplement_simulated/Figure7_CT_Siemens_sim.png",
+       type = "png",
+       units="in", 
+       width=6, 
+       height=6, 
+       pointsize=12, 
+       dpi=600)
+ 
+Figure7_CT_Siemens_sim <- deltaCFI_errcon_v_con_CT_Siemens / deltaCFI_uncon_v_errcon_CT_Siemens / deltaCFI_timecon_v_con_CT_Siemens / deltaCFI_uncon_v_timecon_CT_Siemens / deltaCFI_uncon_v_con_CT_Siemens + plot_layout(guides = "collect") & theme(legend.position = "bottom", legend.key.width = unit(1, "cm"), legend.title.align=0.5)
+ 
+ print(Figure7_CT_Siemens_sim)
+ 
+ dev.off()
+ }
+```
+
+
+# by scanners - SA
+
+```{r multigroup_CFIs_SA_scanners}
+#multigroup_CFIs_SA_scanners <- read.csv("2_analysis_output/multigroup_CFIs_SA_scanners.csv")
+
+multigroup_CFIs_SA_scanners <- multigroup_CFIs_SA_scanners %>%
+  mutate(errcon_v_con = m_e_constrained - m_constrained,
+         uncon_v_errcon = m_unconstrained - m_e_constrained,
+         timecon_v_con = m_time_constrained - m_constrained,
+         uncon_v_timecon = m_unconstrained - m_time_constrained,
+         uncon_v_con = m_unconstrained - m_constrained)
+
+min_deltaCFI_SA_scanners <- multigroup_CFIs_SA_scanners %>%
+  select(errcon_v_con, uncon_v_errcon, timecon_v_con, uncon_v_timecon, uncon_v_con) %>%
+  min(na.rm = TRUE)
+
+max_deltaCFI_SA_scanners <- multigroup_CFIs_SA_scanners %>%
+  select(errcon_v_con, uncon_v_errcon, timecon_v_con, uncon_v_timecon, uncon_v_con) %>%
+  max(na.rm = TRUE)
+
+# for added info
+
+multigroup_CFIs_SA_scanners %>%
+  pivot_longer(cols = c(errcon_v_con,
+uncon_v_errcon,
+timecon_v_con,
+uncon_v_timecon,
+uncon_v_con),
+               names_to = "model",
+               values_to = "deltaCFI") %>%
+  group_by(model) %>%
+  summarise(n_01 = sum(deltaCFI > .01)/n(),
+            n_02 = sum(deltaCFI > .02)/n())
+# 1 errcon_v_con    0.324  0.191
+# 2 timecon_v_con   0.985  0.971
+# 3 uncon_v_con     0.985  0.985
+# 4 uncon_v_errcon  0.985  0.971
+# 5 uncon_v_timecon 0.0441 0 
+
+
+multigroup_CFIs_SA_scanners %>%
+  pivot_longer(cols = c(errcon_v_con,
+uncon_v_errcon,
+timecon_v_con,
+uncon_v_timecon,
+uncon_v_con),
+               names_to = "model",
+               values_to = "deltaCFI") %>%
+  group_by(model) %>%
+  summarise(n_0 = sum(deltaCFI < 0)/n())
+
+deltaCFI_errcon_v_con_SA_scanners <- dk %>% 
+  as_tibble() %>% 
+  left_join(multigroup_CFIs_SA_scanners, by = c("label" = "region")) %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = errcon_v_con)) +
+    theme_void() +
+  scale_fill_continuous(name = "delta CFI",
+                        limits = c(min_deltaCFI_SA_scanners, max_deltaCFI_SA_scanners),
+                        type = "viridis") +
+  ggtitle("A. Constrained vs Between-subjects varying")
+
+deltaCFI_uncon_v_errcon_SA_scanners <- dk %>% 
+  as_tibble() %>% 
+  left_join(multigroup_CFIs_SA_scanners, by = c("label" = "region")) %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = uncon_v_errcon)) +
+    theme_void() +
+  scale_fill_continuous(name = "delta CFI",
+                        limits = c(min_deltaCFI_SA_scanners, max_deltaCFI_SA_scanners),
+                        type = "viridis") +
+  ggtitle("B. Between-subjects varying vs Unconstrained")
+
+deltaCFI_timecon_v_con_SA_scanners <- dk %>% 
+  as_tibble() %>% 
+  left_join(multigroup_CFIs_SA_scanners, by = c("label" = "region")) %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = timecon_v_con)) +
+    theme_void() +
+  scale_fill_continuous(name = "delta CFI",
+                        limits = c(min_deltaCFI_SA_scanners, max_deltaCFI_SA_scanners),
+                        type = "viridis") +
+  ggtitle("C. Constrained vs Error varying")
+
+deltaCFI_uncon_v_timecon_SA_scanners <- dk %>% 
+  as_tibble() %>% 
+  left_join(multigroup_CFIs_SA_scanners, by = c("label" = "region")) %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = uncon_v_timecon)) +
+    theme_void() +
+  scale_fill_continuous(name = "delta CFI",
+                        limits = c(min_deltaCFI_SA_scanners, max_deltaCFI_SA_scanners),
+                        type = "viridis") +
+  ggtitle("D. Error varying vs Unconstrained")
+
+deltaCFI_uncon_v_con_SA_scanners <- dk %>% 
+  as_tibble() %>% 
+  left_join(multigroup_CFIs_SA_scanners, by = c("label" = "region")) %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = uncon_v_con)) +
+    theme_void() +
+  scale_fill_continuous(name = "delta CFI",
+                        limits = c(min_deltaCFI_SA_scanners, max_deltaCFI_SA_scanners),
+                        type = "viridis") +
+  ggtitle("E. Constrained vs Unconstrained")
+
+ if(use_sim == FALSE){
+ Cairo(file = "8_supplement/Figure7_SA_scanners.png",
+       type = "png",
+       units="in", 
+       width=6, 
+       height=6, 
+       pointsize=12, 
+       dpi=600)
+
+Figure7_scanners <- deltaCFI_errcon_v_con_SA_scanners / deltaCFI_uncon_v_errcon_SA_scanners / deltaCFI_timecon_v_con_SA_scanners / deltaCFI_uncon_v_timecon_SA_scanners / deltaCFI_uncon_v_con_SA_scanners + plot_layout(guides = "collect") & theme(legend.position = "bottom", legend.key.width = unit(1, "cm"), legend.title.align=0.5)
+
+print(Figure7_scanners)
+
+ dev.off()
+ }
+
+
+ if(use_sim == TRUE){
+ Cairo(file = "9_supplement_simulated/Figure7_SA_scanners_sim.png",
+       type = "png",
+       units="in", 
+       width=6, 
+       height=6, 
+       pointsize=12, 
+       dpi=600)
+ 
+Figure7_scanners_sim <- deltaCFI_errcon_v_con_SA_scanners / deltaCFI_uncon_v_errcon_SA_scanners / deltaCFI_timecon_v_con_SA_scanners / deltaCFI_uncon_v_timecon_SA_scanners / deltaCFI_uncon_v_con_SA_scanners + plot_layout(guides = "collect") & theme(legend.position = "bottom", legend.key.width = unit(1, "cm"), legend.title.align=0.5)
+
+ 
+ print(Figure7_scanners_sim)
+ 
+ dev.off()
+ }
+
+```
+
+```{r betweenanderrormain_SA_regions_scanners}
+
+by_ROI_SA_box_error_scanner <- between_error_SA_scanner %>%
+  filter(grepl("rh_", ROI)) %>%
+  mutate(ROI = str_replace(ROI, "rh_", "")) %>%
+  ggplot(aes(x = reorder(ROI, -time_var, FUN = median),
+             y = error_var)) +
+  geom_point(aes(colour = site),
+             position = position_jitter(width = .25),
+             size = 1.3) +
+      geom_boxplot(outlier.shape = NA, 
+                   width = .8, 
+                   colour = "BLACK",
+                   alpha = 0.2,
+                   size = .3) +
+  coord_flip() +
+  theme_minimal() +
+  theme(legend.position = "none",
+        axis.title.y = element_blank(),
+        axis.text.y = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(colour = "grey50"),
+        axis.title.x = element_text(size = 14)) +
+  ylab("Error variance")
+
+by_ROI_SA_box_time_scanner <- between_error_SA_scanner %>%
+    filter(grepl("rh_", ROI)) %>%
+    mutate(ROI = str_replace(ROI, "rh_", "")) %>%
+  ggplot(aes(x = reorder(ROI, -time_var, FUN = median),
+             y = time_var)) +
+  geom_point(aes(colour = site),
+             position = position_jitter(width = .25),
+             size = 1.3) +
+      geom_boxplot(outlier.shape = NA, 
+                   width = .8, 
+                   colour = "BLACK",
+                   alpha = 0.2,
+                   size = .3) +
+  coord_flip() +
+  theme_minimal() +
+  theme(legend.position = "none",
+        axis.title.y = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(colour = "grey50"),
+        axis.text.y = element_text(size = 12),
+        axis.title.x = element_text(size = 14)) +
+  ylab("Between-subjects variance")
+
+by_ROI_ICC_SA_scanner <- between_error_SA_scanner %>%
+  filter(grepl("rh_", ROI)) %>%
+  mutate(ROI = str_replace(ROI, "rh_", "")) %>%
+  group_by(ROI) %>%
+  summarise(m_ICC = median(ICC),
+            m_time = median(time_var)) %>%
+  ggplot(aes(x = reorder(ROI, -m_time),
+             y = "ICC")) +
+   geom_text(aes(label = round(m_ICC,2)),
+            size = 3.5) +
+   coord_flip() +
+  theme_minimal() +
+  theme(legend.position = "none",
+        axis.title.y = element_blank(),
+        axis.text = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_blank(),
+        axis.title.x = element_text(size = 14)) +
+  ylab("ICC")
+
+ if(use_sim == FALSE){
+ Cairo(file = "8_supplement/Figure4_SA_scanners.png",
+       type = "png",
+       units="in", 
+       width=8, 
+       height=8, 
+       pointsize=12, 
+       dpi=600)
+
+Figure_4_scanner <- by_ROI_SA_box_time_scanner + by_ROI_SA_box_error_scanner + by_ROI_ICC_SA_scanner + plot_layout(widths = c(4,4,1))
+
+print(Figure_4_scanner)
+
+ dev.off()
+ }
+ 
+ if(use_sim == TRUE){
+ Cairo(file = "9_supplement_simulated/Figure4_SA_scanner_sim.png",
+       type = "png",
+       units="in", 
+       width=8, 
+       height=8, 
+       pointsize=12, 
+       dpi=600)
+ 
+Figure_4_scanner_sim <- by_ROI_SA_box_time_scanner + by_ROI_SA_box_error_scanner + by_ROI_ICC_SA_scanner + plot_layout(widths = c(4,4,1))
+
+print(Figure_4_scanner_sim)
+ 
+ dev.off()
+ }
+
+
+```
+
+```{r betweenanderrormain_SA_sites_scanners}
+
+between_error_SA_scanner %>%
+  group_by(ROI, site) %>%
+  summarise(median_t = median(time_var),
+            median_e = median(error_var)) %>%
+  ungroup() %>%
+  summarise(median_t2 = median(median_t),
+            quantilet25 = quantile(median_t, .1),
+            quantilet75 = quantile(median_t, .9),
+
+            median_e2 = median(median_e),
+            quantilee25 = quantile(median_e, .1),
+            quantilee75 = quantile(median_e, .9))
+
+
+#################
+
+by_site_SA_box_error_scanner <- between_error_SA_scanner %>%
+  ggplot(aes(x = reorder(site, -error_var, FUN = median),
+             y = error_var)) +
+  geom_point(aes(colour = site),
+             position = position_jitter(width = .25),
+             size = 1.3) +
+      geom_boxplot(outlier.shape = NA, 
+                   width = .8, 
+                   colour = "BLACK",
+                   alpha = 0.2,
+                   size = .3) +
+  coord_flip() +
+  theme_minimal() +
+  theme(legend.position = "none",
+        axis.title.y = element_blank(),
+        axis.text.y = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(colour = "grey50")) +
+  ylab("Error variance")
+
+
+by_site_SA_box_true_scanner <- between_error_SA_scanner %>%
+  ggplot(aes(x = reorder(site, -error_var, FUN = median),
+             y = time_var)) +
+  geom_point(aes(colour = site),
+             position = position_jitter(width = .25),
+             size = 1.3) +
+      geom_boxplot(outlier.shape = NA, 
+                   width = .8, 
+                   colour = "BLACK",
+                   alpha = 0.2,
+                   size = .3) +
+  coord_flip() +
+  theme_minimal() +
+  theme(legend.position = "none",
+        axis.title.y = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(colour = "grey50"),
+        axis.text.y = element_text(size = 12)) +
+  ylab("Between-subjects variance")
+
+
+by_site_ICC_SA_scanner <- between_error_SA_scanner %>%
+  filter(grepl("rh_", ROI)) %>%
+  mutate(ROI = str_replace(ROI, "rh_", "")) %>%
+  group_by(site) %>%
+  summarise(m_ICC = median(ICC),
+            m_error = median(error_var)) %>%
+  ggplot(aes(x = reorder(site, -m_error),
+             y = "ICC")) +
+   geom_text(aes(label = round(m_ICC,2)),
+            size = 3.5) +
+   coord_flip() +
+  theme_minimal() +
+  theme(legend.position = "none",
+        axis.title.y = element_blank(),
+        axis.text = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_blank()) +
+  ylab("ICC")
+
+ if(use_sim == FALSE){
+ Cairo(file = "8_supplement/Figure5_SA_scanners.png",
+       type = "png",
+       units="in", 
+       width=6, 
+       height=6, 
+       pointsize=12, 
+       dpi=600)
+
+Figure_5_scanner <- by_site_SA_box_true_scanner + by_site_SA_box_error_scanner + by_site_ICC_SA_scanner + plot_layout(widths = c(4,4,1))
+
+print(Figure_5_scanner)
+
+ dev.off()
+ }
+
+
+ if(use_sim == TRUE){
+ Cairo(file = "9_supplement_simulated/Figure5_SA_scanner_sim.png",
+       type = "png",
+       units="in", 
+       width=6, 
+       height=6, 
+       pointsize=12, 
+       dpi=600)
+ 
+ Figure_5_SA_scanner_sim <- by_site_SA_box_true_scanner + by_site_SA_box_error_scanner + by_site_ICC_SA_scanner + plot_layout(widths = c(4,4,1))
+ 
+ print(Figure_5_SA_scanner_sim)
+ 
+ dev.off()
+ }
+
+```
+
+# by site within scanners - SA
+
+
+```{r multigroup_CFIs_SA_Philips}
+#multigroup_CFIs_SA_Philips <- read.csv("2_analysis_output/multigroup_CFIs_SA_Philips.csv")
+
+multigroup_CFIs_SA_Philips <- multigroup_CFIs_SA_Philips %>%
+  mutate(errcon_v_con = m_e_constrained - m_constrained,
+         uncon_v_errcon = m_unconstrained - m_e_constrained,
+         timecon_v_con = m_time_constrained - m_constrained,
+         uncon_v_timecon = m_unconstrained - m_time_constrained,
+         uncon_v_con = m_unconstrained - m_constrained)
+
+min_deltaCFI_SA_Philips <- multigroup_CFIs_SA_Philips %>%
+  select(errcon_v_con, uncon_v_errcon, timecon_v_con, uncon_v_timecon, uncon_v_con) %>%
+  min(na.rm = TRUE)
+
+max_deltaCFI_SA_Philips <- multigroup_CFIs_SA_Philips %>%
+  select(errcon_v_con, uncon_v_errcon, timecon_v_con, uncon_v_timecon, uncon_v_con) %>%
+  max(na.rm = TRUE)
+
+# for added info
+
+multigroup_CFIs_SA_Philips %>%
+  pivot_longer(cols = c(errcon_v_con,
+uncon_v_errcon,
+timecon_v_con,
+uncon_v_timecon,
+uncon_v_con),
+               names_to = "model",
+               values_to = "deltaCFI") %>%
+  group_by(model) %>%
+  summarise(n_01 = sum(deltaCFI > .01)/n(),
+            n_02 = sum(deltaCFI > .02)/n())
+# 1 errcon_v_con    0.324  0.191
+# 2 timecon_v_con   0.985  0.971
+# 3 uncon_v_con     0.985  0.985
+# 4 uncon_v_errcon  0.985  0.971
+# 5 uncon_v_timecon 0.0441 0 
+
+
+multigroup_CFIs_SA_Philips %>%
+  pivot_longer(cols = c(errcon_v_con,
+uncon_v_errcon,
+timecon_v_con,
+uncon_v_timecon,
+uncon_v_con),
+               names_to = "model",
+               values_to = "deltaCFI") %>%
+  group_by(model) %>%
+  summarise(n_0 = sum(deltaCFI < 0)/n())
+
+deltaCFI_errcon_v_con_SA_Philips <- dk %>% 
+  as_tibble() %>% 
+  left_join(multigroup_CFIs_SA_Philips, by = c("label" = "region")) %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = errcon_v_con)) +
+    theme_void() +
+  scale_fill_continuous(name = "delta CFI",
+                        limits = c(min_deltaCFI_SA_Philips, max_deltaCFI_SA_Philips),
+                        type = "viridis") +
+  ggtitle("A. Constrained vs Between-subjects varying")
+
+deltaCFI_uncon_v_errcon_SA_Philips <- dk %>% 
+  as_tibble() %>% 
+  left_join(multigroup_CFIs_SA_Philips, by = c("label" = "region")) %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = uncon_v_errcon)) +
+    theme_void() +
+  scale_fill_continuous(name = "delta CFI",
+                        limits = c(min_deltaCFI_SA_Philips, max_deltaCFI_SA_Philips),
+                        type = "viridis") +
+  ggtitle("B. Between-subjects varying vs Unconstrained")
+
+deltaCFI_timecon_v_con_SA_Philips <- dk %>% 
+  as_tibble() %>% 
+  left_join(multigroup_CFIs_SA_Philips, by = c("label" = "region")) %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = timecon_v_con)) +
+    theme_void() +
+  scale_fill_continuous(name = "delta CFI",
+                        limits = c(min_deltaCFI_SA_Philips, max_deltaCFI_SA_Philips),
+                        type = "viridis") +
+  ggtitle("C. Constrained vs Error varying")
+
+deltaCFI_uncon_v_timecon_SA_Philips <- dk %>% 
+  as_tibble() %>% 
+  left_join(multigroup_CFIs_SA_Philips, by = c("label" = "region")) %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = uncon_v_timecon)) +
+    theme_void() +
+  scale_fill_continuous(name = "delta CFI",
+                        limits = c(min_deltaCFI_SA_Philips, max_deltaCFI_SA_Philips),
+                        type = "viridis") +
+  ggtitle("D. Error varying vs Unconstrained")
+
+deltaCFI_uncon_v_con_SA_Philips <- dk %>% 
+  as_tibble() %>% 
+  left_join(multigroup_CFIs_SA_Philips, by = c("label" = "region")) %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = uncon_v_con)) +
+    theme_void() +
+  scale_fill_continuous(name = "delta CFI",
+                        limits = c(min_deltaCFI_SA_Philips, max_deltaCFI_SA_Philips),
+                        type = "viridis") +
+  ggtitle("E. Constrained vs Unconstrained")
+
+ if(use_sim == FALSE){
+ Cairo(file = "8_supplement/Figure7_SA_Philips.png",
+       type = "png",
+       units="in", 
+       width=6, 
+       height=6, 
+       pointsize=12, 
+       dpi=600)
+
+Figure7_SA_Philips <- deltaCFI_errcon_v_con_SA_Philips / deltaCFI_uncon_v_errcon_SA_Philips / deltaCFI_timecon_v_con_SA_Philips / deltaCFI_uncon_v_timecon_SA_Philips / deltaCFI_uncon_v_con_SA_Philips + plot_layout(guides = "collect") & theme(legend.position = "bottom", legend.key.width = unit(1, "cm"), legend.title.align=0.5)
+
+print(Figure7_SA_Philips)
+
+ dev.off()
+}
+
+
+ if(use_sim == TRUE){
+ Cairo(file = "9_supplement_simulated/Figure7_SA_Philips_sim.png",
+       type = "png",
+       units="in", 
+       width=6, 
+       height=6, 
+       pointsize=12, 
+       dpi=600)
+ 
+ Figure7_SA_Philips_sim <- deltaCFI_errcon_v_con_SA_Philips / deltaCFI_uncon_v_errcon_SA_Philips / deltaCFI_timecon_v_con_SA_Philips / deltaCFI_uncon_v_timecon_SA_Philips / deltaCFI_uncon_v_con_SA_Philips + plot_layout(guides = "collect") & theme(legend.position = "bottom", legend.key.width = unit(1, "cm"), legend.title.align=0.5)
+ 
+ print(Figure7_SA_Philips_sim)
+ 
+ dev.off()
+ }
+```
+
+```{r multigroup_CFIs_SA_GE}
+#multigroup_CFIs_SA_GE <- read.csv("2_analysis_output/multigroup_CFIs_SA_GE.csv")
+
+
+multigroup_CFIs_SA_GE <- multigroup_CFIs_SA_GE %>%
+  mutate(errcon_v_con = m_e_constrained - m_constrained,
+         uncon_v_errcon = m_unconstrained - m_e_constrained,
+         timecon_v_con = m_time_constrained - m_constrained,
+         uncon_v_timecon = m_unconstrained - m_time_constrained,
+         uncon_v_con = m_unconstrained - m_constrained)
+
+min_deltaCFI_SA_GE <- multigroup_CFIs_SA_GE %>%
+  select(errcon_v_con, uncon_v_errcon, timecon_v_con, uncon_v_timecon, uncon_v_con) %>%
+  min(na.rm = TRUE)
+
+max_deltaCFI_SA_GE <- multigroup_CFIs_SA_GE %>%
+  select(errcon_v_con, uncon_v_errcon, timecon_v_con, uncon_v_timecon, uncon_v_con) %>%
+  max(na.rm = TRUE)
+
+# for added info
+
+multigroup_CFIs_SA_GE %>%
+  pivot_longer(cols = c(errcon_v_con,
+uncon_v_errcon,
+timecon_v_con,
+uncon_v_timecon,
+uncon_v_con),
+               names_to = "model",
+               values_to = "deltaCFI") %>%
+  group_by(model) %>%
+  summarise(n_01 = sum(deltaCFI > .01)/n(),
+            n_02 = sum(deltaCFI > .02)/n())
+# 1 errcon_v_con    0.324  0.191
+# 2 timecon_v_con   0.985  0.971
+# 3 uncon_v_con     0.985  0.985
+# 4 uncon_v_errcon  0.985  0.971
+# 5 uncon_v_timecon 0.0441 0 
+
+
+multigroup_CFIs_SA_GE %>%
+  pivot_longer(cols = c(errcon_v_con,
+uncon_v_errcon,
+timecon_v_con,
+uncon_v_timecon,
+uncon_v_con),
+               names_to = "model",
+               values_to = "deltaCFI") %>%
+  group_by(model) %>%
+  summarise(n_0 = sum(deltaCFI < 0)/n())
+
+deltaCFI_errcon_v_con_SA_GE <- dk %>% 
+  as_tibble() %>% 
+  left_join(multigroup_CFIs_SA_GE, by = c("label" = "region")) %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = errcon_v_con)) +
+    theme_void() +
+  scale_fill_continuous(name = "delta CFI",
+                        limits = c(min_deltaCFI_SA_GE, max_deltaCFI_SA_GE),
+                        type = "viridis") +
+  ggtitle("A. Constrained vs Between-subjects varying")
+
+deltaCFI_uncon_v_errcon_SA_GE <- dk %>% 
+  as_tibble() %>% 
+  left_join(multigroup_CFIs_SA_GE, by = c("label" = "region")) %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = uncon_v_errcon)) +
+    theme_void() +
+  scale_fill_continuous(name = "delta CFI",
+                        limits = c(min_deltaCFI_SA_GE, max_deltaCFI_SA_GE),
+                        type = "viridis") +
+  ggtitle("B. Between-subjects varying vs Unconstrained")
+
+deltaCFI_timecon_v_con_SA_GE <- dk %>% 
+  as_tibble() %>% 
+  left_join(multigroup_CFIs_SA_GE, by = c("label" = "region")) %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = timecon_v_con)) +
+    theme_void() +
+  scale_fill_continuous(name = "delta CFI",
+                        limits = c(min_deltaCFI_SA_GE, max_deltaCFI_SA_GE),
+                        type = "viridis") +
+  ggtitle("C. Constrained vs Error varying")
+
+deltaCFI_uncon_v_timecon_SA_GE <- dk %>% 
+  as_tibble() %>% 
+  left_join(multigroup_CFIs_SA_GE, by = c("label" = "region")) %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = uncon_v_timecon)) +
+    theme_void() +
+  scale_fill_continuous(name = "delta CFI",
+                        limits = c(min_deltaCFI_SA_GE, max_deltaCFI_SA_GE),
+                        type = "viridis") +
+  ggtitle("D. Error varying vs Unconstrained")
+
+deltaCFI_uncon_v_con_SA_GE <- dk %>% 
+  as_tibble() %>% 
+  left_join(multigroup_CFIs_SA_GE, by = c("label" = "region")) %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = uncon_v_con)) +
+    theme_void() +
+  scale_fill_continuous(name = "delta CFI",
+                        limits = c(min_deltaCFI_SA_GE, max_deltaCFI_SA_GE),
+                        type = "viridis") +
+  ggtitle("E. Constrained vs Unconstrained")
+
+ if(use_sim == FALSE){
+ Cairo(file = "8_supplement/Figure7_SA_GE.png",
+       type = "png",
+       units="in", 
+       width=6, 
+       height=6, 
+       pointsize=12, 
+       dpi=600)
+
+Figure7_GE <- deltaCFI_errcon_v_con_SA_GE / deltaCFI_uncon_v_errcon_SA_GE / deltaCFI_timecon_v_con_SA_GE / deltaCFI_uncon_v_timecon_SA_GE / deltaCFI_uncon_v_con_SA_GE + plot_layout(guides = "collect") & theme(legend.position = "bottom", legend.key.width = unit(1, "cm"), legend.title.align=0.5)
+
+print(Figure7_GE)
+
+ dev.off()
+}
+
+
+ if(use_sim == TRUE){
+ Cairo(file = "9_supplement_simulated/Figure7_SA_GE_sim.png",
+       type = "png",
+       units="in", 
+       width=6, 
+       height=6, 
+       pointsize=12, 
+       dpi=600)
+ 
+Figure7_SA_GE_sim <- deltaCFI_errcon_v_con_SA_GE / deltaCFI_uncon_v_errcon_SA_GE / deltaCFI_timecon_v_con_SA_GE / deltaCFI_uncon_v_timecon_SA_GE / deltaCFI_uncon_v_con_SA_GE + plot_layout(guides = "collect") & theme(legend.position = "bottom", legend.key.width = unit(1, "cm"), legend.title.align=0.5)
+ 
+ print(Figure7_SA_GE_sim)
+ 
+ dev.off()
+ }
+```
+
+```{r multigroup_CFIs_SA_Siemens}
+
+#multigroup_CFIs_SA_Siemens <- read.csv("2_analysis_output/multigroup_CFIs_SA_Siemens.csv")
+multigroup_CFIs_SA_Siemens <- multigroup_CFIs_SA_Siemens %>%
+  mutate(errcon_v_con = m_e_constrained - m_constrained,
+         uncon_v_errcon = m_unconstrained - m_e_constrained,
+         timecon_v_con = m_time_constrained - m_constrained,
+         uncon_v_timecon = m_unconstrained - m_time_constrained,
+         uncon_v_con = m_unconstrained - m_constrained)
+
+min_deltaCFI_SA_Siemens <- multigroup_CFIs_SA_Siemens %>%
+  select(errcon_v_con, uncon_v_errcon, timecon_v_con, uncon_v_timecon, uncon_v_con) %>%
+  min(na.rm = TRUE)
+
+max_deltaCFI_SA_Siemens <- multigroup_CFIs_SA_Siemens %>%
+  select(errcon_v_con, uncon_v_errcon, timecon_v_con, uncon_v_timecon, uncon_v_con) %>%
+  max(na.rm = TRUE)
+
+# for added info
+
+multigroup_CFIs_SA_Siemens %>%
+  pivot_longer(cols = c(errcon_v_con,
+uncon_v_errcon,
+timecon_v_con,
+uncon_v_timecon,
+uncon_v_con),
+               names_to = "model",
+               values_to = "deltaCFI") %>%
+  group_by(model) %>%
+  summarise(n_01 = sum(deltaCFI > .01)/n(),
+            n_02 = sum(deltaCFI > .02)/n())
+# 1 errcon_v_con    0.324  0.191
+# 2 timecon_v_con   0.985  0.971
+# 3 uncon_v_con     0.985  0.985
+# 4 uncon_v_errcon  0.985  0.971
+# 5 uncon_v_timecon 0.0441 0 
+
+
+multigroup_CFIs_SA_Siemens %>%
+  pivot_longer(cols = c(errcon_v_con,
+uncon_v_errcon,
+timecon_v_con,
+uncon_v_timecon,
+uncon_v_con),
+               names_to = "model",
+               values_to = "deltaCFI") %>%
+  group_by(model) %>%
+  summarise(n_0 = sum(deltaCFI < 0)/n())
+
+deltaCFI_errcon_v_con_SA_Siemens <- dk %>% 
+  as_tibble() %>% 
+  left_join(multigroup_CFIs_SA_Siemens, by = c("label" = "region")) %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = errcon_v_con)) +
+    theme_void() +
+  scale_fill_continuous(name = "delta CFI",
+                        limits = c(min_deltaCFI_SA_Siemens, max_deltaCFI_SA_Siemens),
+                        type = "viridis") +
+  ggtitle("A. Constrained vs Between-subjects varying")
+
+deltaCFI_uncon_v_errcon_SA_Siemens <- dk %>% 
+  as_tibble() %>% 
+  left_join(multigroup_CFIs_SA_Siemens, by = c("label" = "region")) %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = uncon_v_errcon)) +
+    theme_void() +
+  scale_fill_continuous(name = "delta CFI",
+                        limits = c(min_deltaCFI_SA_Siemens, max_deltaCFI_SA_Siemens),
+                        type = "viridis") +
+  ggtitle("B. Between-subjects varying vs Unconstrained")
+
+deltaCFI_timecon_v_con_SA_Siemens <- dk %>% 
+  as_tibble() %>% 
+  left_join(multigroup_CFIs_SA_Siemens, by = c("label" = "region")) %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = timecon_v_con)) +
+    theme_void() +
+  scale_fill_continuous(name = "delta CFI",
+                        limits = c(min_deltaCFI_SA_Siemens, max_deltaCFI_SA_Siemens),
+                        type = "viridis") +
+  ggtitle("C. Constrained vs Error varying")
+
+deltaCFI_uncon_v_timecon_SA_Siemens <- dk %>% 
+  as_tibble() %>% 
+  left_join(multigroup_CFIs_SA_Siemens, by = c("label" = "region")) %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = uncon_v_timecon)) +
+    theme_void() +
+  scale_fill_continuous(name = "delta CFI",
+                        limits = c(min_deltaCFI_SA_Siemens, max_deltaCFI_SA_Siemens),
+                        type = "viridis") +
+  ggtitle("D. Error varying vs Unconstrained")
+
+deltaCFI_uncon_v_con_SA_Siemens <- dk %>% 
+  as_tibble() %>% 
+  left_join(multigroup_CFIs_SA_Siemens, by = c("label" = "region")) %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = uncon_v_con)) +
+    theme_void() +
+  scale_fill_continuous(name = "delta CFI",
+                        limits = c(min_deltaCFI_SA_Siemens, max_deltaCFI_SA_Siemens),
+                        type = "viridis") +
+  ggtitle("E. Constrained vs Unconstrained")
+
+ if(use_sim == FALSE){
+ Cairo(file = "8_supplement/Figure7_SA_Siemens.png",
+       type = "png",
+       units="in", 
+       width=6, 
+       height=6, 
+       pointsize=12, 
+       dpi=600)
+
+Figure7_SA_Siemens <- deltaCFI_errcon_v_con_SA_Siemens / deltaCFI_uncon_v_errcon_SA_Siemens / deltaCFI_timecon_v_con_SA_Siemens / deltaCFI_uncon_v_timecon_SA_Siemens / deltaCFI_uncon_v_con_SA_Siemens + plot_layout(guides = "collect") & theme(legend.position = "bottom", legend.key.width = unit(1, "cm"), legend.title.align=0.5)
+
+print(Figure7_SA_Siemens)
+
+ dev.off()
+}
+
+
+ if(use_sim == TRUE){
+ Cairo(file = "9_supplement_simulated/Figure7_SA_Siemens_sim.png",
+       type = "png",
+       units="in", 
+       width=6, 
+       height=6, 
+       pointsize=12, 
+       dpi=600)
+ 
+Figure7_SA_Siemens_sim <- deltaCFI_errcon_v_con_SA_Siemens / deltaCFI_uncon_v_errcon_SA_Siemens / deltaCFI_timecon_v_con_SA_Siemens / deltaCFI_uncon_v_timecon_SA_Siemens / deltaCFI_uncon_v_con_SA_Siemens + plot_layout(guides = "collect") & theme(legend.position = "bottom", legend.key.width = unit(1, "cm"), legend.title.align=0.5)
+ 
+ print(Figure7_SA_Siemens_sim)
+ 
+ dev.off()
+ }
+```
+
+
+# by scanners - GM
+
+```{r multigroup_CFIs_GM_scanners}
+#multigroup_CFIs_GM_scanners <- read.csv("2_analysis_output/multigroup_CFIs_GM_scanners.csv")
+
+multigroup_CFIs_GM_scanners <- multigroup_CFIs_GM_scanners %>%
+  mutate(errcon_v_con = m_e_constrained - m_constrained,
+         uncon_v_errcon = m_unconstrained - m_e_constrained,
+         timecon_v_con = m_time_constrained - m_constrained,
+         uncon_v_timecon = m_unconstrained - m_time_constrained,
+         uncon_v_con = m_unconstrained - m_constrained)
+
+min_deltaCFI_GM_scanners <- multigroup_CFIs_GM_scanners %>%
+  select(errcon_v_con, uncon_v_errcon, timecon_v_con, uncon_v_timecon, uncon_v_con) %>%
+  min(na.rm = TRUE)
+
+max_deltaCFI_GM_scanners <- multigroup_CFIs_GM_scanners %>%
+  select(errcon_v_con, uncon_v_errcon, timecon_v_con, uncon_v_timecon, uncon_v_con) %>%
+  max(na.rm = TRUE)
+
+# for added info
+
+multigroup_CFIs_GM_scanners %>%
+  pivot_longer(cols = c(errcon_v_con,
+uncon_v_errcon,
+timecon_v_con,
+uncon_v_timecon,
+uncon_v_con),
+               names_to = "model",
+               values_to = "deltaCFI") %>%
+  group_by(model) %>%
+  summarise(n_01 = sum(deltaCFI > .01)/n(),
+            n_02 = sum(deltaCFI > .02)/n())
+# 1 errcon_v_con    0.324  0.191
+# 2 timecon_v_con   0.985  0.971
+# 3 uncon_v_con     0.985  0.985
+# 4 uncon_v_errcon  0.985  0.971
+# 5 uncon_v_timecon 0.0441 0 
+
+
+multigroup_CFIs_GM_scanners %>%
+  pivot_longer(cols = c(errcon_v_con,
+uncon_v_errcon,
+timecon_v_con,
+uncon_v_timecon,
+uncon_v_con),
+               names_to = "model",
+               values_to = "deltaCFI") %>%
+  group_by(model) %>%
+  summarise(n_0 = sum(deltaCFI < 0)/n())
+
+deltaCFI_errcon_v_con_GM_scanners <- dk %>% 
+  as_tibble() %>% 
+  left_join(multigroup_CFIs_GM_scanners, by = c("label" = "region")) %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = errcon_v_con)) +
+    theme_void() +
+  scale_fill_continuous(name = "delta CFI",
+                        limits = c(min_deltaCFI_GM_scanners, max_deltaCFI_GM_scanners),
+                        type = "viridis") +
+  ggtitle("A. Constrained vs Between-subjects varying")
+
+deltaCFI_uncon_v_errcon_GM_scanners <- dk %>% 
+  as_tibble() %>% 
+  left_join(multigroup_CFIs_GM_scanners, by = c("label" = "region")) %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = uncon_v_errcon)) +
+    theme_void() +
+  scale_fill_continuous(name = "delta CFI",
+                        limits = c(min_deltaCFI_GM_scanners, max_deltaCFI_GM_scanners),
+                        type = "viridis") +
+  ggtitle("B. Between-subjects varying vs Unconstrained")
+
+deltaCFI_timecon_v_con_GM_scanners <- dk %>% 
+  as_tibble() %>% 
+  left_join(multigroup_CFIs_GM_scanners, by = c("label" = "region")) %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = timecon_v_con)) +
+    theme_void() +
+  scale_fill_continuous(name = "delta CFI",
+                        limits = c(min_deltaCFI_GM_scanners, max_deltaCFI_GM_scanners),
+                        type = "viridis") +
+  ggtitle("C. Constrained vs Error varying")
+
+deltaCFI_uncon_v_timecon_GM_scanners <- dk %>% 
+  as_tibble() %>% 
+  left_join(multigroup_CFIs_GM_scanners, by = c("label" = "region")) %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = uncon_v_timecon)) +
+    theme_void() +
+  scale_fill_continuous(name = "delta CFI",
+                        limits = c(min_deltaCFI_GM_scanners, max_deltaCFI_GM_scanners),
+                        type = "viridis") +
+  ggtitle("D. Error varying vs Unconstrained")
+
+deltaCFI_uncon_v_con_GM_scanners <- dk %>% 
+  as_tibble() %>% 
+  left_join(multigroup_CFIs_GM_scanners, by = c("label" = "region")) %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = uncon_v_con)) +
+    theme_void() +
+  scale_fill_continuous(name = "delta CFI",
+                        limits = c(min_deltaCFI_GM_scanners, max_deltaCFI_GM_scanners),
+                        type = "viridis") +
+  ggtitle("E. Constrained vs Unconstrained")
+
+ if(use_sim == FALSE){
+ Cairo(file = "8_supplement/Figure7_GM_scanners.png",
+       type = "png",
+       units="in", 
+       width=6, 
+       height=6, 
+       pointsize=12, 
+       dpi=600)
+
+Figure7_scanners <- deltaCFI_errcon_v_con_GM_scanners / deltaCFI_uncon_v_errcon_GM_scanners / deltaCFI_timecon_v_con_GM_scanners / deltaCFI_uncon_v_timecon_GM_scanners / deltaCFI_uncon_v_con_GM_scanners + plot_layout(guides = "collect") & theme(legend.position = "bottom", legend.key.width = unit(1, "cm"), legend.title.align=0.5)
+
+print(Figure7_scanners)
+
+ dev.off()
+ }
+
+
+ if(use_sim == TRUE){
+ Cairo(file = "9_supplement_simulated/Figure7_GM_scanners_sim.png",
+       type = "png",
+       units="in", 
+       width=6, 
+       height=6, 
+       pointsize=12, 
+       dpi=600)
+ 
+Figure7_scanners_sim <- deltaCFI_errcon_v_con_GM_scanners / deltaCFI_uncon_v_errcon_GM_scanners / deltaCFI_timecon_v_con_GM_scanners / deltaCFI_uncon_v_timecon_GM_scanners / deltaCFI_uncon_v_con_GM_scanners + plot_layout(guides = "collect") & theme(legend.position = "bottom", legend.key.width = unit(1, "cm"), legend.title.align=0.5)
+
+ 
+ print(Figure7_scanners_sim)
+ 
+ dev.off()
+ }
+
+```
+
+```{r betweenanderrormain_GM_regions_scanners}
+
+by_ROI_GM_box_error_scanner <- between_error_GM_scanner %>%
+  filter(grepl("rh_", ROI)) %>%
+  mutate(ROI = str_replace(ROI, "rh_", "")) %>%
+  ggplot(aes(x = reorder(ROI, -time_var, FUN = median),
+             y = error_var)) +
+  geom_point(aes(colour = site),
+             position = position_jitter(width = .25),
+             size = 1.3) +
+      geom_boxplot(outlier.shape = NA, 
+                   width = .8, 
+                   colour = "BLACK",
+                   alpha = 0.2,
+                   size = .3) +
+  coord_flip() +
+  theme_minimal() +
+  theme(legend.position = "none",
+        axis.title.y = element_blank(),
+        axis.text.y = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(colour = "grey50"),
+        axis.title.x = element_text(size = 14)) +
+  ylab("Error variance")
+
+by_ROI_GM_box_time_scanner <- between_error_GM_scanner %>%
+    filter(grepl("rh_", ROI)) %>%
+    mutate(ROI = str_replace(ROI, "rh_", "")) %>%
+  ggplot(aes(x = reorder(ROI, -time_var, FUN = median),
+             y = time_var)) +
+  geom_point(aes(colour = site),
+             position = position_jitter(width = .25),
+             size = 1.3) +
+      geom_boxplot(outlier.shape = NA, 
+                   width = .8, 
+                   colour = "BLACK",
+                   alpha = 0.2,
+                   size = .3) +
+  coord_flip() +
+  theme_minimal() +
+  theme(legend.position = "none",
+        axis.title.y = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(colour = "grey50"),
+        axis.text.y = element_text(size = 12),
+        axis.title.x = element_text(size = 14)) +
+  ylab("Between-subjects variance")
+
+by_ROI_ICC_GM_scanner <- between_error_GM_scanner %>%
+  filter(grepl("rh_", ROI)) %>%
+  mutate(ROI = str_replace(ROI, "rh_", "")) %>%
+  group_by(ROI) %>%
+  summarise(m_ICC = median(ICC),
+            m_time = median(time_var)) %>%
+  ggplot(aes(x = reorder(ROI, -m_time),
+             y = "ICC")) +
+   geom_text(aes(label = round(m_ICC,2)),
+            size = 3.5) +
+   coord_flip() +
+  theme_minimal() +
+  theme(legend.position = "none",
+        axis.title.y = element_blank(),
+        axis.text = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_blank(),
+        axis.title.x = element_text(size = 14)) +
+  ylab("ICC")
+
+ if(use_sim == FALSE){
+ Cairo(file = "8_supplement/Figure4_GM_scanners.png",
+       type = "png",
+       units="in", 
+       width=8, 
+       height=8, 
+       pointsize=12, 
+       dpi=600)
+
+Figure_4_scanner <- by_ROI_GM_box_time_scanner + by_ROI_GM_box_error_scanner + by_ROI_ICC_GM_scanner + plot_layout(widths = c(4,4,1))
+
+print(Figure_4_scanner)
+
+ dev.off()
+ }
+ 
+ if(use_sim == TRUE){
+ Cairo(file = "9_supplement_simulated/Figure4_GM_scanner_sim.png",
+       type = "png",
+       units="in", 
+       width=8, 
+       height=8, 
+       pointsize=12, 
+       dpi=600)
+ 
+Figure_4_scanner_sim <- by_ROI_GM_box_time_scanner + by_ROI_GM_box_error_scanner + by_ROI_ICC_GM_scanner + plot_layout(widths = c(4,4,1))
+
+print(Figure_4_scanner_sim)
+ 
+ dev.off()
+ }
+
+
+```
+
+```{r betweenanderrormain_GM_sites_scanners}
+
+between_error_GM_scanner %>%
+  group_by(ROI, site) %>%
+  summarise(median_t = median(time_var),
+            median_e = median(error_var)) %>%
+  ungroup() %>%
+  summarise(median_t2 = median(median_t),
+            quantilet25 = quantile(median_t, .1),
+            quantilet75 = quantile(median_t, .9),
+
+            median_e2 = median(median_e),
+            quantilee25 = quantile(median_e, .1),
+            quantilee75 = quantile(median_e, .9))
+
+
+#################
+
+by_site_GM_box_error_scanner <- between_error_GM_scanner %>%
+  ggplot(aes(x = reorder(site, -error_var, FUN = median),
+             y = error_var)) +
+  geom_point(aes(colour = site),
+             position = position_jitter(width = .25),
+             size = 1.3) +
+      geom_boxplot(outlier.shape = NA, 
+                   width = .8, 
+                   colour = "BLACK",
+                   alpha = 0.2,
+                   size = .3) +
+  coord_flip() +
+  theme_minimal() +
+  theme(legend.position = "none",
+        axis.title.y = element_blank(),
+        axis.text.y = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(colour = "grey50")) +
+  ylab("Error variance")
+
+
+by_site_GM_box_true_scanner <- between_error_GM_scanner %>%
+  ggplot(aes(x = reorder(site, -error_var, FUN = median),
+             y = time_var)) +
+  geom_point(aes(colour = site),
+             position = position_jitter(width = .25),
+             size = 1.3) +
+      geom_boxplot(outlier.shape = NA, 
+                   width = .8, 
+                   colour = "BLACK",
+                   alpha = 0.2,
+                   size = .3) +
+  coord_flip() +
+  theme_minimal() +
+  theme(legend.position = "none",
+        axis.title.y = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(colour = "grey50"),
+        axis.text.y = element_text(size = 12)) +
+  ylab("Between-subjects variance")
+
+
+by_site_ICC_GM_scanner <- between_error_GM_scanner %>%
+  filter(grepl("rh_", ROI)) %>%
+  mutate(ROI = str_replace(ROI, "rh_", "")) %>%
+  group_by(site) %>%
+  summarise(m_ICC = median(ICC),
+            m_error = median(error_var)) %>%
+  ggplot(aes(x = reorder(site, -m_error),
+             y = "ICC")) +
+   geom_text(aes(label = round(m_ICC,2)),
+            size = 3.5) +
+   coord_flip() +
+  theme_minimal() +
+  theme(legend.position = "none",
+        axis.title.y = element_blank(),
+        axis.text = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_blank()) +
+  ylab("ICC")
+
+ if(use_sim == FALSE){
+ Cairo(file = "8_supplement/Figure5_GM_scanners.png",
+       type = "png",
+       units="in", 
+       width=6, 
+       height=6, 
+       pointsize=12, 
+       dpi=600)
+
+Figure_5_scanner <- by_site_GM_box_true_scanner + by_site_GM_box_error_scanner + by_site_ICC_GM_scanner + plot_layout(widths = c(4,4,1))
+
+print(Figure_5_scanner)
+
+ dev.off()
+ }
+
+
+ if(use_sim == TRUE){
+ Cairo(file = "9_supplement_simulated/Figure5_GM_scanner_sim.png",
+       type = "png",
+       units="in", 
+       width=6, 
+       height=6, 
+       pointsize=12, 
+       dpi=600)
+ 
+ Figure_5_GM_scanner_sim <- by_site_GM_box_true_scanner + by_site_GM_box_error_scanner + by_site_ICC_GM_scanner + plot_layout(widths = c(4,4,1))
+ 
+ print(Figure_5_GM_scanner_sim)
+ 
+ dev.off()
+ }
+
+```
+
+# by site within scanners - GM
+
+
+```{r multigroup_CFIs_GM_Philips}
+#multigroup_CFIs_GM_Philips <- read.csv("2_analysis_output/multigroup_CFIs_GM_Philips.csv")
+
+multigroup_CFIs_GM_Philips <- multigroup_CFIs_GM_Philips %>%
+  mutate(errcon_v_con = m_e_constrained - m_constrained,
+         uncon_v_errcon = m_unconstrained - m_e_constrained,
+         timecon_v_con = m_time_constrained - m_constrained,
+         uncon_v_timecon = m_unconstrained - m_time_constrained,
+         uncon_v_con = m_unconstrained - m_constrained)
+
+min_deltaCFI_GM_Philips <- multigroup_CFIs_GM_Philips %>%
+  select(errcon_v_con, uncon_v_errcon, timecon_v_con, uncon_v_timecon, uncon_v_con) %>%
+  min(na.rm = TRUE)
+
+max_deltaCFI_GM_Philips <- multigroup_CFIs_GM_Philips %>%
+  select(errcon_v_con, uncon_v_errcon, timecon_v_con, uncon_v_timecon, uncon_v_con) %>%
+  max(na.rm = TRUE)
+
+# for added info
+
+multigroup_CFIs_GM_Philips %>%
+  pivot_longer(cols = c(errcon_v_con,
+uncon_v_errcon,
+timecon_v_con,
+uncon_v_timecon,
+uncon_v_con),
+               names_to = "model",
+               values_to = "deltaCFI") %>%
+  group_by(model) %>%
+  summarise(n_01 = sum(deltaCFI > .01)/n(),
+            n_02 = sum(deltaCFI > .02)/n())
+# 1 errcon_v_con    0.324  0.191
+# 2 timecon_v_con   0.985  0.971
+# 3 uncon_v_con     0.985  0.985
+# 4 uncon_v_errcon  0.985  0.971
+# 5 uncon_v_timecon 0.0441 0 
+
+
+multigroup_CFIs_GM_Philips %>%
+  pivot_longer(cols = c(errcon_v_con,
+uncon_v_errcon,
+timecon_v_con,
+uncon_v_timecon,
+uncon_v_con),
+               names_to = "model",
+               values_to = "deltaCFI") %>%
+  group_by(model) %>%
+  summarise(n_0 = sum(deltaCFI < 0)/n())
+
+deltaCFI_errcon_v_con_GM_Philips <- dk %>% 
+  as_tibble() %>% 
+  left_join(multigroup_CFIs_GM_Philips, by = c("label" = "region")) %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = errcon_v_con)) +
+    theme_void() +
+  scale_fill_continuous(name = "delta CFI",
+                        limits = c(min_deltaCFI_GM_Philips, max_deltaCFI_GM_Philips),
+                        type = "viridis") +
+  ggtitle("A. Constrained vs Between-subjects varying")
+
+deltaCFI_uncon_v_errcon_GM_Philips <- dk %>% 
+  as_tibble() %>% 
+  left_join(multigroup_CFIs_GM_Philips, by = c("label" = "region")) %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = uncon_v_errcon)) +
+    theme_void() +
+  scale_fill_continuous(name = "delta CFI",
+                        limits = c(min_deltaCFI_GM_Philips, max_deltaCFI_GM_Philips),
+                        type = "viridis") +
+  ggtitle("B. Between-subjects varying vs Unconstrained")
+
+deltaCFI_timecon_v_con_GM_Philips <- dk %>% 
+  as_tibble() %>% 
+  left_join(multigroup_CFIs_GM_Philips, by = c("label" = "region")) %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = timecon_v_con)) +
+    theme_void() +
+  scale_fill_continuous(name = "delta CFI",
+                        limits = c(min_deltaCFI_GM_Philips, max_deltaCFI_GM_Philips),
+                        type = "viridis") +
+  ggtitle("C. Constrained vs Error varying")
+
+deltaCFI_uncon_v_timecon_GM_Philips <- dk %>% 
+  as_tibble() %>% 
+  left_join(multigroup_CFIs_GM_Philips, by = c("label" = "region")) %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = uncon_v_timecon)) +
+    theme_void() +
+  scale_fill_continuous(name = "delta CFI",
+                        limits = c(min_deltaCFI_GM_Philips, max_deltaCFI_GM_Philips),
+                        type = "viridis") +
+  ggtitle("D. Error varying vs Unconstrained")
+
+deltaCFI_uncon_v_con_GM_Philips <- dk %>% 
+  as_tibble() %>% 
+  left_join(multigroup_CFIs_GM_Philips, by = c("label" = "region")) %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = uncon_v_con)) +
+    theme_void() +
+  scale_fill_continuous(name = "delta CFI",
+                        limits = c(min_deltaCFI_GM_Philips, max_deltaCFI_GM_Philips),
+                        type = "viridis") +
+  ggtitle("E. Constrained vs Unconstrained")
+
+ if(use_sim == FALSE){
+ Cairo(file = "8_supplement/Figure7_GM_Philips.png",
+       type = "png",
+       units="in", 
+       width=6, 
+       height=6, 
+       pointsize=12, 
+       dpi=600)
+
+Figure7_GM_Philips <- deltaCFI_errcon_v_con_GM_Philips / deltaCFI_uncon_v_errcon_GM_Philips / deltaCFI_timecon_v_con_GM_Philips / deltaCFI_uncon_v_timecon_GM_Philips / deltaCFI_uncon_v_con_GM_Philips + plot_layout(guides = "collect") & theme(legend.position = "bottom", legend.key.width = unit(1, "cm"), legend.title.align=0.5)
+
+print(Figure7_GM_Philips)
+
+ dev.off()
+}
+
+
+ if(use_sim == TRUE){
+ Cairo(file = "9_supplement_simulated/Figure7_GM_Philips_sim.png",
+       type = "png",
+       units="in", 
+       width=6, 
+       height=6, 
+       pointsize=12, 
+       dpi=600)
+ 
+ Figure7_GM_Philips_sim <- deltaCFI_errcon_v_con_GM_Philips / deltaCFI_uncon_v_errcon_GM_Philips / deltaCFI_timecon_v_con_GM_Philips / deltaCFI_uncon_v_timecon_GM_Philips / deltaCFI_uncon_v_con_GM_Philips + plot_layout(guides = "collect") & theme(legend.position = "bottom", legend.key.width = unit(1, "cm"), legend.title.align=0.5)
+ 
+ print(Figure7_GM_Philips_sim)
+ 
+ dev.off()
+ }
+```
+
+```{r multigroup_CFIs_GM_GE}
+#multigroup_CFIs_GM_GE <- read.csv("2_analysis_output/multigroup_CFIs_GM_GE.csv")
+
+
+multigroup_CFIs_GM_GE <- multigroup_CFIs_GM_GE %>%
+  mutate(errcon_v_con = m_e_constrained - m_constrained,
+         uncon_v_errcon = m_unconstrained - m_e_constrained,
+         timecon_v_con = m_time_constrained - m_constrained,
+         uncon_v_timecon = m_unconstrained - m_time_constrained,
+         uncon_v_con = m_unconstrained - m_constrained)
+
+min_deltaCFI_GM_GE <- multigroup_CFIs_GM_GE %>%
+  select(errcon_v_con, uncon_v_errcon, timecon_v_con, uncon_v_timecon, uncon_v_con) %>%
+  min(na.rm = TRUE)
+
+max_deltaCFI_GM_GE <- multigroup_CFIs_GM_GE %>%
+  select(errcon_v_con, uncon_v_errcon, timecon_v_con, uncon_v_timecon, uncon_v_con) %>%
+  max(na.rm = TRUE)
+
+# for added info
+
+multigroup_CFIs_GM_GE %>%
+  pivot_longer(cols = c(errcon_v_con,
+uncon_v_errcon,
+timecon_v_con,
+uncon_v_timecon,
+uncon_v_con),
+               names_to = "model",
+               values_to = "deltaCFI") %>%
+  group_by(model) %>%
+  summarise(n_01 = sum(deltaCFI > .01)/n(),
+            n_02 = sum(deltaCFI > .02)/n())
+# 1 errcon_v_con    0.324  0.191
+# 2 timecon_v_con   0.985  0.971
+# 3 uncon_v_con     0.985  0.985
+# 4 uncon_v_errcon  0.985  0.971
+# 5 uncon_v_timecon 0.0441 0 
+
+
+multigroup_CFIs_GM_GE %>%
+  pivot_longer(cols = c(errcon_v_con,
+uncon_v_errcon,
+timecon_v_con,
+uncon_v_timecon,
+uncon_v_con),
+               names_to = "model",
+               values_to = "deltaCFI") %>%
+  group_by(model) %>%
+  summarise(n_0 = sum(deltaCFI < 0)/n())
+
+deltaCFI_errcon_v_con_GM_GE <- dk %>% 
+  as_tibble() %>% 
+  left_join(multigroup_CFIs_GM_GE, by = c("label" = "region")) %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = errcon_v_con)) +
+    theme_void() +
+  scale_fill_continuous(name = "delta CFI",
+                        limits = c(min_deltaCFI_GM_GE, max_deltaCFI_GM_GE),
+                        type = "viridis") +
+  ggtitle("A. Constrained vs Between-subjects varying")
+
+deltaCFI_uncon_v_errcon_GM_GE <- dk %>% 
+  as_tibble() %>% 
+  left_join(multigroup_CFIs_GM_GE, by = c("label" = "region")) %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = uncon_v_errcon)) +
+    theme_void() +
+  scale_fill_continuous(name = "delta CFI",
+                        limits = c(min_deltaCFI_GM_GE, max_deltaCFI_GM_GE),
+                        type = "viridis") +
+  ggtitle("B. Between-subjects varying vs Unconstrained")
+
+deltaCFI_timecon_v_con_GM_GE <- dk %>% 
+  as_tibble() %>% 
+  left_join(multigroup_CFIs_GM_GE, by = c("label" = "region")) %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = timecon_v_con)) +
+    theme_void() +
+  scale_fill_continuous(name = "delta CFI",
+                        limits = c(min_deltaCFI_GM_GE, max_deltaCFI_GM_GE),
+                        type = "viridis") +
+  ggtitle("C. Constrained vs Error varying")
+
+deltaCFI_uncon_v_timecon_GM_GE <- dk %>% 
+  as_tibble() %>% 
+  left_join(multigroup_CFIs_GM_GE, by = c("label" = "region")) %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = uncon_v_timecon)) +
+    theme_void() +
+  scale_fill_continuous(name = "delta CFI",
+                        limits = c(min_deltaCFI_GM_GE, max_deltaCFI_GM_GE),
+                        type = "viridis") +
+  ggtitle("D. Error varying vs Unconstrained")
+
+deltaCFI_uncon_v_con_GM_GE <- dk %>% 
+  as_tibble() %>% 
+  left_join(multigroup_CFIs_GM_GE, by = c("label" = "region")) %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = uncon_v_con)) +
+    theme_void() +
+  scale_fill_continuous(name = "delta CFI",
+                        limits = c(min_deltaCFI_GM_GE, max_deltaCFI_GM_GE),
+                        type = "viridis") +
+  ggtitle("E. Constrained vs Unconstrained")
+
+ if(use_sim == FALSE){
+ Cairo(file = "8_supplement/Figure7_GM_GE.png",
+       type = "png",
+       units="in", 
+       width=6, 
+       height=6, 
+       pointsize=12, 
+       dpi=600)
+
+Figure7_GE <- deltaCFI_errcon_v_con_GM_GE / deltaCFI_uncon_v_errcon_GM_GE / deltaCFI_timecon_v_con_GM_GE / deltaCFI_uncon_v_timecon_GM_GE / deltaCFI_uncon_v_con_GM_GE + plot_layout(guides = "collect") & theme(legend.position = "bottom", legend.key.width = unit(1, "cm"), legend.title.align=0.5)
+
+print(Figure7_GE)
+
+ dev.off()
+}
+
+
+ if(use_sim == TRUE){
+ Cairo(file = "9_supplement_simulated/Figure7_GM_GE_sim.png",
+       type = "png",
+       units="in", 
+       width=6, 
+       height=6, 
+       pointsize=12, 
+       dpi=600)
+ 
+Figure7_GM_GE_sim <- deltaCFI_errcon_v_con_GM_GE / deltaCFI_uncon_v_errcon_GM_GE / deltaCFI_timecon_v_con_GM_GE / deltaCFI_uncon_v_timecon_GM_GE / deltaCFI_uncon_v_con_GM_GE + plot_layout(guides = "collect") & theme(legend.position = "bottom", legend.key.width = unit(1, "cm"), legend.title.align=0.5)
+ 
+ print(Figure7_GM_GE_sim)
+ 
+ dev.off()
+ }
+```
+
+```{r multigroup_CFIs_GM_Siemens}
+
+#multigroup_CFIs_GM_Siemens <- read.csv("2_analysis_output/multigroup_CFIs_GM_Siemens.csv")
+multigroup_CFIs_GM_Siemens <- multigroup_CFIs_GM_Siemens %>%
+  mutate(errcon_v_con = m_e_constrained - m_constrained,
+         uncon_v_errcon = m_unconstrained - m_e_constrained,
+         timecon_v_con = m_time_constrained - m_constrained,
+         uncon_v_timecon = m_unconstrained - m_time_constrained,
+         uncon_v_con = m_unconstrained - m_constrained)
+
+min_deltaCFI_GM_Siemens <- multigroup_CFIs_GM_Siemens %>%
+  select(errcon_v_con, uncon_v_errcon, timecon_v_con, uncon_v_timecon, uncon_v_con) %>%
+  min(na.rm = TRUE)
+
+max_deltaCFI_GM_Siemens <- multigroup_CFIs_GM_Siemens %>%
+  select(errcon_v_con, uncon_v_errcon, timecon_v_con, uncon_v_timecon, uncon_v_con) %>%
+  max(na.rm = TRUE)
+
+# for added info
+
+multigroup_CFIs_GM_Siemens %>%
+  pivot_longer(cols = c(errcon_v_con,
+uncon_v_errcon,
+timecon_v_con,
+uncon_v_timecon,
+uncon_v_con),
+               names_to = "model",
+               values_to = "deltaCFI") %>%
+  group_by(model) %>%
+  summarise(n_01 = sum(deltaCFI > .01)/n(),
+            n_02 = sum(deltaCFI > .02)/n())
+# 1 errcon_v_con    0.324  0.191
+# 2 timecon_v_con   0.985  0.971
+# 3 uncon_v_con     0.985  0.985
+# 4 uncon_v_errcon  0.985  0.971
+# 5 uncon_v_timecon 0.0441 0 
+
+
+multigroup_CFIs_GM_Siemens %>%
+  pivot_longer(cols = c(errcon_v_con,
+uncon_v_errcon,
+timecon_v_con,
+uncon_v_timecon,
+uncon_v_con),
+               names_to = "model",
+               values_to = "deltaCFI") %>%
+  group_by(model) %>%
+  summarise(n_0 = sum(deltaCFI < 0)/n())
+
+deltaCFI_errcon_v_con_GM_Siemens <- dk %>% 
+  as_tibble() %>% 
+  left_join(multigroup_CFIs_GM_Siemens, by = c("label" = "region")) %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = errcon_v_con)) +
+    theme_void() +
+  scale_fill_continuous(name = "delta CFI",
+                        limits = c(min_deltaCFI_GM_Siemens, max_deltaCFI_GM_Siemens),
+                        type = "viridis") +
+  ggtitle("A. Constrained vs Between-subjects varying")
+
+deltaCFI_uncon_v_errcon_GM_Siemens <- dk %>% 
+  as_tibble() %>% 
+  left_join(multigroup_CFIs_GM_Siemens, by = c("label" = "region")) %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = uncon_v_errcon)) +
+    theme_void() +
+  scale_fill_continuous(name = "delta CFI",
+                        limits = c(min_deltaCFI_GM_Siemens, max_deltaCFI_GM_Siemens),
+                        type = "viridis") +
+  ggtitle("B. Between-subjects varying vs Unconstrained")
+
+deltaCFI_timecon_v_con_GM_Siemens <- dk %>% 
+  as_tibble() %>% 
+  left_join(multigroup_CFIs_GM_Siemens, by = c("label" = "region")) %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = timecon_v_con)) +
+    theme_void() +
+  scale_fill_continuous(name = "delta CFI",
+                        limits = c(min_deltaCFI_GM_Siemens, max_deltaCFI_GM_Siemens),
+                        type = "viridis") +
+  ggtitle("C. Constrained vs Error varying")
+
+deltaCFI_uncon_v_timecon_GM_Siemens <- dk %>% 
+  as_tibble() %>% 
+  left_join(multigroup_CFIs_GM_Siemens, by = c("label" = "region")) %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = uncon_v_timecon)) +
+    theme_void() +
+  scale_fill_continuous(name = "delta CFI",
+                        limits = c(min_deltaCFI_GM_Siemens, max_deltaCFI_GM_Siemens),
+                        type = "viridis") +
+  ggtitle("D. Error varying vs Unconstrained")
+
+deltaCFI_uncon_v_con_GM_Siemens <- dk %>% 
+  as_tibble() %>% 
+  left_join(multigroup_CFIs_GM_Siemens, by = c("label" = "region")) %>%
+ggseg(., atlas = "dk", 
+        colour = "black",
+        size = .1,
+        mapping = aes(fill = uncon_v_con)) +
+    theme_void() +
+  scale_fill_continuous(name = "delta CFI",
+                        limits = c(min_deltaCFI_GM_Siemens, max_deltaCFI_GM_Siemens),
+                        type = "viridis") +
+  ggtitle("E. Constrained vs Unconstrained")
+
+ if(use_sim == FALSE){
+ Cairo(file = "8_supplement/Figure7_GM_Siemens.png",
+       type = "png",
+       units="in", 
+       width=6, 
+       height=6, 
+       pointsize=12, 
+       dpi=600)
+
+Figure7_GM_Siemens <- deltaCFI_errcon_v_con_GM_Siemens / deltaCFI_uncon_v_errcon_GM_Siemens / deltaCFI_timecon_v_con_GM_Siemens / deltaCFI_uncon_v_timecon_GM_Siemens / deltaCFI_uncon_v_con_GM_Siemens + plot_layout(guides = "collect") & theme(legend.position = "bottom", legend.key.width = unit(1, "cm"), legend.title.align=0.5)
+
+print(Figure7_GM_Siemens)
+
+ dev.off()
+}
+
+
+ if(use_sim == TRUE){
+ Cairo(file = "9_supplement_simulated/Figure7_GM_Siemens_sim.png",
+       type = "png",
+       units="in", 
+       width=6, 
+       height=6, 
+       pointsize=12, 
+       dpi=600)
+ 
+Figure7_GM_Siemens_sim <- deltaCFI_errcon_v_con_GM_Siemens / deltaCFI_uncon_v_errcon_GM_Siemens / deltaCFI_timecon_v_con_GM_Siemens / deltaCFI_uncon_v_timecon_GM_Siemens / deltaCFI_uncon_v_con_GM_Siemens + plot_layout(guides = "collect") & theme(legend.position = "bottom", legend.key.width = unit(1, "cm"), legend.title.align=0.5)
+ 
+ print(Figure7_GM_Siemens_sim)
+ 
+ dev.off()
+ }
+```
+
 
 
 # 3. Practical implications
