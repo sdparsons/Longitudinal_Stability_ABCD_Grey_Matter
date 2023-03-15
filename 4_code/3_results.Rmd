@@ -23,7 +23,7 @@ library("pwr")
 ```{r read_data}
 
 # use simulated data? if set to TRUE then the simulated data will be used and results saved under different file names
-use_sim = TRUE
+use_sim = FALSE
 
 if(use_sim == FALSE) {
 
@@ -2921,9 +2921,9 @@ ggseg(., atlas = "dk",
        pointsize=12, 
        dpi=600)
 
-Figure7_scanners <- deltaCFI_errcon_v_con_CT_scanners / deltaCFI_uncon_v_errcon_CT_scanners / deltaCFI_timecon_v_con_CT_scanners / deltaCFI_uncon_v_timecon_CT_scanners / deltaCFI_uncon_v_con_CT_scanners + plot_layout(guides = "collect") & theme(legend.position = "bottom", legend.key.width = unit(1, "cm"), legend.title.align=0.5)
+Figure7_CT_scanners <- deltaCFI_errcon_v_con_CT_scanners / deltaCFI_uncon_v_errcon_CT_scanners / deltaCFI_timecon_v_con_CT_scanners / deltaCFI_uncon_v_timecon_CT_scanners / deltaCFI_uncon_v_con_CT_scanners + plot_layout(guides = "collect") & theme(legend.position = "bottom", legend.key.width = unit(1, "cm"), legend.title.align=0.5)
 
-print(Figure7_scanners)
+print(Figure7_CT_scanners)
 
  dev.off()
  }
@@ -2938,10 +2938,10 @@ print(Figure7_scanners)
        pointsize=12, 
        dpi=600)
  
-Figure7_scanners_sim <- deltaCFI_errcon_v_con_CT_scanners / deltaCFI_uncon_v_errcon_CT_scanners / deltaCFI_timecon_v_con_CT_scanners / deltaCFI_uncon_v_timecon_CT_scanners / deltaCFI_uncon_v_con_CT_scanners + plot_layout(guides = "collect") & theme(legend.position = "bottom", legend.key.width = unit(1, "cm"), legend.title.align=0.5)
+Figure7_CT_scanners_sim <- deltaCFI_errcon_v_con_CT_scanners / deltaCFI_uncon_v_errcon_CT_scanners / deltaCFI_timecon_v_con_CT_scanners / deltaCFI_uncon_v_timecon_CT_scanners / deltaCFI_uncon_v_con_CT_scanners + plot_layout(guides = "collect") & theme(legend.position = "bottom", legend.key.width = unit(1, "cm"), legend.title.align=0.5)
 
  
- print(Figure7_scanners_sim)
+ print(Figure7_CT_scanners_sim)
  
  dev.off()
  }
@@ -3025,9 +3025,9 @@ by_ROI_ICC_CT_scanner <- between_error_CT_scanner %>%
        pointsize=12, 
        dpi=600)
 
-Figure_4_scanner <- by_ROI_CT_box_time_scanner + by_ROI_CT_box_error_scanner + by_ROI_ICC_CT_scanner + plot_layout(widths = c(4,4,1))
+Figure4_CT_scanner <- by_ROI_CT_box_time_scanner + by_ROI_CT_box_error_scanner + by_ROI_ICC_CT_scanner + plot_layout(widths = c(4,4,1))
 
-print(Figure_4_scanner)
+print(Figure4_CT_scanner)
 
  dev.off()
  }
@@ -3739,9 +3739,9 @@ ggseg(., atlas = "dk",
        pointsize=12, 
        dpi=600)
 
-Figure7_scanners <- deltaCFI_errcon_v_con_SA_scanners / deltaCFI_uncon_v_errcon_SA_scanners / deltaCFI_timecon_v_con_SA_scanners / deltaCFI_uncon_v_timecon_SA_scanners / deltaCFI_uncon_v_con_SA_scanners + plot_layout(guides = "collect") & theme(legend.position = "bottom", legend.key.width = unit(1, "cm"), legend.title.align=0.5)
+Figure7_SA_scanners <- deltaCFI_errcon_v_con_SA_scanners / deltaCFI_uncon_v_errcon_SA_scanners / deltaCFI_timecon_v_con_SA_scanners / deltaCFI_uncon_v_timecon_SA_scanners / deltaCFI_uncon_v_con_SA_scanners + plot_layout(guides = "collect") & theme(legend.position = "bottom", legend.key.width = unit(1, "cm"), legend.title.align=0.5)
 
-print(Figure7_scanners)
+print(Figure7_SA_scanners)
 
  dev.off()
  }
@@ -3756,10 +3756,10 @@ print(Figure7_scanners)
        pointsize=12, 
        dpi=600)
  
-Figure7_scanners_sim <- deltaCFI_errcon_v_con_SA_scanners / deltaCFI_uncon_v_errcon_SA_scanners / deltaCFI_timecon_v_con_SA_scanners / deltaCFI_uncon_v_timecon_SA_scanners / deltaCFI_uncon_v_con_SA_scanners + plot_layout(guides = "collect") & theme(legend.position = "bottom", legend.key.width = unit(1, "cm"), legend.title.align=0.5)
+Figure7_SA_scanners_sim <- deltaCFI_errcon_v_con_SA_scanners / deltaCFI_uncon_v_errcon_SA_scanners / deltaCFI_timecon_v_con_SA_scanners / deltaCFI_uncon_v_timecon_SA_scanners / deltaCFI_uncon_v_con_SA_scanners + plot_layout(guides = "collect") & theme(legend.position = "bottom", legend.key.width = unit(1, "cm"), legend.title.align=0.5)
 
  
- print(Figure7_scanners_sim)
+ print(Figure7_SA_scanners_sim)
  
  dev.off()
  }
@@ -4557,9 +4557,9 @@ ggseg(., atlas = "dk",
        pointsize=12, 
        dpi=600)
 
-Figure7_scanners <- deltaCFI_errcon_v_con_GM_scanners / deltaCFI_uncon_v_errcon_GM_scanners / deltaCFI_timecon_v_con_GM_scanners / deltaCFI_uncon_v_timecon_GM_scanners / deltaCFI_uncon_v_con_GM_scanners + plot_layout(guides = "collect") & theme(legend.position = "bottom", legend.key.width = unit(1, "cm"), legend.title.align=0.5)
+Figure7_GM_scanners <- deltaCFI_errcon_v_con_GM_scanners / deltaCFI_uncon_v_errcon_GM_scanners / deltaCFI_timecon_v_con_GM_scanners / deltaCFI_uncon_v_timecon_GM_scanners / deltaCFI_uncon_v_con_GM_scanners + plot_layout(guides = "collect") & theme(legend.position = "bottom", legend.key.width = unit(1, "cm"), legend.title.align=0.5)
 
-print(Figure7_scanners)
+print(Figure7_GM_scanners)
 
  dev.off()
  }
@@ -4574,10 +4574,10 @@ print(Figure7_scanners)
        pointsize=12, 
        dpi=600)
  
-Figure7_scanners_sim <- deltaCFI_errcon_v_con_GM_scanners / deltaCFI_uncon_v_errcon_GM_scanners / deltaCFI_timecon_v_con_GM_scanners / deltaCFI_uncon_v_timecon_GM_scanners / deltaCFI_uncon_v_con_GM_scanners + plot_layout(guides = "collect") & theme(legend.position = "bottom", legend.key.width = unit(1, "cm"), legend.title.align=0.5)
+Figure7_GM_scanners_sim <- deltaCFI_errcon_v_con_GM_scanners / deltaCFI_uncon_v_errcon_GM_scanners / deltaCFI_timecon_v_con_GM_scanners / deltaCFI_uncon_v_timecon_GM_scanners / deltaCFI_uncon_v_con_GM_scanners + plot_layout(guides = "collect") & theme(legend.position = "bottom", legend.key.width = unit(1, "cm"), legend.title.align=0.5)
 
  
- print(Figure7_scanners_sim)
+ print(Figure7_GM_scanners_sim)
  
  dev.off()
  }

@@ -20,7 +20,7 @@ hight_highe <- sim_ICED(structure = struc,
   geom_line(size = .3, alpha = .6) +
   geom_point() +
   theme(axis.text.y = element_blank()) +
-    ggtitle("Equal Between-subjects variance, \nand Error variance, ICC = .5")
+    ggtitle("Equal between-subjects variance, \nand error variance, ICC = .5")
 
 # high between-subjects (true) variance and low error variance - high reliability
 hight_lowe <- sim_ICED(structure = struc,
@@ -35,7 +35,7 @@ hight_lowe <- sim_ICED(structure = struc,
   geom_point() +  
   theme(axis.text.x = element_blank(),
         axis.text.y = element_blank()) +
-  ggtitle("High Between-subjects variance, \nLow Error variance, ICC = .9")
+  ggtitle("High between-subjects variance, \nlow error variance, ICC = .9")
 
 
 # low between-subjects (true) variance and high error variance - low reliability
@@ -51,7 +51,7 @@ lowt_highe <- sim_ICED(structure = struc,
   geom_line(size = .3, alpha = .6) +
   geom_point() +
   theme(axis.text.y = element_blank()) +
-  ggtitle("Low Between-subjects variance, \nHigh Error variance, ICC = .1")
+  ggtitle("Low between-subjects variance, \nhigh error variance, ICC = .1")
 
 # equal but low variances
 
@@ -66,7 +66,7 @@ lowt_lowe <- sim_ICED(structure = struc,
   geom_line(size = .3, alpha = .6) +
   geom_point() +
   theme(axis.text.y = element_blank()) +
-  ggtitle("Low Between-subjects variance, \nLow Error variance, ICC = .5")
+  ggtitle("Low between-subjects variance, \nlow error variance, ICC = .5")
 
 
 # perfect reliability
@@ -82,7 +82,7 @@ hight_zeroe <- sim_ICED(structure = struc,
   geom_point() +
   theme(axis.text.x = element_blank(),
         axis.text.y = element_blank()) +
-  ggtitle("High Between-subjects variance, \nNo Error variance, ICC = 1, (Perfect reliability)")
+  ggtitle("High between-subjects variance, \nno error variance, ICC = 1, (perfect reliability)")
 
 # save figure
 ##
