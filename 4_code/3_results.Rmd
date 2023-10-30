@@ -17,6 +17,9 @@ library("patchwork")
 library("corrplot")
 library("Cairo")
 library("pwr")
+library("ggsegDesterieux")
+
+
 
 ```
 
@@ -31,6 +34,11 @@ if(use_sim == FALSE) {
 out_CT <- read.csv("2_analysis_output/out_CT.csv")
 out_SA <- read.csv("2_analysis_output/out_SA.csv")
 out_GM <- read.csv("2_analysis_output/out_GM.csv")
+
+# ICC and ICC2 results - lobes
+out_CT_lobe <- read.csv("2_analysis_output/out_CT_lobe.csv")
+out_SA_lobe <- read.csv("2_analysis_output/out_SA_lobe.csv")
+out_GM_lobe <- read.csv("2_analysis_output/out_GM_lobe.csv")
 
 #between and within variance estimates (per site) results
 between_error_CT <- read.csv("2_analysis_output/between_error_CT.csv")
@@ -72,6 +80,11 @@ multigroup_CFIs_GM_Siemens <- read.csv("2_analysis_output/multigroup_CFIs_GM_Sie
 
 
 }
+
+out_CT_Destrieux <- read.csv("2_analysis_output/out_CT_Destrieux.csv")
+#sites_LRTs_CT_tidy_aicbic_Destrieux <- read.csv("2_analysis_output/sites_LRTs_CT_tidy_aicbic_Destrieux.csv")
+#multigroup_CFIs_CT_Destrieux <- read.csv("2_analysis_output/multigroup_CFIs_CT_Destrieux.csv")
+#Destrieux_voxel <- read.csv("1_raw_data/destrieux.csv")
 
 if(use_sim == TRUE) {
 
@@ -119,6 +132,8 @@ multigroup_CFIs_GM_Philips <- read.csv("5_simulated_analyses_output/multigroup_C
 multigroup_CFIs_GM_Siemens <- read.csv("5_simulated_analyses_output/multigroup_CFIs_GM_sim_Siemens.csv")
 }
 
+# mapping DK regions to lobes
+lobes <- read.csv("1_raw_data/lobe.csv")[,2:3]
 
 ```
 
@@ -140,14 +155,34 @@ range(out_CT$ICC, na.rm = TRUE)
 sum(out_CT$ICC < .7) / nrow(out_CT)
 sum(out_CT$ICC < .75) / nrow(out_CT)
 
+mean(out_CT$ICC - out_CT$ICC_lower95CI)
+mean(out_CT$ICC_higher95CI - out_CT$ICC)
+
+range(out_CT$ICC - out_CT$ICC_lower95CI)
+range(out_CT$ICC_higher95CI - out_CT$ICC)
+
+mean(out_CT$ICC_higher95CI - out_CT$ICC_lower95CI)
+range(out_CT$ICC_higher95CI - out_CT$ICC_lower95CI) # range to include
 
 mean(out_SA$ICC, na.rm = TRUE)
 median(out_SA$ICC, na.rm = TRUE)
 range(out_SA$ICC, na.rm = TRUE)
 
+mean(out_SA$ICC - out_SA$ICC_lower95CI)
+mean(out_SA$ICC_higher95CI - out_SA$ICC)
+
+mean(out_SA$ICC_higher95CI - out_SA$ICC_lower95CI)
+range(out_SA$ICC_higher95CI - out_SA$ICC_lower95CI)
+
 mean(out_GM$ICC, na.rm = TRUE)
 median(out_GM$ICC, na.rm = TRUE)
 range(out_GM$ICC, na.rm = TRUE)
+
+mean(out_GM$ICC - out_GM$ICC_lower95CI)
+mean(out_GM$ICC_higher95CI - out_GM$ICC)
+
+mean(out_GM$ICC_higher95CI - out_GM$ICC_lower95CI)
+range(out_GM$ICC_higher95CI - out_GM$ICC_lower95CI)
 
 # ICC2
 
@@ -345,6 +380,475 @@ dev.off()
 
 ```  
 
+# ICC results
+
+# ICC results (lobes)
+
+```{r grey_summary_lobes}
+
+# simple summary statistics
+
+# ICC
+
+mean(out_CT_lobe$ICC, na.rm = TRUE)
+median(out_CT_lobe$ICC, na.rm = TRUE)
+range(out_CT_lobe$ICC, na.rm = TRUE)
+
+sum(out_CT_lobe$ICC < .7) / nrow(out_CT_lobe)
+sum(out_CT_lobe$ICC < .75) / nrow(out_CT_lobe)
+
+
+mean(out_SA_lobe$ICC, na.rm = TRUE)
+median(out_SA_lobe$ICC, na.rm = TRUE)
+range(out_SA_lobe$ICC, na.rm = TRUE)
+
+mean(out_GM_lobe$ICC, na.rm = TRUE)
+median(out_GM_lobe$ICC, na.rm = TRUE)
+range(out_GM_lobe$ICC, na.rm = TRUE)
+
+# ICC2
+
+mean(out_CT_lobe$ICC2, na.rm = TRUE)
+median(out_CT_lobe$ICC2, na.rm = TRUE)
+range(out_CT_lobe$ICC2, na.rm = TRUE)
+
+sum(out_CT_lobe$ICC2 < .7) / nrow(out_CT_lobe)
+
+mean(out_SA_lobe$ICC2, na.rm = TRUE)
+median(out_SA_lobe$ICC2, na.rm = TRUE)
+range(out_SA_lobe$ICC2, na.rm = TRUE)
+
+mean(out_GM_lobe$ICC2, na.rm = TRUE)
+median(out_GM_lobe$ICC2, na.rm = TRUE)
+range(out_GM_lobe$ICC2, na.rm = TRUE)
+
+
+
+```
+
+```{r compare_DK_lobes}
+lobes_rh <- lobes %>%
+  mutate(label = paste("rh", label, sep = "_"),
+         lobe = paste("rh", lobe, sep = "_"))
+
+lobes_lh <- lobes %>%
+  mutate(label = paste("lh", label, sep = "_"),
+         lobe = paste("lh", lobe, sep = "_"))
+
+lobes2 <- rbind(lobes_lh, lobes_rh)
+
+## CT
+# compare lobe ICC and mean ICC for DK regions in that lobe
+comp_DK_lobe_CT <- left_join(out_CT, lobes2, by = "label") %>%
+  left_join(out_CT_lobe, by = c("lobe" = "label")) %>%
+  group_by(lobe) %>%
+  summarise(mean_DK = mean(ICC.x),
+            mean_lobe = mean(ICC.y),
+            mean_diff = mean_lobe - mean_DK)
+
+# mean difference is 0.00, range -.05 to .04.
+mean(comp_DK_lobe_CT$mean_diff)
+range(comp_DK_lobe_CT$mean_diff)
+
+## SA
+# compare lobe ICC and mean ICC for DK regions in that lobe
+comp_DK_lobe_SA <- left_join(out_SA, lobes2, by = "label") %>%
+  left_join(out_SA_lobe, by = c("lobe" = "label")) %>%
+  group_by(lobe) %>%
+  summarise(mean_DK = mean(ICC.x),
+            mean_lobe = mean(ICC.y),
+            mean_diff = mean_lobe - mean_DK)
+
+# mean difference is 0.02, range .00 to .04.
+mean(comp_DK_lobe_SA$mean_diff)
+range(comp_DK_lobe_SA$mean_diff)
+
+# compare lobe ICC and mean ICC for DK regions in that lobe
+comp_DK_lobe_GM <- left_join(out_GM, lobes2, by = "label") %>%
+  left_join(out_GM_lobe, by = c("lobe" = "label")) %>%
+  group_by(lobe) %>%
+  summarise(mean_DK = mean(ICC.x),
+            mean_lobe = mean(ICC.y),
+            mean_diff = mean_lobe - mean_DK)
+
+# mean difference is 0.02, range 0.0 to .05.
+mean(comp_DK_lobe_GM$mean_diff)
+range(comp_DK_lobe_GM$mean_diff)
+
+```
+
+```{r Cortical_Thickness_ICCfigs_lobes}
+
+lobes_rh <- lobes %>%
+  mutate(label = paste("rh", label, sep = "_"),
+         lobe = paste("rh", lobe, sep = "_"))
+
+lobes_lh <- lobes %>%
+  mutate(label = paste("lh", label, sep = "_"),
+         lobe = paste("lh", lobe, sep = "_"))
+
+lobes2 <- rbind(lobes_lh, lobes_rh)
+
+
+CT_ICC1_lobe <- dk %>%
+  as_tibble() %>%
+  left_join(lobes2) %>%
+  full_join(out_CT_lobe,
+            by = c("lobe" = "label")) %>%  
+  ggseg(mapping = aes(fill = ICC),
+        atlas = "dk", 
+        colour = "black",
+        size = .1) +
+  scale_fill_continuous(limits = c(.5, 1), type = "viridis") +
+  ggtitle("Cortical Thickness") +
+  theme(axis.title.x = element_blank(),
+        axis.text.x = element_blank())
+
+
+CT_ICC2_lobe <- dk %>%
+  as_tibble() %>%
+  left_join(lobes2) %>%
+  full_join(out_CT_lobe,
+            by = c("lobe" = "label")) %>%  
+  ggseg(mapping = aes(fill = ICC2),
+        atlas = "dk", 
+        colour = "black",
+        size = .1) +
+  scale_fill_continuous(limits = c(.5, 1), type = "viridis") +
+  ggtitle("Cortical Thickness") +
+  theme(axis.title.x = element_blank(),
+        axis.text.x = element_blank())
+
+
+
+```
+
+```{r Surface_Area_ICCfigs_lobes}
+
+lobes_rh <- lobes %>%
+  mutate(label = paste("rh", label, sep = "_"),
+         lobe = paste("rh", lobe, sep = "_"))
+
+lobes_lh <- lobes %>%
+  mutate(label = paste("lh", label, sep = "_"),
+         lobe = paste("lh", lobe, sep = "_"))
+
+lobes2 <- rbind(lobes_lh, lobes_rh)
+
+
+SA_ICC1_lobe <- dk %>%
+  as_tibble() %>%
+  left_join(lobes2) %>%
+  full_join(out_SA_lobe,
+            by = c("lobe" = "label")) %>%  
+  ggseg(mapping = aes(fill = ICC),
+        atlas = "dk", 
+        colour = "black",
+        size = .1) +
+  scale_fill_continuous(limits = c(.5, 1), type = "viridis") +
+  ggtitle("Surface Area") +
+  theme(axis.title.x = element_blank(),
+        axis.text.x = element_blank())
+
+
+SA_ICC2_lobe <- dk %>%
+  as_tibble() %>%
+  left_join(lobes2) %>%
+  full_join(out_SA_lobe,
+            by = c("lobe" = "label")) %>%  
+  ggseg(mapping = aes(fill = ICC2),
+        atlas = "dk", 
+        colour = "black",
+        size = .1) +
+  scale_fill_continuous(limits = c(.5, 1), type = "viridis") +
+  ggtitle("Surface Area") +
+  theme(axis.title.x = element_blank(),
+        axis.text.x = element_blank())
+
+
+
+```
+
+```{r Grey_Matter_Volume_ICCfigs_lobes}
+
+lobes_rh <- lobes %>%
+  mutate(label = paste("rh", label, sep = "_"),
+         lobe = paste("rh", lobe, sep = "_"))
+
+lobes_lh <- lobes %>%
+  mutate(label = paste("lh", label, sep = "_"),
+         lobe = paste("lh", lobe, sep = "_"))
+
+lobes2 <- rbind(lobes_lh, lobes_rh)
+
+
+GM_ICC1_lobe <- dk %>%
+  as_tibble() %>%
+  left_join(lobes2) %>%
+  full_join(out_GM_lobe,
+            by = c("lobe" = "label")) %>%  
+  ggseg(mapping = aes(fill = ICC),
+        atlas = "dk", 
+        colour = "black",
+        size = .1) +
+  scale_fill_continuous(limits = c(.5, 1), type = "viridis") +
+  ggtitle("Grey Matter Volume")
+
+
+GM_ICC2_lobe <- dk %>%
+  as_tibble() %>%
+  left_join(lobes2) %>%
+  full_join(out_GM_lobe,
+            by = c("lobe" = "label")) %>%  
+  ggseg(mapping = aes(fill = ICC2),
+        atlas = "dk", 
+        colour = "black",
+        size = .1) +
+  scale_fill_continuous(limits = c(.5, 1), type = "viridis") +
+  ggtitle("Grey Matter Volume")
+
+```
+
+## ICC_lobes
+
+```{r grey_figures_ICC_lobes}
+
+# plot and save all ICC figures
+Cairo(file = "6_figures/Figure9_original.png",
+      type = "png",
+      units="in", 
+      width=6, 
+      height=5, 
+      pointsize=12, 
+      dpi=600)
+
+Figure9_lobe <- CT_ICC1_lobe / SA_ICC1_lobe / GM_ICC1_lobe + plot_layout(guides = 'collect') & theme(legend.position = "bottom",
+                  legend.key.width=unit(1,"cm"), legend.key.height = unit(.5,"cm"))
+
+print(Figure9_lobe)
+
+dev.off()
+
+
+
+```
+
+## ICC2_lobes
+
+```{r grey_figures_ICC2_lobes, eval = FALSE}
+
+# plot and save all ICC2 figures
+Cairo(file = "6_figures/Figure3_lobe.png",
+      type = "png",
+      units="in", 
+      width=6, 
+      height=5, 
+      pointsize=12, 
+      dpi=600)
+
+Figure_3_lobe <- CT_ICC2_lobe / SA_ICC2_lobe / GM_ICC2_lobe + plot_layout(guides = 'collect') & theme(legend.position = "bottom",
+                  legend.key.width=unit(1,"cm"), legend.key.height = unit(.5,"cm"))
+
+print(Figure_3_lobe)
+
+dev.off()
+
+
+```  
+
+## Destrieux 
+
+```{r Destrieux_figure_10}
+
+out_CT_Destrieux %>%
+  summarise(mean_ICC = mean(ICC),
+            low_ICC = min(ICC),
+            high_ICC = max(ICC),
+            mean_ICC2 = mean(ICC2),
+            low_ICC2 = min(ICC2),
+            high_ICC2 = max(ICC2))
+
+
+ Destrieux_atlas <- ggsegDesterieux::desterieux %>%
+   as_tibble() %>%
+   left_join(out_CT_Destrieux, by = "label") %>% 
+   as_brain_atlas()
+ 
+#View(Destrieux_atlas$data)
+
+Cairo(file = "6_figures/Figure10.png",
+      type = "png",
+      units="in", 
+      width=6, 
+      height=6, 
+      pointsize=12, 
+      dpi=600,
+      bg = "white")
+ 
+Destrieux_ICC_fig1 <- ggplot() +
+   geom_brain(atlas = Destrieux_atlas,
+              mapping = aes(fill = ICC),
+              #position = position_brain(hemi ~ side)
+              ) +
+   theme_brain() +
+   scale_fill_continuous(limits = c(0, .7), type = "viridis",
+                         name = "longitudinal stability") +
+   ggtitle("Cortical Thickness ICC") +
+   theme(legend.position = "none",
+         #legend.key.width=unit(1,"cm"), 
+         #legend.key.height = unit(.5,"cm"),
+         axis.text = element_blank()) 
+
+Destrieux_ICC_fig2 <- ggplot() +
+   geom_brain(atlas = Destrieux_atlas,
+              mapping = aes(fill = ICC2),
+              #position = position_brain(hemi ~ side)
+              ) +
+   theme_brain() +
+   scale_fill_continuous(limits = c(0, .7), type = "viridis",
+                         name = "longitudinal stability") +
+   ggtitle("Cortical Thickness ICC2") +
+   theme(legend.position = "bottom",
+         legend.key.width=unit(1,"cm"), 
+         legend.key.height = unit(.5,"cm"),
+         axis.text = element_blank())
+
+Destrieux_CFI_fig3 <- ggplot() +
+   geom_brain(atlas = Destrieux_atlas,
+              mapping = aes(fill = equal_CFI),
+              #position = position_brain(hemi ~ side)
+              ) +
+   theme_brain() +
+  # scale_fill_continuous(limits = c(0, 1), type = "viridis",
+  #                       name = "CFI") +
+  scale_fill_viridis_c(option = "rocket",
+                       name = "CFI") +
+   ggtitle("equal variances CFI") +
+   theme(legend.position = "bottom",
+         legend.key.width=unit(1,"cm"), 
+         legend.key.height = unit(.5,"cm"),
+         axis.text = element_blank())
+
+
+# Destrieux_ICC_figs <- Destrieux_ICC_fig1 / Destrieux_ICC_fig2 + plot_layout(guides = 'collect') & theme(legend.position = "bottom",
+#                   legend.key.width=unit(1,"cm"), legend.key.height = unit(.5,"cm"))
+
+Destrieux_ICC_fig1 / Destrieux_ICC_fig2 / Destrieux_CFI_fig3 
+#& theme(legend.position = "bottom",
+#                  legend.key.width=unit(1,"cm"), legend.key.height = unit(.5,"cm"))
+
+dev.off()
+  
+```
+
+```{r atlas_comparison_figure11}
+
+
+
+CT_ICC1_comparisons <- ggseg(comb_CT, atlas = dk, 
+      colour = "black",
+      size = .1, 
+      #position = "stacked",
+      mapping = aes(fill = ICC)) +
+  scale_fill_continuous(limits = c(.5, 1), type = "viridis") +
+  ggtitle("Desikan-Killiany-Tourville") +
+  theme(axis.title.x = element_blank(),
+        axis.text.x = element_blank())
+
+
+CT_ICC1_lobe_comparisons <- dk %>%
+  as_tibble() %>%
+  left_join(lobes2) %>%
+  full_join(out_CT_lobe,
+            by = c("lobe" = "label")) %>%  
+  ggseg(mapping = aes(fill = ICC),
+        atlas = "dk", 
+        colour = "black",
+        size = .1) +
+  scale_fill_continuous(limits = c(.5, 1), type = "viridis") +
+  ggtitle("Lobes") +
+  theme(axis.title.x = element_blank(),
+        axis.text.x = element_blank())
+
+Destrieux_ICC_fig1_comparisons <- ggplot() +
+   geom_brain(atlas = Destrieux_atlas,
+              mapping = aes(fill = ICC),
+              #position = position_brain(hemi ~ side)
+              ) +
+   theme_brain() +
+   scale_fill_continuous(limits = c(0, .7), type = "viridis",
+                         name = "longitudinal stability") +
+   ggtitle("Destrieux") +
+   theme(legend.position = "none",
+         #legend.key.width=unit(1,"cm"), 
+         #legend.key.height = unit(.5,"cm"),
+         axis.text = element_blank()) 
+
+Cairo(file = "6_figures/Figure11_original.png",
+      type = "png",
+      units="in", 
+      width=6, 
+      height=5, 
+      pointsize=12, 
+      dpi=600)
+
+
+Figure11_comparisons <- (CT_ICC1_comparisons / CT_ICC1_lobe_comparisons / Destrieux_ICC_fig1_comparisons) + plot_layout(guides = "collect") & theme(legend.position = "bottom", legend.key.width=unit(1,"cm"), legend.key.height = unit(.5,"cm")) & scale_fill_continuous(limits = c(0, 1), type = "viridis",
+                         name = "ICC")
+
+Figure11_comparisons
+
+dev.off()
+
+```
+
+### correlate voxel count and ICC
+
+```{r voxels}
+
+Destrieux_voxel2 <- Destrieux_voxel %>%
+  rename("label" = region,
+         "lh" = left,
+         "rh" = right) %>%
+  mutate(label = gsub("'", "", label)) %>%
+  pivot_longer(cols = c(lh, rh),
+               names_to = "hemi",
+               values_to = "voxel") %>%
+  dplyr::mutate(label = paste(hemi, label, sep = "_")) %>%
+    select(label, voxel) %>%
+  filter(voxel != 0)
+
+
+Destrieux_voxel2_ICC <- fuzzyjoin::stringdist_join(out_CT_Destrieux, 
+                           Destrieux_voxel2,
+                           by = "label",
+                           method = "jw", #use jw distance metric
+                max_dist=99, 
+                distance_col='dist') %>%
+  #arrange(desc(dist)) %>%
+  group_by(label.x) %>%
+  slice_min(order_by=dist, n=1)
+
+
+cor.test(Destrieux_voxel2_ICC$ICC, Destrieux_voxel2_ICC$voxel, method = "spearman")
+
+ggplot(data = Destrieux_voxel2_ICC,
+       aes(x = voxel, y = ICC)) +
+  geom_smooth(method = "lm") +
+  geom_point()
+
+
+
+###
+
+
+
+
+
+
+
+```
+
 
 # 2. Examining sources of longitudinal (in)stability
 
@@ -427,7 +931,35 @@ between_error_GM %>%
          prop2 = vare / vart)
 
 ```
-  
+
+### Destreux
+
+```{r all_between_error_CT_variance_proportions}
+# of interest to compare the spread of estimates
+
+# proportion of between subjects to error variance, by ROI
+between_error_CT_Destrieux %>%
+  group_by(ROI) %>%
+  summarise(mt = median(time_var),
+            me = median(error_var)) %>%
+  ungroup() %>%
+  summarise(vart = var(mt),
+            vare = var(me)) %>%
+  mutate(prop = vart / vare)
+
+# proportion of between subjects to error variance, by site
+between_error_CT_Destrieux %>%
+  group_by(site) %>%
+  summarise(mt = median(time_var),
+            me = median(error_var)) %>%
+  ungroup() %>%
+  summarise(vart = var(mt),
+            vare = var(me)) %>%
+  mutate(prop = vart / vare,
+         prop2 = vare / vart)
+
+```
+
 
 
 ## decomposing variance estimates
@@ -1412,6 +1944,198 @@ site_error_GM <- between_error_GM %>%
 site_icc_GM / site_between_GM / site_error_GM
 
 ```
+
+### Destrieux
+
+```{r betweenanderrormain_CT_regions, eval = FALSE}
+
+by_ROI_CT_box_error_Destrieux <- between_error_CT_Destrieux %>%
+  filter(grepl("rh_", ROI)) %>%
+  mutate(ROI = str_replace(ROI, "rh_", "")) %>%
+  ggplot(aes(x = reorder(ROI, -time_var, FUN = median),
+             y = error_var)) +
+  geom_point(aes(colour = site),
+             position = position_jitter(width = .25),
+             size = 1.3) +
+      geom_boxplot(outlier.shape = NA, 
+                   width = .8, 
+                   colour = "BLACK",
+                   alpha = 0.2,
+                   size = .3) +
+  coord_flip() +
+  theme_minimal() +
+  theme(legend.position = "none",
+        axis.title.y = element_blank(),
+        axis.text.y = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(colour = "grey50"),
+        axis.title.x = element_text(size = 14)) +
+  ylab("Error variance")
+
+by_ROI_CT_box_time_Destrieux <- between_error_CT_Destrieux %>%
+    filter(grepl("rh_", ROI)) %>%
+    mutate(ROI = str_replace(ROI, "rh_", "")) %>%
+  ggplot(aes(x = reorder(ROI, -time_var, FUN = median),
+             y = time_var)) +
+  geom_point(aes(colour = site),
+             position = position_jitter(width = .25),
+             size = 1.3) +
+      geom_boxplot(outlier.shape = NA, 
+                   width = .8, 
+                   colour = "BLACK",
+                   alpha = 0.2,
+                   size = .3) +
+  coord_flip() +
+  theme_minimal() +
+  theme(legend.position = "none",
+        axis.title.y = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(colour = "grey50"),
+        axis.text.y = element_text(size = 12),
+        axis.title.x = element_text(size = 14)) +
+  ylab("Between-subjects variance")
+
+by_ROI_ICC_CT_Destrieux <- between_error_CT_Destrieux %>%
+  filter(grepl("rh_", ROI)) %>%
+  mutate(ROI = str_replace(ROI, "rh_", "")) %>%
+  group_by(ROI) %>%
+  summarise(m_ICC = median(ICC),
+            m_time = median(time_var)) %>%
+  ggplot(aes(x = reorder(ROI, -m_time),
+             y = "ICC")) +
+   geom_text(aes(label = round(m_ICC,2)),
+            size = 3.5) +
+   coord_flip() +
+  theme_minimal() +
+  theme(legend.position = "none",
+        axis.title.y = element_blank(),
+        axis.text = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_blank(),
+        axis.title.x = element_text(size = 14)) +
+  ylab("ICC")
+
+
+Cairo(file = "6_figures/Figure4_Destrieux.png",
+      type = "png",
+      units="in", 
+      width=8, 
+      height=8, 
+      pointsize=12, 
+      dpi=600)
+
+Figure_4_Destrieux <- by_ROI_CT_box_time_Destrieux + by_ROI_CT_box_error_Destrieux + by_ROI_ICC_CT_Destrieux + plot_layout(widths = c(4,4,1))
+
+print(Figure_4_Destrieux)
+
+dev.off()
+
+
+
+
+
+
+```
+
+```{r betweenanderrormain_CT_sites, eval = FALSE}
+
+between_error_CT_Destrieux %>%
+  group_by(ROI, site) %>%
+  summarise(median_t = median(time_var),
+            median_e = median(error_var)) %>%
+  ungroup() %>%
+  summarise(median_t2 = median(median_t),
+            quantilet25 = quantile(median_t, .1),
+            quantilet75 = quantile(median_t, .9),
+
+            median_e2 = median(median_e),
+            quantilee25 = quantile(median_e, .1),
+            quantilee75 = quantile(median_e, .9))
+
+
+#################
+
+by_site_CT_box_error_Destrieux <- between_error_CT_Destrieux %>%
+  ggplot(aes(x = reorder(site, -error_var, FUN = median),
+             y = error_var)) +
+  geom_point(aes(colour = site),
+             position = position_jitter(width = .25),
+             size = 1.3) +
+      geom_boxplot(outlier.shape = NA, 
+                   width = .8, 
+                   colour = "BLACK",
+                   alpha = 0.2,
+                   size = .3) +
+  coord_flip() +
+  theme_minimal() +
+  theme(legend.position = "none",
+        axis.title.y = element_blank(),
+        axis.text.y = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(colour = "grey50")) +
+  ylab("Error variance")
+
+
+by_site_CT_box_true_Destrieux <- between_error_CT_Destrieux %>%
+  ggplot(aes(x = reorder(site, -error_var, FUN = median),
+             y = time_var)) +
+  geom_point(aes(colour = site),
+             position = position_jitter(width = .25),
+             size = 1.3) +
+      geom_boxplot(outlier.shape = NA, 
+                   width = .8, 
+                   colour = "BLACK",
+                   alpha = 0.2,
+                   size = .3) +
+  coord_flip() +
+  theme_minimal() +
+  theme(legend.position = "none",
+        axis.title.y = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(colour = "grey50"),
+        axis.text.y = element_text(size = 12)) +
+  ylab("Between-subjects variance")
+
+
+by_site_ICC_CT_Destrieux <- between_error_CT_Destrieux %>%
+  filter(grepl("rh_", ROI)) %>%
+  mutate(ROI = str_replace(ROI, "rh_", "")) %>%
+  group_by(site) %>%
+  summarise(m_ICC = median(ICC),
+            m_error = median(error_var)) %>%
+  ggplot(aes(x = reorder(site, -m_error),
+             y = "ICC")) +
+   geom_text(aes(label = round(m_ICC,2)),
+            size = 3.5) +
+   coord_flip() +
+  theme_minimal() +
+  theme(legend.position = "none",
+        axis.title.y = element_blank(),
+        axis.text = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_blank()) +
+  ylab("ICC")
+
+
+Cairo(file = "6_figures/Figure5_Destrieux.png",
+      type = "png",
+      units="in", 
+      width=6, 
+      height=6, 
+      pointsize=12, 
+      dpi=600)
+
+Figure_5_Destrieux <- by_site_CT_box_true_Destrieux + by_site_CT_box_error_Destrieux + by_site_ICC_CT_Destrieux + plot_layout(widths = c(4,4,1))
+
+print(Figure_5_Destrieux)
+
+dev.off()
+
+
+```
+
+
+
 
 
 # multigroup models
@@ -2792,6 +3516,150 @@ print(Figure7_GM_deltaCFI_sim)
 
 dev.off()
 }
+```
+
+### Destrieux
+
+```{r multigroup_CFIs_CT}
+
+multigroup_CFIs_CT_Destrieux <- multigroup_CFIs_CT_Destrieux %>%
+  mutate(errcon_v_con = m_e_constrained - m_constrained,
+         uncon_v_errcon = m_unconstrained - m_e_constrained,
+         timecon_v_con = m_time_constrained - m_constrained,
+         uncon_v_timecon = m_unconstrained - m_time_constrained,
+         uncon_v_con = m_unconstrained - m_constrained)
+
+min_deltaCFI_CT_Destrieux <- multigroup_CFIs_CT_Destrieux %>%
+  select(errcon_v_con, uncon_v_errcon, timecon_v_con, uncon_v_timecon, uncon_v_con) %>%
+  min(na.rm = TRUE)
+
+max_deltaCFI_CT_Destrieux <- multigroup_CFIs_CT_Destrieux %>%
+  select(errcon_v_con, uncon_v_errcon, timecon_v_con, uncon_v_timecon, uncon_v_con) %>%
+  max(na.rm = TRUE)
+
+# for added info
+
+multigroup_CFIs_CT_Destrieux %>%
+  pivot_longer(cols = c(errcon_v_con,
+uncon_v_errcon,
+timecon_v_con,
+uncon_v_timecon,
+uncon_v_con),
+               names_to = "model",
+               values_to = "deltaCFI") %>%
+  group_by(model) %>%
+  summarise(n_01 = sum(deltaCFI > .01)/n(),
+            n_02 = sum(deltaCFI > .02)/n())
+# 1 errcon_v_con    0.324  0.191
+# 2 timecon_v_con   0.985  0.971
+# 3 uncon_v_con     0.985  0.985
+# 4 uncon_v_errcon  0.985  0.971
+# 5 uncon_v_timecon 0.0441 0 
+
+
+multigroup_CFIs_CT_Destrieux %>%
+  pivot_longer(cols = c(errcon_v_con,
+uncon_v_errcon,
+timecon_v_con,
+uncon_v_timecon,
+uncon_v_con),
+               names_to = "model",
+               values_to = "deltaCFI") %>%
+  group_by(model) %>%
+  summarise(n_0 = sum(deltaCFI < 0)/n())
+
+deltaCFI_errcon_v_con_CT_Destrieux <- Destrieux %>% 
+  as_tibble() %>% 
+  left_join(multigroup_CFIs_CT_Destrieux, by = c("label" = "region")) %>%
+  ggplot() +
+  geom_brain(atlas = Destrieux_atlas,
+             colour = "black",
+        size = .1,
+        mapping = aes(fill = errcon_v_con)) +
+    theme_void() +
+  scale_fill_continuous(name = "delta CFI",
+                        limits = c(min_deltaCFI_CT_Destrieux,
+                                   max_deltaCFI_CT_Destrieux),
+                        type = "viridis") +
+  ggtitle("A. Constrained vs Between-subjects varying")
+
+deltaCFI_uncon_v_errcon_CT_Destrieux <- Destrieux %>% 
+  as_tibble() %>% 
+  left_join(multigroup_CFIs_CT_Destrieux, by = c("label" = "region")) %>%
+ggplot() +
+  geom_brain(atlas = Destrieux_atlas,
+             colour = "black",
+        size = .1,
+        mapping = aes(fill = uncon_v_errcon)) +
+    theme_void() +
+  scale_fill_continuous(name = "delta CFI",
+                        limits = c(min_deltaCFI_CT_Destrieux,
+                                   max_deltaCFI_CT_Destrieux),
+                        type = "viridis") +
+  ggtitle("B. Between-subjects varying vs Unconstrained")
+
+deltaCFI_timecon_v_con_CT_Destrieux <- Destrieux %>% 
+  as_tibble() %>% 
+  left_join(multigroup_CFIs_CT_Destrieux, by = c("label" = "region")) %>%
+ggplot() +
+  geom_brain(atlas = Destrieux_atlas,
+             colour = "black",
+        size = .1,
+        mapping = aes(fill = timecon_v_con)) +
+    theme_void() +
+  scale_fill_continuous(name = "delta CFI",
+                        limits = c(min_deltaCFI_CT_Destrieux,
+                                   max_deltaCFI_CT_Destrieux),
+                        type = "viridis") +
+  ggtitle("C. Constrained vs Error varying")
+
+deltaCFI_uncon_v_timecon_CT_Destrieux <- Destrieux %>% 
+  as_tibble() %>% 
+  left_join(multigroup_CFIs_CT_Destrieux, by = c("label" = "region")) %>%
+ggplot() +
+  geom_brain(atlas = Destrieux_atlas,
+             colour = "black",
+        size = .1,
+        mapping = aes(fill = uncon_v_timecon)) +
+    theme_void() +
+  scale_fill_continuous(name = "delta CFI",
+                        limits = c(min_deltaCFI_CT_Destrieux,
+                                   max_deltaCFI_CT_Destrieux),
+                        type = "viridis") +
+  ggtitle("D. Error varying vs Unconstrained")
+
+deltaCFI_uncon_v_con_CT_Destrieux <- Destrieux %>% 
+  as_tibble() %>% 
+  left_join(multigroup_CFIs_CT_Destrieux, by = c("label" = "region")) %>%
+ggplot() +
+  geom_brain(atlas = Destrieux_atlas,
+             colour = "black",
+        size = .1,
+        mapping = aes(fill = uncon_v_con)) +
+    theme_void() +
+  scale_fill_continuous(name = "delta CFI",
+                        limits = c(min_deltaCFI_CT_Destrieux,
+                                   max_deltaCFI_CT_Destrieux),
+                        type = "viridis") +
+  ggtitle("E. Constrained vs Unconstrained")
+
+Cairo(file = "6_figures/Figure7_Destrieux.png",
+      type = "png",
+      units="in", 
+      width=6, 
+      height=6, 
+      pointsize=12, 
+      dpi=600)
+
+Figure7_Destrieux <- deltaCFI_errcon_v_con_CT_Destrieux / deltaCFI_uncon_v_errcon_CT_Destrieux / deltaCFI_timecon_v_con_CT_Destrieux / deltaCFI_uncon_v_timecon_CT_Destrieux / deltaCFI_uncon_v_con_CT_Destrieux + plot_layout(guides = "collect") & theme(legend.position = "bottom", legend.key.width = unit(1, "cm"), legend.title.align=0.5)
+
+print(Figure7_Destrieux)
+
+dev.off()
+
+
+
+
 ```
 
 

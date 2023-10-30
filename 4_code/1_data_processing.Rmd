@@ -27,7 +27,10 @@ library("doParallel") # for loops in parallel
 ```{r user_defined}
  
 # use simulated data? if set to TRUE then the simulated data will be used and results saved under different file names
-use_sim = TRUE
+use_sim = FALSE
+
+# set number of bootstrapped estimates to run on ICC estimates in order to calculate 95%CIs. set to NULL to not use bootstrapped estimates. note: 100 boots on cortical thickness across the DKT atlas took 800s on SP's computer - whereas not using bootstraps took 10s. 
+n_boots = NULL
 
 # note, if you wish to use raw data you must have access to the ABCD data - these analyses require two files: abcd_lt01.txt, and abcd_smrip10201.txt to be located in the 1_raw_data/ folder
 
@@ -100,6 +103,10 @@ info_mri2 <- info_mri[,c("subjectkey","mri_info_manufacturer")] %>%
 
 
 }
+
+# mapping DK regions to lobes
+lobes <- read.csv("1_raw_data/lobe.csv")[,2:3]
+
 ```
 
 ```{r get_variables}
@@ -205,9 +212,381 @@ GM_volume <- read.csv("3_simulated_data/GM_sim.csv")
 ```
 
 
+```{r read_Destrieux_data}
+
+Desterieux_BL <- read.csv("1_raw_data/abcd_bl.csv")
+Desterieux_2Y_R <- read.delim("1_raw_data/abcd_2yr_rh_a2009s.txt")
+Desterieux_2Y_L <- read.delim("1_raw_data/abcd_2yr_lh_a2009s.txt")
+
+
+# first lets put these datasets together
+
+Desterieux_2Y <- left_join(Desterieux_2Y_R, Desterieux_2Y_L, by = "sub")
+
+Desterieux_BL <- Desterieux_BL[,1:157]
+
+
+# colnames
+
+Desterieux_BL <- Desterieux_BL %>%
+  rename(
+"lh_G_and_S_frontomargin" = "lh_G.S_frontomargin_thickness",
+"lh_G_and_S_occipital_inf" = "lh_G.S_occipital_inf_thickness",
+"lh_G_and_S_paracentral" =  "lh_G.S_paracentral_thickness",
+"lh_G_and_S_subcentral" =  "lh_G.S_subcentral_thickness",
+"lh_G_and_S_transv_frontopol" =  "lh_G.S_transv_frontopol_thickness",
+"lh_G_and_S_cingul-Ant" =  "lh_G.S_cingul.Ant_thickness",
+"lh_G_and_S_cingul-Mid-Ant" =  "lh_G.S_cingul.Mid.Ant_thickness",
+"lh_G_and_S_cingul-Mid-Post" =  "lh_G.S_cingul.Mid.Post_thickness",
+"lh_G_cingul-Post-dorsal" =  "lh_G_cingul.Post.dorsal_thickness",
+"lh_G_cingul-Post-ventral" =  "lh_G_cingul.Post.ventral_thickness",
+"lh_G_cuneus" =  "lh_G_cuneus_thickness",
+"lh_G_front_inf-Opercular" =  "lh_G_front_inf.Opercular_thickness",
+"lh_G_front_inf-Orbital" =  "lh_G_front_inf.Orbital_thickness",
+"lh_G_front_inf-Triangul" =  "lh_G_front_inf.Triangul_thickness",
+"lh_G_front_middle" =  "lh_G_front_middle_thickness",
+"lh_G_front_sup" =  "lh_G_front_sup_thickness",
+"lh_G_Ins_lg_and_S_cent_ins" =  "lh_G_Ins_lg.S_cent_ins_thickness",
+"lh_G_insular_short" =  "lh_G_insular_short_thickness",
+"lh_G_occipital_middle" =  "lh_G_occipital_middle_thickness",
+"lh_G_occipital_sup" =  "lh_G_occipital_sup_thickness",
+"lh_G_oc-temp_lat-fusifor" =  "lh_G_oc.temp_lat.fusifor_thickness",
+"lh_G_oc-temp_med-Lingual" =  "lh_G_oc.temp_med.Lingual_thickness",
+"lh_G_oc-temp_med-Parahip" =  "lh_G_oc.temp_med.Parahip_thickness",
+"lh_G_orbital" =  "lh_G_orbital_thickness",
+"lh_G_pariet_inf-Angular" =  "lh_G_pariet_inf.Angular_thickness",
+"lh_G_pariet_inf-Supramar" =  "lh_G_pariet_inf.Supramar_thickness",
+"lh_G_parietal_sup" =  "lh_G_parietal_sup_thickness",
+"lh_G_postcentral" =  "lh_G_postcentral_thickness",
+"lh_G_precentral" =  "lh_G_precentral_thickness",
+"lh_G_precuneus" =  "lh_G_precuneus_thickness",
+"lh_G_rectus" =  "lh_G_rectus_thickness",
+"lh_G_subcallosal" =  "lh_G_subcallosal_thickness",
+"lh_G_temp_sup-G_T_transv" =  "lh_G_temp_sup.G_T_transv_thickness",
+"lh_G_temp_sup-Lateral" =  "lh_G_temp_sup.Lateral_thickness",
+"lh_G_temp_sup-Plan_polar" =  "lh_G_temp_sup.Plan_polar_thickness",
+"lh_G_temp_sup-Plan_tempo" =  "lh_G_temp_sup.Plan_tempo_thickness",
+"lh_G_temporal_inf" =  "lh_G_temporal_inf_thickness",
+"lh_G_temporal_middle" =  "lh_G_temporal_middle_thickness",
+"lh_Lat_Fis-ant-Horizont" =  "lh_Lat_Fis.ant.Horizont_thickness",
+"lh_Lat_Fis-ant-Vertical" =  "lh_Lat_Fis.ant.Vertical_thickness",
+"lh_Lat_Fis-post" =  "lh_Lat_Fis.post_thickness",
+"lh_Pole_occipital" =  "lh_Pole_occipital_thickness",
+"lh_Pole_temporal" =  "lh_Pole_temporal_thickness",
+"lh_S_calcarine" =  "lh_S_calcarine_thickness",
+"lh_S_central" =  "lh_S_central_thickness",
+"lh_S_cingul-Marginalis" =  "lh_S_cingul.Marginalis_thickness",
+"lh_S_circular_insula_ant" =  "lh_S_circular_insula_ant_thickness",
+"lh_S_circular_insula_inf" =  "lh_S_circular_insula_inf_thickness",
+"lh_S_circular_insula_sup" =  "lh_S_circular_insula_sup_thickness",
+"lh_S_collat_transv_ant" =  "lh_S_collat_transv_ant_thickness",
+"lh_S_collat_transv_post" =  "lh_S_collat_transv_post_thickness",
+"lh_S_front_inf" =  "lh_S_front_inf_thickness",
+"lh_S_front_middle" =  "lh_S_front_middle_thickness",
+"lh_S_front_sup" =  "lh_S_front_sup_thickness",
+"lh_S_interm_prim-Jensen" =  "lh_S_interm_prim.Jensen_thickness",
+"lh_S_intrapariet_and_P_trans" =  "lh_S_intrapariet.P_trans_thickness",
+"lh_S_oc_middle_and_Lunatus" =  "lh_S_oc_middle.Lunatus_thickness",
+"lh_S_oc_sup_and_transversal" =  "lh_S_oc_sup.transversal_thickness",
+"lh_S_occipital_ant" =  "lh_S_occipital_ant_thickness",
+"lh_S_oc-temp_lat" =  "lh_S_oc.temp_lat_thickness",
+"lh_S_oc-temp_med_and_Lingual" =  "lh_S_oc.temp_med.Lingual_thickness",
+"lh_S_orbital_lateral" =  "lh_S_orbital_lateral_thickness",
+"lh_S_orbital_med-olfact" =  "lh_S_orbital_med.olfact_thickness",
+"lh_S_orbital-H_Shaped" =  "lh_S_orbital.H_Shaped_thickness",
+"lh_S_parieto_occipital" =  "lh_S_parieto_occipital_thickness",
+"lh_S_pericallosal" =  "lh_S_pericallosal_thickness",
+"lh_S_postcentral" =  "lh_S_postcentral_thickness",
+"lh_S_precentral-inf-part" =  "lh_S_precentral.inf.part_thickness",
+"lh_S_precentral-sup-part" =  "lh_S_precentral.sup.part_thickness",
+"lh_S_suborbital" =  "lh_S_suborbital_thickness",
+"lh_S_subparietal" =  "lh_S_subparietal_thickness",
+"lh_S_temporal_inf" =  "lh_S_temporal_inf_thickness",
+"lh_S_temporal_sup" =  "lh_S_temporal_sup_thickness",
+"lh_S_temporal_transverse" =  "lh_S_temporal_transverse_thickness",
+
+"rh_G_and_S_frontomargin" = "rh_G.S_frontomargin_thickness",
+"rh_G_and_S_occipital_inf" = "rh_G.S_occipital_inf_thickness",
+"rh_G_and_S_paracentral" =  "rh_G.S_paracentral_thickness",
+"rh_G_and_S_subcentral" =  "rh_G.S_subcentral_thickness",
+"rh_G_and_S_transv_frontopol" =  "rh_G.S_transv_frontopol_thickness",
+"rh_G_and_S_cingul-Ant" =  "rh_G.S_cingul.Ant_thickness",
+"rh_G_and_S_cingul-Mid-Ant" =  "rh_G.S_cingul.Mid.Ant_thickness",
+"rh_G_and_S_cingul-Mid-Post" =  "rh_G.S_cingul.Mid.Post_thickness",
+"rh_G_cingul-Post-dorsal" =  "rh_G_cingul.Post.dorsal_thickness",
+"rh_G_cingul-Post-ventral" =  "rh_G_cingul.Post.ventral_thickness",
+"rh_G_cuneus" =  "rh_G_cuneus_thickness",
+"rh_G_front_inf-Opercular" =  "rh_G_front_inf.Opercular_thickness",
+"rh_G_front_inf-Orbital" =  "rh_G_front_inf.Orbital_thickness",
+"rh_G_front_inf-Triangul" =  "rh_G_front_inf.Triangul_thickness",
+"rh_G_front_middle" =  "rh_G_front_middle_thickness",
+"rh_G_front_sup" =  "rh_G_front_sup_thickness",
+"rh_G_Ins_lg_and_S_cent_ins" =  "rh_G_Ins_lg.S_cent_ins_thickness",
+"rh_G_insular_short" =  "rh_G_insular_short_thickness",
+"rh_G_occipital_middle" =  "rh_G_occipital_middle_thickness",
+"rh_G_occipital_sup" =  "rh_G_occipital_sup_thickness",
+"rh_G_oc-temp_lat-fusifor" =  "rh_G_oc.temp_lat.fusifor_thickness",
+"rh_G_oc-temp_med-Lingual" =  "rh_G_oc.temp_med.Lingual_thickness",
+"rh_G_oc-temp_med-Parahip" =  "rh_G_oc.temp_med.Parahip_thickness",
+"rh_G_orbital" =  "rh_G_orbital_thickness",
+"rh_G_pariet_inf-Angular" =  "rh_G_pariet_inf.Angular_thickness",
+"rh_G_pariet_inf-Supramar" =  "rh_G_pariet_inf.Supramar_thickness",
+"rh_G_parietal_sup" =  "rh_G_parietal_sup_thickness",
+"rh_G_postcentral" =  "rh_G_postcentral_thickness",
+"rh_G_precentral" =  "rh_G_precentral_thickness",
+"rh_G_precuneus" =  "rh_G_precuneus_thickness",
+"rh_G_rectus" =  "rh_G_rectus_thickness",
+"rh_G_subcallosal" =  "rh_G_subcallosal_thickness",
+"rh_G_temp_sup-G_T_transv" =  "rh_G_temp_sup.G_T_transv_thickness",
+"rh_G_temp_sup-Lateral" =  "rh_G_temp_sup.Lateral_thickness",
+"rh_G_temp_sup-Plan_polar" =  "rh_G_temp_sup.Plan_polar_thickness",
+"rh_G_temp_sup-Plan_tempo" =  "rh_G_temp_sup.Plan_tempo_thickness",
+"rh_G_temporal_inf" =  "rh_G_temporal_inf_thickness",
+"rh_G_temporal_middle" =  "rh_G_temporal_middle_thickness",
+"rh_Lat_Fis-ant-Horizont" =  "rh_Lat_Fis.ant.Horizont_thickness",
+"rh_Lat_Fis-ant-Vertical" =  "rh_Lat_Fis.ant.Vertical_thickness",
+"rh_Lat_Fis-post" =  "rh_Lat_Fis.post_thickness",
+"rh_Pole_occipital" =  "rh_Pole_occipital_thickness",
+"rh_Pole_temporal" =  "rh_Pole_temporal_thickness",
+"rh_S_calcarine" =  "rh_S_calcarine_thickness",
+"rh_S_central" =  "rh_S_central_thickness",
+"rh_S_cingul-Marginalis" =  "rh_S_cingul.Marginalis_thickness",
+"rh_S_circular_insula_ant" =  "rh_S_circular_insula_ant_thickness",
+"rh_S_circular_insula_inf" =  "rh_S_circular_insula_inf_thickness",
+"rh_S_circular_insula_sup" =  "rh_S_circular_insula_sup_thickness",
+"rh_S_collat_transv_ant" =  "rh_S_collat_transv_ant_thickness",
+"rh_S_collat_transv_post" =  "rh_S_collat_transv_post_thickness",
+"rh_S_front_inf" =  "rh_S_front_inf_thickness",
+"rh_S_front_middle" =  "rh_S_front_middle_thickness",
+"rh_S_front_sup" =  "rh_S_front_sup_thickness",
+"rh_S_interm_prim-Jensen" =  "rh_S_interm_prim.Jensen_thickness",
+"rh_S_intrapariet_and_P_trans" =  "rh_S_intrapariet.P_trans_thickness",
+"rh_S_oc_middle_and_Lunatus" =  "rh_S_oc_middle.Lunatus_thickness",
+"rh_S_oc_sup_and_transversal" =  "rh_S_oc_sup.transversal_thickness",
+"rh_S_occipital_ant" =  "rh_S_occipital_ant_thickness",
+"rh_S_oc-temp_lat" =  "rh_S_oc.temp_lat_thickness",
+"rh_S_oc-temp_med_and_Lingual" =  "rh_S_oc.temp_med.Lingual_thickness",
+"rh_S_orbital_lateral" =  "rh_S_orbital_lateral_thickness",
+"rh_S_orbital_med-olfact" =  "rh_S_orbital_med.olfact_thickness",
+"rh_S_orbital-H_Shaped" =  "rh_S_orbital.H_Shaped_thickness",
+"rh_S_parieto_occipital" =  "rh_S_parieto_occipital_thickness",
+"rh_S_pericallosal" =  "rh_S_pericallosal_thickness",
+"rh_S_postcentral" =  "rh_S_postcentral_thickness",
+"rh_S_precentral-inf-part" =  "rh_S_precentral.inf.part_thickness",
+"rh_S_precentral-sup-part" =  "rh_S_precentral.sup.part_thickness",
+"rh_S_suborbital" =  "rh_S_suborbital_thickness",
+"rh_S_subparietal" =  "rh_S_subparietal_thickness",
+"rh_S_temporal_inf" =  "rh_S_temporal_inf_thickness",
+"rh_S_temporal_sup" =  "rh_S_temporal_sup_thickness",
+"rh_S_temporal_transverse" =  "rh_S_temporal_transverse_thickness"
+  )
+
+Desterieux_2Y <- Desterieux_2Y %>%
+  rename(
+"lh_G_and_S_frontomargin" = "lh_G.S_frontomargin_thickness",
+"lh_G_and_S_occipital_inf" = "lh_G.S_occipital_inf_thickness",
+"lh_G_and_S_paracentral" =  "lh_G.S_paracentral_thickness",
+"lh_G_and_S_subcentral" =  "lh_G.S_subcentral_thickness",
+"lh_G_and_S_transv_frontopol" =  "lh_G.S_transv_frontopol_thickness",
+"lh_G_and_S_cingul-Ant" =  "lh_G.S_cingul.Ant_thickness",
+"lh_G_and_S_cingul-Mid-Ant" =  "lh_G.S_cingul.Mid.Ant_thickness",
+"lh_G_and_S_cingul-Mid-Post" =  "lh_G.S_cingul.Mid.Post_thickness",
+"lh_G_cingul-Post-dorsal" =  "lh_G_cingul.Post.dorsal_thickness",
+"lh_G_cingul-Post-ventral" =  "lh_G_cingul.Post.ventral_thickness",
+"lh_G_cuneus" =  "lh_G_cuneus_thickness",
+"lh_G_front_inf-Opercular" =  "lh_G_front_inf.Opercular_thickness",
+"lh_G_front_inf-Orbital" =  "lh_G_front_inf.Orbital_thickness",
+"lh_G_front_inf-Triangul" =  "lh_G_front_inf.Triangul_thickness",
+"lh_G_front_middle" =  "lh_G_front_middle_thickness",
+"lh_G_front_sup" =  "lh_G_front_sup_thickness",
+"lh_G_Ins_lg_and_S_cent_ins" =  "lh_G_Ins_lg.S_cent_ins_thickness",
+"lh_G_insular_short" =  "lh_G_insular_short_thickness",
+"lh_G_occipital_middle" =  "lh_G_occipital_middle_thickness",
+"lh_G_occipital_sup" =  "lh_G_occipital_sup_thickness",
+"lh_G_oc-temp_lat-fusifor" =  "lh_G_oc.temp_lat.fusifor_thickness",
+"lh_G_oc-temp_med-Lingual" =  "lh_G_oc.temp_med.Lingual_thickness",
+"lh_G_oc-temp_med-Parahip" =  "lh_G_oc.temp_med.Parahip_thickness",
+"lh_G_orbital" =  "lh_G_orbital_thickness",
+"lh_G_pariet_inf-Angular" =  "lh_G_pariet_inf.Angular_thickness",
+"lh_G_pariet_inf-Supramar" =  "lh_G_pariet_inf.Supramar_thickness",
+"lh_G_parietal_sup" =  "lh_G_parietal_sup_thickness",
+"lh_G_postcentral" =  "lh_G_postcentral_thickness",
+"lh_G_precentral" =  "lh_G_precentral_thickness",
+"lh_G_precuneus" =  "lh_G_precuneus_thickness",
+"lh_G_rectus" =  "lh_G_rectus_thickness",
+"lh_G_subcallosal" =  "lh_G_subcallosal_thickness",
+"lh_G_temp_sup-G_T_transv" =  "lh_G_temp_sup.G_T_transv_thickness",
+"lh_G_temp_sup-Lateral" =  "lh_G_temp_sup.Lateral_thickness",
+"lh_G_temp_sup-Plan_polar" =  "lh_G_temp_sup.Plan_polar_thickness",
+"lh_G_temp_sup-Plan_tempo" =  "lh_G_temp_sup.Plan_tempo_thickness",
+"lh_G_temporal_inf" =  "lh_G_temporal_inf_thickness",
+"lh_G_temporal_middle" =  "lh_G_temporal_middle_thickness",
+"lh_Lat_Fis-ant-Horizont" =  "lh_Lat_Fis.ant.Horizont_thickness",
+"lh_Lat_Fis-ant-Vertical" =  "lh_Lat_Fis.ant.Vertical_thickness",
+"lh_Lat_Fis-post" =  "lh_Lat_Fis.post_thickness",
+"lh_Pole_occipital" =  "lh_Pole_occipital_thickness",
+"lh_Pole_temporal" =  "lh_Pole_temporal_thickness",
+"lh_S_calcarine" =  "lh_S_calcarine_thickness",
+"lh_S_central" =  "lh_S_central_thickness",
+"lh_S_cingul-Marginalis" =  "lh_S_cingul.Marginalis_thickness",
+"lh_S_circular_insula_ant" =  "lh_S_circular_insula_ant_thickness",
+"lh_S_circular_insula_inf" =  "lh_S_circular_insula_inf_thickness",
+"lh_S_circular_insula_sup" =  "lh_S_circular_insula_sup_thickness",
+"lh_S_collat_transv_ant" =  "lh_S_collat_transv_ant_thickness",
+"lh_S_collat_transv_post" =  "lh_S_collat_transv_post_thickness",
+"lh_S_front_inf" =  "lh_S_front_inf_thickness",
+"lh_S_front_middle" =  "lh_S_front_middle_thickness",
+"lh_S_front_sup" =  "lh_S_front_sup_thickness",
+"lh_S_interm_prim-Jensen" =  "lh_S_interm_prim.Jensen_thickness",
+"lh_S_intrapariet_and_P_trans" =  "lh_S_intrapariet.P_trans_thickness",
+"lh_S_oc_middle_and_Lunatus" =  "lh_S_oc_middle.Lunatus_thickness",
+"lh_S_oc_sup_and_transversal" =  "lh_S_oc_sup.transversal_thickness",
+"lh_S_occipital_ant" =  "lh_S_occipital_ant_thickness",
+"lh_S_oc-temp_lat" =  "lh_S_oc.temp_lat_thickness",
+"lh_S_oc-temp_med_and_Lingual" =  "lh_S_oc.temp_med.Lingual_thickness",
+"lh_S_orbital_lateral" =  "lh_S_orbital_lateral_thickness",
+"lh_S_orbital_med-olfact" =  "lh_S_orbital_med.olfact_thickness",
+"lh_S_orbital-H_Shaped" =  "lh_S_orbital.H_Shaped_thickness",
+"lh_S_parieto_occipital" =  "lh_S_parieto_occipital_thickness",
+"lh_S_pericallosal" =  "lh_S_pericallosal_thickness",
+"lh_S_postcentral" =  "lh_S_postcentral_thickness",
+"lh_S_precentral-inf-part" =  "lh_S_precentral.inf.part_thickness",
+"lh_S_precentral-sup-part" =  "lh_S_precentral.sup.part_thickness",
+"lh_S_suborbital" =  "lh_S_suborbital_thickness",
+"lh_S_subparietal" =  "lh_S_subparietal_thickness",
+"lh_S_temporal_inf" =  "lh_S_temporal_inf_thickness",
+"lh_S_temporal_sup" =  "lh_S_temporal_sup_thickness",
+"lh_S_temporal_transverse" =  "lh_S_temporal_transverse_thickness",
+
+"rh_G_and_S_frontomargin" = "rh_G.S_frontomargin_thickness",
+"rh_G_and_S_occipital_inf" = "rh_G.S_occipital_inf_thickness",
+"rh_G_and_S_paracentral" =  "rh_G.S_paracentral_thickness",
+"rh_G_and_S_subcentral" =  "rh_G.S_subcentral_thickness",
+"rh_G_and_S_transv_frontopol" =  "rh_G.S_transv_frontopol_thickness",
+"rh_G_and_S_cingul-Ant" =  "rh_G.S_cingul.Ant_thickness",
+"rh_G_and_S_cingul-Mid-Ant" =  "rh_G.S_cingul.Mid.Ant_thickness",
+"rh_G_and_S_cingul-Mid-Post" =  "rh_G.S_cingul.Mid.Post_thickness",
+"rh_G_cingul-Post-dorsal" =  "rh_G_cingul.Post.dorsal_thickness",
+"rh_G_cingul-Post-ventral" =  "rh_G_cingul.Post.ventral_thickness",
+"rh_G_cuneus" =  "rh_G_cuneus_thickness",
+"rh_G_front_inf-Opercular" =  "rh_G_front_inf.Opercular_thickness",
+"rh_G_front_inf-Orbital" =  "rh_G_front_inf.Orbital_thickness",
+"rh_G_front_inf-Triangul" =  "rh_G_front_inf.Triangul_thickness",
+"rh_G_front_middle" =  "rh_G_front_middle_thickness",
+"rh_G_front_sup" =  "rh_G_front_sup_thickness",
+"rh_G_Ins_lg_and_S_cent_ins" =  "rh_G_Ins_lg.S_cent_ins_thickness",
+"rh_G_insular_short" =  "rh_G_insular_short_thickness",
+"rh_G_occipital_middle" =  "rh_G_occipital_middle_thickness",
+"rh_G_occipital_sup" =  "rh_G_occipital_sup_thickness",
+"rh_G_oc-temp_lat-fusifor" =  "rh_G_oc.temp_lat.fusifor_thickness",
+"rh_G_oc-temp_med-Lingual" =  "rh_G_oc.temp_med.Lingual_thickness",
+"rh_G_oc-temp_med-Parahip" =  "rh_G_oc.temp_med.Parahip_thickness",
+"rh_G_orbital" =  "rh_G_orbital_thickness",
+"rh_G_pariet_inf-Angular" =  "rh_G_pariet_inf.Angular_thickness",
+"rh_G_pariet_inf-Supramar" =  "rh_G_pariet_inf.Supramar_thickness",
+"rh_G_parietal_sup" =  "rh_G_parietal_sup_thickness",
+"rh_G_postcentral" =  "rh_G_postcentral_thickness",
+"rh_G_precentral" =  "rh_G_precentral_thickness",
+"rh_G_precuneus" =  "rh_G_precuneus_thickness",
+"rh_G_rectus" =  "rh_G_rectus_thickness",
+"rh_G_subcallosal" =  "rh_G_subcallosal_thickness",
+"rh_G_temp_sup-G_T_transv" =  "rh_G_temp_sup.G_T_transv_thickness",
+"rh_G_temp_sup-Lateral" =  "rh_G_temp_sup.Lateral_thickness",
+"rh_G_temp_sup-Plan_polar" =  "rh_G_temp_sup.Plan_polar_thickness",
+"rh_G_temp_sup-Plan_tempo" =  "rh_G_temp_sup.Plan_tempo_thickness",
+"rh_G_temporal_inf" =  "rh_G_temporal_inf_thickness",
+"rh_G_temporal_middle" =  "rh_G_temporal_middle_thickness",
+"rh_Lat_Fis-ant-Horizont" =  "rh_Lat_Fis.ant.Horizont_thickness",
+"rh_Lat_Fis-ant-Vertical" =  "rh_Lat_Fis.ant.Vertical_thickness",
+"rh_Lat_Fis-post" =  "rh_Lat_Fis.post_thickness",
+"rh_Pole_occipital" =  "rh_Pole_occipital_thickness",
+"rh_Pole_temporal" =  "rh_Pole_temporal_thickness",
+"rh_S_calcarine" =  "rh_S_calcarine_thickness",
+"rh_S_central" =  "rh_S_central_thickness",
+"rh_S_cingul-Marginalis" =  "rh_S_cingul.Marginalis_thickness",
+"rh_S_circular_insula_ant" =  "rh_S_circular_insula_ant_thickness",
+"rh_S_circular_insula_inf" =  "rh_S_circular_insula_inf_thickness",
+"rh_S_circular_insula_sup" =  "rh_S_circular_insula_sup_thickness",
+"rh_S_collat_transv_ant" =  "rh_S_collat_transv_ant_thickness",
+"rh_S_collat_transv_post" =  "rh_S_collat_transv_post_thickness",
+"rh_S_front_inf" =  "rh_S_front_inf_thickness",
+"rh_S_front_middle" =  "rh_S_front_middle_thickness",
+"rh_S_front_sup" =  "rh_S_front_sup_thickness",
+"rh_S_interm_prim-Jensen" =  "rh_S_interm_prim.Jensen_thickness",
+"rh_S_intrapariet_and_P_trans" =  "rh_S_intrapariet.P_trans_thickness",
+"rh_S_oc_middle_and_Lunatus" =  "rh_S_oc_middle.Lunatus_thickness",
+"rh_S_oc_sup_and_transversal" =  "rh_S_oc_sup.transversal_thickness",
+"rh_S_occipital_ant" =  "rh_S_occipital_ant_thickness",
+"rh_S_oc-temp_lat" =  "rh_S_oc.temp_lat_thickness",
+"rh_S_oc-temp_med_and_Lingual" =  "rh_S_oc.temp_med.Lingual_thickness",
+"rh_S_orbital_lateral" =  "rh_S_orbital_lateral_thickness",
+"rh_S_orbital_med-olfact" =  "rh_S_orbital_med.olfact_thickness",
+"rh_S_orbital-H_Shaped" =  "rh_S_orbital.H_Shaped_thickness",
+"rh_S_parieto_occipital" =  "rh_S_parieto_occipital_thickness",
+"rh_S_pericallosal" =  "rh_S_pericallosal_thickness",
+"rh_S_postcentral" =  "rh_S_postcentral_thickness",
+"rh_S_precentral-inf-part" =  "rh_S_precentral.inf.part_thickness",
+"rh_S_precentral-sup-part" =  "rh_S_precentral.sup.part_thickness",
+"rh_S_suborbital" =  "rh_S_suborbital_thickness",
+"rh_S_subparietal" =  "rh_S_subparietal_thickness",
+"rh_S_temporal_inf" =  "rh_S_temporal_inf_thickness",
+"rh_S_temporal_sup" =  "rh_S_temporal_sup_thickness",
+"rh_S_temporal_transverse" =  "rh_S_temporal_transverse_thickness"
+  )
+
+
+
+
+ colnames(Desterieux_BL)[6:157] <- paste(colnames(Desterieux_BL)[6:157], "Time1", sep = "_")
+ colnames(Desterieux_2Y)[2:157] <- paste(colnames(Desterieux_2Y)[2:157], "Time2", sep = "_")
+
+
+Desterieux_all <- left_join(Desterieux_BL, Desterieux_2Y, by = "sub") %>%
+  select(-group) %>%
+  filter(!is.na(rh.aparc.a2009s.thickness_Time2))
+
+
+
+
+
+# restructure into long format for lavaan
+Desterieux_all2 <- Desterieux_all %>%
+  pivot_longer(cols = all_of(c(colnames(Desterieux_BL)[6:157],         
+                               colnames(Desterieux_2Y)[2:157])),
+               values_to = "CT",
+               names_to = "region") %>%
+  separate(region, sep = "_Time", into = c("region", "time")) %>%
+  mutate(eventname = paste("T", time, sep = "")) %>%
+  select(-time)
+
+# extract variable names
+variables_Desterieux <- unique(Desterieux_all2$region)
+variables_Desterieux <- variables_Desterieux[!variables_Desterieux %in% c("lh_euler", "rh_euler", "lh_MeanThickness_thickness", "rh_MeanThickness_thickness", "eTIV.x", "eTIV.y", "BrainSegVolNotVent.x", "BrainSegVolNotVent.y", "lh.aparc.a2009s.thickness", "rh.aparc.a2009s.thickness")]
+
+###
+
+desterieux_voxel <- read.csv("1_raw_data/destrieux.csv")
+
+desterieux_voxel2 <- desterieux_voxel %>%
+  rename("label" = region,
+         "lh" = left,
+         "rh" = right) %>%
+  mutate(label = gsub("'", "", label)) %>%
+  pivot_longer(cols = c(lh, rh),
+               names_to = "hemi",
+               values_to = "voxel") %>%
+  dplyr::mutate(label = paste(hemi, label, sep = "_")) %>%
+    select(label, voxel) %>%
+  filter(voxel != 0)
+
+```
+
+
 
 
 ## ICC estimates
+
+### DK atlas
 
 ```{r Cortical_Thickness_parallel}
 
@@ -224,27 +603,75 @@ Cortical_thickness2 <- Cortical_thickness %>%
 # parallelized for loop to run ICED models - each loop runs the ICED model for a given region and extracts variance and ICC estimates
 time_out_CT <- system.time({
 out_CT <- foreach(i = variables_CT, 
-                  .packages=c("dplyr", "tidyr", "lavaan", "ICED"),
+                  .packages=c("dplyr", "tidyr", "lavaan", "ICED", "boot"),
                   .combine = 'rbind') %dopar% {
   
   tmp <- select(Cortical_thickness2, contains(i))
   
   capture.output({
+  # original - constrains error variances to be equal across timepoints 
   tmp_syn <- iced_syntax(structure = data.frame(time = c(colnames(tmp))),
-                         fix_lower_bounds = TRUE)
+                         fix_lower_bounds = TRUE,
+                         e_variance_equality = TRUE)
 
-  tmp_res <- run_ICED(data = tmp,
-                      model = tmp_syn)
-  })
+
+    tmp_res <- run_ICED(data = tmp,
+                        model = tmp_syn,
+                        boot = n_boots)
   
+  
+  # allow error variances to vary across time points
+  tmp_syn_evar <- iced_syntax(structure = data.frame(time = c(colnames(tmp))),
+                         fix_lower_bounds = TRUE,
+                         e_variance_equality = FALSE)
+
+  tmp_res_evar <- run_ICED(data = tmp,
+                      model = tmp_syn_evar)
+  
+  #summary(tmp_res$lavaan)
+  #summary(tmp_res_evar$lavaan)
+
+  #anova(tmp_res$lavaan, tmp_res_evar$lavaan)
+  
+  # delta CFI, positive values favour the simpler model
+  delta_CFI <- fitmeasures(tmp_res_evar$lavaan)[["cfi"]] -
+               fitmeasures(tmp_res$lavaan)[["cfi"]]
+
+  
+  })
+
+  
+if(is.null(n_boots)){  
   data.frame(label = i,
     timeest = tmp_res$timeest,
     eest = tmp_res$eest,
     ICC = tmp_res$ICC,
-    ICC2 = tmp_res$ICC2)
+    ICC2 = tmp_res$ICC2,
+    delta_CFI = delta_CFI)
+}
+if(!is.null(n_boots)){  
+  data.frame(label = i,
+    timeest = tmp_res$timeest,
+    eest = tmp_res$eest,
+    ICC = tmp_res$ICC,
+    ICC_lower95CI = tmp_res$ICC_CIs[1],
+    ICC_higher95CI = tmp_res$ICC_CIs[2],
+    ICC2 = tmp_res$ICC2,
+    ICC2_lower95CI = tmp_res$ICC2_CIs[1],
+    ICC2_higher95CI = tmp_res$ICC2_CIs[2],
+    delta_CFI = delta_CFI)
+}  
+  
+  
+  
   
 }
 })
+
+out_CT[out_CT$delta_CFI > .02,]
+
+mean(out_CT$ICC_higher95CI - out_CT$ICC_lower95CI)
+
 
 # note that timeest is the between subjects variance
 
@@ -273,7 +700,7 @@ Surface_area2 <- Surface_area %>%
 # parallelized for loop to run ICED models - each loop runs the ICED model for a given region and extracts variance and ICC estimates
 time_out_SA <- system.time({
 out_SA <- foreach(i = variables_SA, 
-                  .packages=c("dplyr", "tidyr", "lavaan", "ICED"),
+                  .packages=c("dplyr", "tidyr", "lavaan", "ICED", "boot"),
                   .combine = 'rbind') %dopar% {
   
   tmp <- select(Surface_area2, contains(i))
@@ -281,21 +708,59 @@ out_SA <- foreach(i = variables_SA,
 
   
   capture.output({
+    # original - constrains error variances to be equal across timepoints 
   tmp_syn <- iced_syntax(structure = data.frame(time = c(colnames(tmp))),
                          fix_lower_bounds = TRUE)
 
   tmp_res <- run_ICED(data = tmp,
-                      model = tmp_syn)
+                      model = tmp_syn,
+                      boot = n_boots)
+  
+    # allow error variances to vary across time points
+  tmp_syn_evar <- iced_syntax(structure = data.frame(time = c(colnames(tmp))),
+                         fix_lower_bounds = TRUE,
+                         e_variance_equality = FALSE)
+
+  tmp_res_evar <- run_ICED(data = tmp,
+                      model = tmp_syn_evar)
+  
+  #summary(tmp_res$lavaan)
+  #summary(tmp_res_evar$lavaan)
+
+  #anova(tmp_res$lavaan, tmp_res_evar$lavaan)
+  
+  # delta CFI, positive values favour the simpler model
+  delta_CFI <- fitmeasures(tmp_res_evar$lavaan)[["cfi"]] -
+               fitmeasures(tmp_res$lavaan)[["cfi"]]
   })
   
+if(is.null(n_boots)){  
   data.frame(label = i,
     timeest = tmp_res$timeest,
     eest = tmp_res$eest,
     ICC = tmp_res$ICC,
-    ICC2 = tmp_res$ICC2)
+    ICC2 = tmp_res$ICC2,
+    delta_CFI = delta_CFI)
+}
+if(!is.null(n_boots)){  
+  data.frame(label = i,
+    timeest = tmp_res$timeest,
+    eest = tmp_res$eest,
+    ICC = tmp_res$ICC,
+    ICC_lower95CI = tmp_res$ICC_CIs[1],
+    ICC_higher95CI = tmp_res$ICC_CIs[2],
+    ICC2 = tmp_res$ICC2,
+    ICC2_lower95CI = tmp_res$ICC2_CIs[1],
+    ICC2_higher95CI = tmp_res$ICC2_CIs[2],
+    delta_CFI = delta_CFI)
+}  
   
 }
 })
+
+out_SA[out_SA$delta_CFI > .02,]
+
+
 
 # note that timeest is the between subjects variance
 
@@ -322,7 +787,7 @@ GM_volume2 <- GM_volume %>%
 # parallelized for loop to run ICED models - each loop runs the ICED model for a given region and extracts variance and ICC estimates
 time_out_GM <- system.time({
 out_GM <- foreach(i = variables_GM, 
-                  .packages=c("dplyr", "tidyr", "lavaan", "ICED"),
+                  .packages=c("dplyr", "tidyr", "lavaan", "ICED", "boot"),
                   .combine = 'rbind') %dopar% {
   
   tmp <- select(GM_volume2, contains(i))
@@ -330,21 +795,57 @@ out_GM <- foreach(i = variables_GM,
 
   
   capture.output({
+    # original - constrains error variances to be equal across timepoints 
   tmp_syn <- iced_syntax(structure = data.frame(time = c(colnames(tmp))),
                          fix_lower_bounds = TRUE)
 
   tmp_res <- run_ICED(data = tmp,
-                      model = tmp_syn)
+                      model = tmp_syn,
+                      boot = n_boots)
+  
+      # allow error variances to vary across time points
+  tmp_syn_evar <- iced_syntax(structure = data.frame(time = c(colnames(tmp))),
+                         fix_lower_bounds = TRUE,
+                         e_variance_equality = FALSE)
+
+  tmp_res_evar <- run_ICED(data = tmp,
+                      model = tmp_syn_evar)
+  
+  #summary(tmp_res$lavaan)
+  #summary(tmp_res_evar$lavaan)
+
+  #anova(tmp_res$lavaan, tmp_res_evar$lavaan)
+  
+  # delta CFI, positive values favour the simpler model
+  delta_CFI <- fitmeasures(tmp_res_evar$lavaan)[["cfi"]] -
+               fitmeasures(tmp_res$lavaan)[["cfi"]]
   })
   
+if(is.null(n_boots)){  
   data.frame(label = i,
     timeest = tmp_res$timeest,
     eest = tmp_res$eest,
     ICC = tmp_res$ICC,
-    ICC2 = tmp_res$ICC2)
+    ICC2 = tmp_res$ICC2,
+    delta_CFI = delta_CFI)
+}
+if(!is.null(n_boots)){  
+  data.frame(label = i,
+    timeest = tmp_res$timeest,
+    eest = tmp_res$eest,
+    ICC = tmp_res$ICC,
+    ICC_lower95CI = tmp_res$ICC_CIs[1],
+    ICC_higher95CI = tmp_res$ICC_CIs[2],
+    ICC2 = tmp_res$ICC2,
+    ICC2_lower95CI = tmp_res$ICC2_CIs[1],
+    ICC2_higher95CI = tmp_res$ICC2_CIs[2],
+    delta_CFI = delta_CFI)
+}  
   
 }
 })
+
+out_GM[out_GM$delta_CFI > .02,]
 
 # note that timeest is the between subjects variance
 
@@ -357,9 +858,554 @@ write.csv(out_GM, "5_simulated_analyses_output/out_GM_sim.csv")
 
 ```
 
+### Lobes
+
+```{r group_lobes}
+
+# CT restructure into wide format for lavaan
+CT_lobes <- Cortical_thickness %>%
+  pivot_longer(cols = all_of(variables_CT)) %>%
+  separate(name, sep = "_", into = c("side", "label")) %>%
+  left_join(lobes,
+            by = "label") %>%
+  group_by(subjectkey, eventname, side, lobe) %>%
+  summarise(mean_CT = mean(value)) %>%
+  unite("lobe", "side", "lobe")
+
+variables_CT_lobes <- unique(CT_lobes$lobe)
+
+CT_lobes <- CT_lobes %>%
+  unite("lobe", "lobe", "eventname") %>%
+  pivot_wider(names_from = lobe,
+              values_from = mean_CT) %>%
+  ungroup()
+
+
+# SA restructure into wide format for lavaan
+SA_lobes <- Surface_area %>%
+  pivot_longer(cols = all_of(variables_SA)) %>%
+  separate(name, sep = "_", into = c("side", "label")) %>%
+  left_join(lobes,
+            by = "label") %>%
+  group_by(subjectkey, eventname, side, lobe) %>%
+  summarise(mean_SA = mean(value)) %>%
+  unite("lobe", "side", "lobe")
+
+variables_SA_lobes <- unique(SA_lobes$lobe)
+
+SA_lobes <- SA_lobes %>%
+  unite("lobe", "lobe", "eventname") %>%
+  pivot_wider(names_from = lobe,
+              values_from = mean_SA) %>%
+  ungroup()
+
+
+# GM restructure into wide format for lavaan
+GM_lobes <- GM_volume %>%
+  pivot_longer(cols = all_of(variables_GM)) %>%
+  separate(name, sep = "_", into = c("side", "label")) %>%
+  left_join(lobes,
+            by = "label") %>%
+  group_by(subjectkey, eventname, side, lobe) %>%
+  summarise(mean_GM = mean(value)) %>%
+  unite("lobe", "side", "lobe")
+
+variables_GM_lobes <- unique(GM_lobes$lobe)
+
+GM_lobes <- GM_lobes %>%
+  unite("lobe", "lobe", "eventname") %>%
+  pivot_wider(names_from = lobe,
+              values_from = mean_GM) %>%
+  ungroup()
+
+
+```
+
+```{r Cortical_Thickness_parallel_lobe}
+
+# parallelized for loop to run ICED models - each loop runs the ICED model for a given region and extracts variance and ICC estimates
+time_out_CT_lobe <- system.time({
+out_CT_lobe <- foreach(i = variables_CT_lobes, 
+                  .packages=c("dplyr", "tidyr", "lavaan", "ICED", "boot"),
+                  .combine = 'rbind') %dopar% {
+  
+  tmp <- select(CT_lobes, contains(i))
+  
+  capture.output({
+  # original - constrains error variances to be equal across timepoints 
+  tmp_syn <- iced_syntax(structure = data.frame(time = c(colnames(tmp))),
+                         fix_lower_bounds = TRUE,
+                         e_variance_equality = TRUE)
+
+  tmp_res <- run_ICED(data = tmp,
+                      model = tmp_syn,
+                      boot = n_boots)
+  
+  # allow error variances to vary across time points
+  tmp_syn_evar <- iced_syntax(structure = data.frame(time = c(colnames(tmp))),
+                         fix_lower_bounds = TRUE,
+                         e_variance_equality = FALSE)
+
+  tmp_res_evar <- run_ICED(data = tmp,
+                      model = tmp_syn_evar)
+  
+  #summary(tmp_res$lavaan)
+  #summary(tmp_res_evar$lavaan)
+
+  #anova(tmp_res$lavaan, tmp_res_evar$lavaan)
+  
+  # delta CFI, positive values favour the simpler model
+  delta_CFI <- fitmeasures(tmp_res_evar$lavaan)[["cfi"]] -
+               fitmeasures(tmp_res$lavaan)[["cfi"]]
+
+  
+  })
+  
+if(is.null(n_boots)){  
+  data.frame(label = i,
+    timeest = tmp_res$timeest,
+    eest = tmp_res$eest,
+    ICC = tmp_res$ICC,
+    ICC2 = tmp_res$ICC2,
+    delta_CFI = delta_CFI)
+}
+if(!is.null(n_boots)){  
+  data.frame(label = i,
+    timeest = tmp_res$timeest,
+    eest = tmp_res$eest,
+    ICC = tmp_res$ICC,
+    ICC_lower95CI = tmp_res$ICC_CIs[1],
+    ICC_higher95CI = tmp_res$ICC_CIs[2],
+    ICC2 = tmp_res$ICC2,
+    ICC2_lower95CI = tmp_res$ICC2_CIs[1],
+    ICC2_higher95CI = tmp_res$ICC2_CIs[2],
+    delta_CFI = delta_CFI)
+}  
+  
+}
+})
+
+write.csv(out_CT_lobe, "2_analysis_output/out_CT_lobe.csv")
+
+
+# from here to go into the plotting script
+
+
+out_CT_lobe[out_CT_lobe$delta_CFI > .02,]
+
+# note that timeest is the between subjects variance
+
+mean(out_CT_lobe$ICC)
+range(out_CT_lobe$ICC)
+
+
+lobes_rh <- lobes %>%
+  mutate(label = paste("rh", label, sep = "_"),
+         lobe = paste("rh", lobe, sep = "_"))
+
+lobes_lh <- lobes %>%
+  mutate(label = paste("lh", label, sep = "_"),
+         lobe = paste("lh", lobe, sep = "_"))
+
+lobes2 <- rbind(lobes_lh, lobes_rh)
+
+
+dk %>%
+  as_tibble() %>%
+  left_join(full_join(out_CT_lobe, lobes2)) %>%
+  ggseg(mapping = aes(fill = ICC),
+        atlas = "dk", 
+        colour = "lightblue",
+        size = 0) +
+  theme(legend.position = "bottom")
+
+
+
+
+```
+
+```{r Surface_Area_parallel_lobe}
+
+# parallelized for loop to run ICED models - each loop runs the ICED model for a given region and extracts variance and ICC estimates
+time_out_SA_lobe <- system.time({
+out_SA_lobe <- foreach(i = variables_SA_lobes, 
+                  .packages=c("dplyr", "tidyr", "lavaan", "ICED", "boot"),
+                  .combine = 'rbind') %dopar% {
+  
+  tmp <- select(SA_lobes, contains(i))
+  tmp <- tmp / 1000
+  
+  capture.output({
+  # original - constrains error variances to be equal across timepoints 
+  tmp_syn <- iced_syntax(structure = data.frame(time = c(colnames(tmp))),
+                         fix_lower_bounds = TRUE,
+                         e_variance_equality = TRUE)
+
+  tmp_res <- run_ICED(data = tmp,
+                      model = tmp_syn,
+                      boot = n_boots)
+  
+  # allow error variances to vary across time points
+  tmp_syn_evar <- iced_syntax(structure = data.frame(time = c(colnames(tmp))),
+                         fix_lower_bounds = TRUE,
+                         e_variance_equality = FALSE)
+
+  tmp_res_evar <- run_ICED(data = tmp,
+                      model = tmp_syn_evar)
+  
+  #summary(tmp_res$lavaan)
+  #summary(tmp_res_evar$lavaan)
+
+  #anova(tmp_res$lavaan, tmp_res_evar$lavaan)
+  
+  # delta CFI, positive values favour the simpler model
+  delta_CFI <- fitmeasures(tmp_res_evar$lavaan)[["cfi"]] -
+               fitmeasures(tmp_res$lavaan)[["cfi"]]
+
+  
+  })
+  
+if(is.null(n_boots)){  
+  data.frame(label = i,
+    timeest = tmp_res$timeest,
+    eest = tmp_res$eest,
+    ICC = tmp_res$ICC,
+    ICC2 = tmp_res$ICC2,
+    delta_CFI = delta_CFI)
+}
+if(!is.null(n_boots)){  
+  data.frame(label = i,
+    timeest = tmp_res$timeest,
+    eest = tmp_res$eest,
+    ICC = tmp_res$ICC,
+    ICC_lower95CI = tmp_res$ICC_CIs[1],
+    ICC_higher95CI = tmp_res$ICC_CIs[2],
+    ICC2 = tmp_res$ICC2,
+    ICC2_lower95CI = tmp_res$ICC2_CIs[1],
+    ICC2_higher95CI = tmp_res$ICC2_CIs[2],
+    delta_CFI = delta_CFI)
+}  
+  
+}
+})
+
+write.csv(out_SA_lobe, "2_analysis_output/out_SA_lobe.csv")
+
+```
+
+```{r Grey_Matter_Volume_parallel_lobe}
+
+# parallelized for loop to run ICED models - each loop runs the ICED model for a given region and extracts variance and ICC estimates
+time_out_GM_lobe <- system.time({
+out_GM_lobe <- foreach(i = variables_GM_lobes, 
+                  .packages=c("dplyr", "tidyr", "lavaan", "ICED", "boot"),
+                  .combine = 'rbind') %dopar% {
+  
+  tmp <- select(GM_lobes, contains(i))
+  tmp <- tmp / 1000
+  
+  capture.output({
+  # original - constrains error variances to be equal across timepoints 
+  tmp_syn <- iced_syntax(structure = data.frame(time = c(colnames(tmp))),
+                         fix_lower_bounds = TRUE,
+                         e_variance_equality = TRUE)
+
+  tmp_res <- run_ICED(data = tmp,
+                      model = tmp_syn,
+                      boot = n_boots)
+  
+  # allow error variances to vary across time points
+  tmp_syn_evar <- iced_syntax(structure = data.frame(time = c(colnames(tmp))),
+                         fix_lower_bounds = TRUE,
+                         e_variance_equality = FALSE)
+
+  tmp_res_evar <- run_ICED(data = tmp,
+                      model = tmp_syn_evar)
+  
+  #summary(tmp_res$lavaan)
+  #summary(tmp_res_evar$lavaan)
+
+  #anova(tmp_res$lavaan, tmp_res_evar$lavaan)
+  
+  # delta CFI, positive values favour the simpler model
+  delta_CFI <- fitmeasures(tmp_res_evar$lavaan)[["cfi"]] -
+               fitmeasures(tmp_res$lavaan)[["cfi"]]
+
+  
+  })
+  
+if(is.null(n_boots)){  
+  data.frame(label = i,
+    timeest = tmp_res$timeest,
+    eest = tmp_res$eest,
+    ICC = tmp_res$ICC,
+    ICC2 = tmp_res$ICC2,
+    delta_CFI = delta_CFI)
+}
+if(!is.null(n_boots)){  
+  data.frame(label = i,
+    timeest = tmp_res$timeest,
+    eest = tmp_res$eest,
+    ICC = tmp_res$ICC,
+    ICC_lower95CI = tmp_res$ICC_CIs[1],
+    ICC_higher95CI = tmp_res$ICC_CIs[2],
+    ICC2 = tmp_res$ICC2,
+    ICC2_lower95CI = tmp_res$ICC2_CIs[1],
+    ICC2_higher95CI = tmp_res$ICC2_CIs[2],
+    delta_CFI = delta_CFI)
+}  
+  
+}
+})
+
+write.csv(out_GM_lobe, "2_analysis_output/out_GM_lobe.csv")
+
+```
+
+### Des
+
+```{r Des}
+
+# parallelized for loop to run ICED models - each loop runs the ICED model for a given region and extracts variance and ICC estimates
+time_out_CT_Destrieux <- system.time({
+out_CT_Destrieux <- foreach(i = variables_Desterieux, 
+                  .packages=c("dplyr", "tidyr", "lavaan", "ICED", "boot"),
+                  .combine = 'rbind') %dopar% {
+  
+  tmp <- select(Desterieux_all, contains(i))
+  
+  # to make sure the names are ok
+  colnames(tmp) <- gsub("-", "_", colnames(tmp))
+  
+  capture.output({
+  # original - constrains error variances to be equal across timepoints 
+  tmp_syn <- iced_syntax(structure = data.frame(time = c(colnames(tmp))),
+                         fix_lower_bounds = TRUE,
+                         e_variance_equality = TRUE)
+
+  tmp_res <- run_ICED(data = tmp,
+                      model = tmp_syn,
+                      boot = n_boots)
+  
+  # allow error variances to vary across time points
+  tmp_syn_evar <- iced_syntax(structure = data.frame(time = c(colnames(tmp))),
+                         fix_lower_bounds = TRUE,
+                         e_variance_equality = FALSE)
+
+  tmp_res_evar <- run_ICED(data = tmp,
+                      model = tmp_syn_evar)
+  
+  #summary(tmp_res$lavaan)
+  #summary(tmp_res_evar$lavaan)
+
+  #anova(tmp_res$lavaan, tmp_res_evar$lavaan)
+  
+  # delta CFI, positive values favour the simpler model
+  equal_CFI <- fitmeasures(tmp_res$lavaan)[["cfi"]]
+  free_CFI  <- fitmeasures(tmp_res_evar$lavaan)[["cfi"]]
+  delta_CFI <- fitmeasures(tmp_res_evar$lavaan)[["cfi"]] -
+               fitmeasures(tmp_res$lavaan)[["cfi"]]
+
+  
+  })
+  
+if(is.null(n_boots)){  
+  data.frame(label = i,
+    timeest = tmp_res$timeest,
+    eest = tmp_res$eest,
+    ICC = tmp_res$ICC,
+    ICC2 = tmp_res$ICC2,
+    equal_CFI = equal_CFI,
+    free_CFI = free_CFI,
+    delta_CFI = delta_CFI)
+}
+if(!is.null(n_boots)){  
+  data.frame(label = i,
+    timeest = tmp_res$timeest,
+    eest = tmp_res$eest,
+    ICC = tmp_res$ICC,
+    ICC_lower95CI = tmp_res$ICC_CIs[1],
+    ICC_higher95CI = tmp_res$ICC_CIs[2],
+    ICC2 = tmp_res$ICC2,
+    ICC2_lower95CI = tmp_res$ICC2_CIs[1],
+    ICC2_higher95CI = tmp_res$ICC2_CIs[2],
+    equal_CFI = equal_CFI,
+    free_CFI = free_CFI,
+    delta_CFI = delta_CFI)
+}  
+  
+}
+})
+
+sum(out_CT_Destrieux$equal_CFI == 0) / nrow(out_CT_Destrieux)
+sum(out_CT_Destrieux$equal_CFI < .95) / nrow(out_CT_Destrieux)
+
+sum(out_CT_Destrieux$delta_CFI > .02)
+sum(out_CT_Destrieux$delta_CFI < .02)
+
+out_CT_Destrieux[out_CT_Destrieux$delta_CFI > .02,]
+out_CT_Destrieux[out_CT_Destrieux$delta_CFI < .02,]
+
+
+out_CT_Destrieux[out_CT_Destrieux$free_CFI == 0,]
+
+out_CT_Destrieux[out_CT_Destrieux$ICC == 0,]
+
+
+out_CT_Destrieux %>%
+  mutate(poor = ifelse(equal_CFI < 0.95, "poor", "not bad")) %>%
+  group_by(poor) %>%
+  summarise(m_ICC = mean(ICC))
+
+
+
+# note that timeest is the between subjects variance
+
+
+write.csv(out_CT_Destrieux, "2_analysis_output/out_CT_Destrieux.csv")
+
+
+```
+
+
+### ICC and size correlations
+
+```{r ICC_size_cors}
+
+CT_ICC_size <- Cortical_thickness %>%
+  pivot_longer(cols = all_of(variables_CT),
+               names_to = "region") %>%
+  group_by(region) %>%
+  summarise(mean_size = mean(value)) %>%
+  left_join(out_CT, by = c("region" = "label"))
+
+cor.test(CT_ICC_size$mean_size, CT_ICC_size$ICC, method = "spearman")
+
+CT_ICC_size_fig <- ggplot(CT_ICC_size, 
+       aes(x = mean_size,
+           y = ICC)) +
+  geom_smooth(method = "lm") +
+  geom_point() +
+  ggtitle("DKT")
+
+##
+
+SA_ICC_size <- Surface_area %>%
+  pivot_longer(cols = all_of(variables_SA),
+               names_to = "region") %>%
+  group_by(region) %>%
+  summarise(mean_size = mean(value)) %>%
+  left_join(out_SA, by = c("region" = "label"))
+
+cor.test(SA_ICC_size$mean_size, SA_ICC_size$ICC, method = "spearman")
+
+ggplot(SA_ICC_size, 
+       aes(x = mean_size,
+           y = ICC)) +
+  geom_smooth(method = "lm") +
+  geom_point()
+
+##
+
+GM_ICC_size <- GM_volume %>%
+  pivot_longer(cols = all_of(variables_GM),
+               names_to = "region") %>%
+  group_by(region) %>%
+  summarise(mean_size = mean(value)) %>%
+  left_join(out_SA, by = c("region" = "label"))
+
+cor.test(GM_ICC_size$mean_size, GM_ICC_size$ICC, method = "spearman")
+
+ggplot(GM_ICC_size, 
+       aes(x = mean_size,
+           y = ICC)) +
+  #geom_smooth(method = "lm") +
+  stat_smooth(method = "lm", formula = y ~ poly(x, 2), size = 1) +
+  geom_point() 
+
+
+###
+# together
+
+CT_ICC_size2 <- CT_ICC_size %>%
+  select(region, mean_size, ICC) %>%
+  rename(CT_size = mean_size,
+         CT_ICC = ICC)
+SA_ICC_size2 <- SA_ICC_size %>%
+  select(region, mean_size, ICC) %>%
+  rename(SA_size = mean_size,
+         SA_ICC = ICC)
+GM_ICC_size2 <- GM_ICC_size %>%
+  select(region, mean_size, ICC) %>%
+  rename(GM_size = mean_size,
+         GM_ICC = ICC)
+
+size_ICC <- left_join(CT_ICC_size2, SA_ICC_size2) %>%
+  left_join(GM_ICC_size2)
+
+GGally::ggpairs(size_ICC[,-1],
+                lower = list(continuous = wrap("smooth", method = "lm")))
+                          
+
+
+## des
+
+
+Des_CT_icc_size <- Desterieux_all2 %>%
+  filter(eventname == "T1") %>%
+  group_by(region) %>%
+  summarise(mean_size = mean(CT)) %>%
+  left_join(out_CT_Destrieux, by = c("region" = "label")) %>%
+  na.omit()
+
+cor.test(Des_CT_icc_size$mean_size, Des_CT_icc_size$ICC, method = "spearman")
+
+Des_CT_icc_size_fig <- ggplot(Des_CT_icc_size, 
+       aes(x = mean_size,
+           y = ICC)) +
+  geom_smooth(method = "lm") +
+  geom_point()  +
+  ggtitle("Dest")
+
+library("patchwork")
+
+CT_ICC_size_fig + Des_CT_icc_size_fig
+
+
+fuzzyjoin::stringdist_join(out_CT_Destrieux, 
+                           desterieux_voxel2,
+                           by = "label",
+                           method = "jw", #use jw distance metric
+                max_dist=99, 
+                distance_col='dist')
+
+
+desterieux_voxel2_ICC <- fuzzyjoin::stringdist_join(out_CT_Destrieux, 
+                           desterieux_voxel2,
+                           by = "label",
+                           method = "jw", #use jw distance metric
+                max_dist=99, 
+                distance_col='dist') %>%
+  #arrange(desc(dist)) %>%
+  group_by(label.x) %>%
+  slice_min(order_by=dist, n=1)
+
+
+cor.test(desterieux_voxel2_ICC$ICC, desterieux_voxel2_ICC$voxel, method = "spearman")
+
+ggplot(data = desterieux_voxel2_ICC,
+       aes(x = voxel, y = ICC)) +
+  geom_smooth(method = "lm") +
+  geom_point()
+
+
+
+```
+
+
 ## Descriptives
 
-```{r descriptives}
+```{r descriptives DKT}
 # mean age, minimum and maximum ages (months) at t1 and t2
 dat1_smri %>%
   select(subjectkey, eventname, interview_age, sex) %>%
@@ -410,6 +1456,61 @@ Cortical_thickness %>%
 
 
 ```
+
+```{r descriptives Destrieux}
+# mean age, minimum and maximum ages (months) at t1 and t2
+
+des_uniq <- unique(gsub("sub-NDAR", "NDAR_", Desterieux_all$sub))
+
+unique(Cortical_thickness2$subjectkey)[1:10]
+
+
+# Desterieux_all2 <- Desterieux_all[stringdist::amatch(unique(dat1_smri$subjectkey),
+#                                   unique(gsub("sub-NDAR", 
+#                                               "NDAR_", 
+#                                               Desterieux_all$sub)),
+#                                   maxDist = 3),]
+
+
+Desterieux_all %>%
+  select(sub, age, sex) %>%
+  summarise(m_age = mean(age),
+            l_age = min(age),
+            h_age = max(age))
+
+Desterieux_all %>%
+  group_by(sex) %>%
+  summarise(n = n())
+
+dat1_smri %>%
+  select(subjectkey, eventname, interview_age, sex) %>%
+  filter(subjectkey %in% unique(gsub("sub-NDAR", "NDAR_", Desterieux_all$sub))) %>%
+  arrange(subjectkey, eventname) %>%
+  mutate(age = as.numeric(interview_age)) %>%
+  group_by(eventname) %>%
+  summarise(m_age = mean(age),
+            min = min(age),
+            max = max(age))
+
+## mean and sd difference in time between scans
+dat1_smri %>%
+  select(subjectkey, eventname, interview_age, sex) %>%
+  filter(subjectkey %in% unique(gsub("sub-NDAR", "NDAR_", Desterieux_all$sub))) %>%
+  arrange(subjectkey, eventname) %>%
+  mutate(age = as.numeric(interview_age)) %>%
+  select(-interview_age) %>%
+  pivot_wider(names_from = eventname,
+              values_from = age) %>%
+  mutate(diff = T2 - T1) %>%
+  summarise(mean(diff),
+            sd(diff))
+
+
+
+
+```
+
+
 
 ## ICCs per site
 
@@ -596,6 +1697,64 @@ write.csv(between_error_GM, "5_simulated_analyses_output/between_error_GM_sim.cs
 
 
 ```
+
+### Desterieux
+
+```{r ICED_site_compare_CT_between_vs_error_parallel_Desterieux}
+
+# list of sites
+sites <- unique(Desterieux_all$site)
+
+# nested for loop: for each site for each brain region run the ICED models
+time_between_error_CT_Desterieux <- system.time({
+between_error_CT_Desterieux <- foreach(j = sites,
+               .combine = 'rbind') %:%
+
+foreach(i = variables_Desterieux, 
+                  .packages=c("dplyr", "tidyr", "lavaan", "ICED"),
+                  .combine = 'rbind') %dopar% {
+  
+                    
+  tmp_data <- Desterieux_all %>%
+    filter(site == j)
+
+  tmp <- select(tmp_data,
+                sub,
+                contains(i)) %>%
+    select(-sub)
+  
+ # to make sure the names are ok
+  colnames(tmp) <- gsub("-", "_", colnames(tmp))
+
+capture.output({
+  
+# ICED model structure - two timepoints
+  structure <- data.frame(time = colnames(tmp))
+# ICED syntax for lavaan
+  syn <- iced_syntax(structure,
+                     fix_lower_bounds = TRUE)
+  
+  
+  tmp_res <- run_ICED(data = tmp, 
+                      model = syn)
+})
+  
+data.frame(site = j,
+ROI = i,
+time_var = tmp_res$timeest,
+error_var = tmp_res$eest,
+ICC = tmp_res$ICC,
+ICC2 = tmp_res$ICC2)
+  
+  }
+})
+
+write.csv(between_error_CT_Desterieux, "2_analysis_output/between_error_CT_Desterieux.csv")
+
+
+```
+
+
 
 
 
@@ -1175,6 +2334,185 @@ write.csv(multigroup_CFIs_GM, "5_simulated_analyses_output/multigroup_CFIs_GM_si
 
 ```
 
+### Desterieux
+
+```{r ICED_many_sites_multigroup_CT_parallel}
+
+#sites list
+sites <- unique(Desterieux_all$site)
+
+structure <- data.frame(time = c("T1",
+                                 "T2"))
+
+# model structure - fully constrained
+syn <- iced_syntax(structure,
+                   fix_lower_bounds = TRUE)
+cat(syn)
+
+# fully unconstrained
+syn_group <- iced_syntax(structure,
+                   fix_lower_bounds = TRUE,
+                   groups = sites)
+cat(syn_group)
+
+# fixing error aka alowing between subjects variance to be free between groups
+syn_group_fix_error <- iced_syntax(structure,
+                   fix_lower_bounds = TRUE,
+                   groups = sites,
+                   groups_inequality = c("time"))
+cat(syn_group_fix_error)
+
+# fixing between subjects variance aka alowing error variance to be free between groups
+syn_group_fix_time <- iced_syntax(structure,
+                   fix_lower_bounds = TRUE,
+                   groups = sites,
+                   groups_inequality = c("e"))
+cat(syn_group_fix_time)
+
+# look across each brain region, run each umitigroup model and extract Likelihood ratio tests and model fit estimates
+time_sites_LRTs_CT_Desterieux <- system.time({
+
+g_tmp_CT_Desterieux <- Desterieux_all %>%
+  filter(site %in% sites)
+
+sites_LRTs_CT_Desterieux <- foreach(i = variables_Desterieux, 
+        .packages=c("dplyr", "tidyr", "lavaan", "ICED")) %dopar% {
+
+g_tmp1_Desterieux <- g_tmp_CT_Desterieux %>%
+  select(sub, site, contains(i))
+
+colnames(g_tmp1_Desterieux) <- c("sub", "site", "T1", "T2")
+
+
+# run models
+m_constrained <- lavaan(data = g_tmp1_Desterieux,
+       model = syn,
+       group = "site")
+
+m_e_constrained <- lavaan(data = g_tmp1_Desterieux,
+       model = syn_group_fix_error,
+       group = "site")
+
+m_time_constrained <- lavaan(data = g_tmp1_Desterieux,
+       model = syn_group_fix_time,
+       group = "site")
+
+m_unconstrained <- lavaan(data = g_tmp1_Desterieux,
+       model = syn_group,
+       group = "site")
+
+
+# extract LRT results
+LRT_time <- lavTestLRT(m_constrained, 
+                  m_time_constrained,
+                  m_unconstrained)
+
+LRT_e <- lavTestLRT(m_constrained, 
+                  m_e_constrained,
+                  m_unconstrained)
+
+LRT <- lavTestLRT(m_constrained, 
+                  m_unconstrained)
+
+# save final list, including all model fits
+list(ROI = i,
+     LRT_time = lavTestLRT(m_constrained, 
+                  m_time_constrained,
+                  m_unconstrained),
+     LRT_e = lavTestLRT(m_constrained, 
+                  m_e_constrained,
+                  m_unconstrained),
+     LRT = lavTestLRT(m_constrained, 
+                  m_unconstrained),
+     fits = list(fitmeasures(m_constrained),
+             fitmeasures(m_e_constrained),
+             fitmeasures(m_time_constrained),
+             fitmeasures(m_unconstrained)))
+
+    }
+
+}) # aprox time = 4000s
+
+
+# save LRT Rdata file
+save(sites_LRTs_CT_Desterieux, file = "2_analysis_output/sites_LRTs_and_fit_CT_Desterieux.Rdata")
+
+
+
+### Extract AIC, BIC, and Chi squared values from the LRTs
+
+sites_LRTs_CT_tidy_aicbic_Desterieux <- NULL
+
+for(i in 1:length(variables_Desterieux)) {
+  
+LRT1 <- as.data.frame(sites_LRTs_CT_Desterieux[[i]]$LRT_time)
+LRT1 <- LRT1 %>%
+  mutate(AICdiff = AIC - lag(AIC, 1),
+         BICdiff = BIC - lag(BIC, 1))
+LRT1$comparison <- c("uncon", "uncon_v_timecon", "timecon_v_con")
+LRT2 <- as.data.frame(sites_LRTs_CT_Desterieux[[i]]$LRT_e)
+LRT2 <- LRT2 %>%
+  mutate(AICdiff = AIC - lag(AIC, 1),
+         BICdiff = BIC - lag(BIC, 1))
+LRT2$comparison <- c("uncon", "uncon_v_errcon", "errcon_v_con")
+LRT3 <- as.data.frame(sites_LRTs_CT_Desterieux[[i]]$LRT)
+LRT3 <- LRT3 %>%
+  mutate(AICdiff = AIC - lag(AIC, 1),
+         BICdiff = BIC - lag(BIC, 1))
+LRT3$comparison <- c("uncon", "uncon_v_con")
+
+LRT123 <- rbind(LRT1, LRT2, LRT3) %>%
+  mutate(ROI = i) %>%
+  select(comparison, ROI, AIC, AICdiff, BIC, BICdiff, Chisq, "Chisq diff", "Pr(>Chisq)")
+LRT123
+
+
+rownames(LRT123) <- 1:nrow(LRT123)
+LRT123 <- LRT123[c(1,2,3,5,6,8),]
+LRT123$ROI <- variables_Desterieux[i]
+
+sites_LRTs_CT_tidy_aicbic_Desterieux <- rbind(sites_LRTs_CT_tidy_aicbic_Desterieux, LRT123)
+  
+}
+
+sites_LRTs_CT_tidy_aicbic_Desterieux$LRT_p05 <- ifelse(sites_LRTs_CT_tidy_aicbic_Desterieux$`Pr(>Chisq)` < .05, "sig", "nonsig")
+
+sites_LRTs_CT_tidy_aicbic_Desterieux %>%
+  group_by(comparison) %>%
+  summarise(n = sum(LRT_p05 == "sig"))
+
+
+# save LRT data
+write.csv(sites_LRTs_CT_tidy_aicbic_Desterieux, "2_analysis_output/sites_LRTs_CT_tidy_aicbic_Desterieux.csv")
+
+
+# extract model CIFs
+
+multigroup_CFIs_CT_Desterieux <- data.frame(region = variables_Desterieux,
+                   m_constrained = NA,
+                   m_e_constrained = NA,
+                   m_time_constrained = NA,
+                   m_unconstrained = NA)
+
+count <- 1
+
+for(i in 1:length(variables_Desterieux)) {
+
+multigroup_CFIs_CT_Desterieux$region[count] <- sites_LRTs_CT_Desterieux[[i]]$ROI
+
+multigroup_CFIs_CT_Desterieux$m_constrained[count] <- sites_LRTs_CT_Desterieux[[i]]$fits[[1]][["cfi"]]
+multigroup_CFIs_CT_Desterieux$m_e_constrained[count] <- sites_LRTs_CT_Desterieux[[i]]$fits[[2]][["cfi"]]
+multigroup_CFIs_CT_Desterieux$m_time_constrained[count] <- sites_LRTs_CT_Desterieux[[i]]$fits[[3]][["cfi"]]
+multigroup_CFIs_CT_Desterieux$m_unconstrained[count] <- sites_LRTs_CT_Desterieux[[i]]$fits[[4]][["cfi"]]
+  
+count <- count + 1
+}  
+  
+write.csv(multigroup_CFIs_CT_Desterieux, "2_analysis_output/multigroup_CFIs_CT_Desterieux.csv")
+
+
+
+```
 
 
 
